@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Gradus Design Tokens (Linear × Things 3 × Raycast) ───────────── */
+@theme inline {
+  --font-sans:    var(--font-dm-sans);
+  --font-mono:    var(--font-jetbrains);
+  --font-heading: var(--font-outfit);
+  --font-serif:   var(--font-serif);
+
+  /* Brand — Indigo primary */
+  --color-accent:      var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  /* Shadcn semantic mapping */
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+
+  --duration-fast:   120ms;
+  --duration-normal: 200ms;
+  --duration-slow:   300ms;
+  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* sidebar, chart stubs */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+}
+
+/* ── Light Theme Variables (:root) ────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --background:    #FAFAF8;
+  --foreground:    #18181B;
+  --card:          #FFFFFF;
+  --card-foreground: #18181B;
+  --popover:       #FFFFFF;
+  --popover-foreground: #18181B;
+
+  /* Brand */
+  --accent:        #4F46E5;
+  --accent-soft:   rgba(79, 70, 229, 0.08);
+  --accent-foreground: #FFFFFF;
+
+  /* Neutral hierarchy */
+  --primary:       #18181B;
+  --primary-foreground: #FAFAF8;
+  --secondary:     #F4F4F5;
+  --secondary-foreground: #18181B;
+  --muted:         #F4F4F5;
+  --muted-foreground: #71717A;
+
+  /* Semantic */
+  --success:       #059669;
+  --success-soft:  rgba(5, 150, 105, 0.08);
+  --warning:       #D97706;
+  --warning-soft:  rgba(217, 119, 6, 0.08);
+  --error:         #DC2626;
+  --error-soft:    rgba(220, 38, 38, 0.08);
+
+  /* Borders */
+  --border:        #E4E4E7;
+  --input:         #E4E4E7;
+  --ring:          #4F46E5;
+
+  --radius:        12px;
+
+  /* Chart */
+  --chart-1: #4F46E5;
+  --chart-2: #059669;
+  --chart-3: #D97706;
+  --chart-4: #71717A;
+  --chart-5: #E4E4E7;
+
+  /* Sidebar */
+  --sidebar:       #FAFAF8;
+  --sidebar-foreground: #18181B;
+  --sidebar-primary: #18181B;
+  --sidebar-primary-foreground: #FAFAF8;
+  --sidebar-accent: #4F46E5;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #E4E4E7;
+  --sidebar-ring: #4F46E5;
+
+  /* Bloom cognitive levels — cool→warm gradient */
+  --bloom-1: #94A3B8;  /* Remember — slate */
+  --bloom-2: #60A5FA;  /* Understand — sky blue */
+  --bloom-3: #34D399;  /* Apply — emerald */
+  --bloom-4: #FBBF24;  /* Analyze — amber */
+  --bloom-5: #F97316;  /* Evaluate — orange */
+  --bloom-6: #EC4899;  /* Create — pink */
+
+  /* Legacy variable compatibility */
+  --color-bg: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-soft: #F4F4F5;
+  --color-line: #E4E4E7;
+  --color-ink: #18181B;
+  --color-muted: #71717A;
+  --color-subtle: #A1A1AA;
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-secondary-accent: #D97706;
+}
+
+/* ── Dark Theme Variables (.dark) ─────────────────────────────────── */
+.dark {
+  --background:    #0F0F14;
+  --foreground:    #FAFAFA;
+  --card:          #1A1A24;
+  --card-foreground: #FAFAFA;
+  --popover:       #1A1A24;
+  --popover-foreground: #FAFAFA;
+
+  --accent:        #818CF8;
+  --accent-soft:   rgba(129, 140, 248, 0.12);
+  --accent-foreground: #0F0F14;
+
+  --primary:       #FAFAFA;
+  --primary-foreground: #0F0F14;
+  --secondary:     #27272A;
+  --secondary-foreground: #FAFAFA;
+  --muted:         #27272A;
+  --muted-foreground: #A1A1AA;
+
+  --success:       #34D399;
+  --success-soft:  rgba(52, 211, 153, 0.12);
+  --warning:       #FBBF24;
+  --warning-soft:  rgba(251, 191, 36, 0.12);
+  --error:         #F87171;
+  --error-soft:    rgba(248, 113, 113, 0.12);
+
+  --border:        rgba(255, 255, 255, 0.08);
+  --input:         rgba(255, 255, 255, 0.08);
+  --ring:          #818CF8;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+
+  --chart-1: #818CF8;
+  --chart-2: #34D399;
+  --chart-3: #FBBF24;
+  --chart-4: #A1A1AA;
+  --chart-5: #27272A;
+
+  --sidebar:       #0A0A0F;
+  --sidebar-foreground: #FAFAFA;
+  --sidebar-primary: #FAFAFA;
+  --sidebar-primary-foreground: #0A0A0F;
+  --sidebar-accent: #818CF8;
+  --sidebar-accent-foreground: #0F0F14;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #818CF8;
+
+  --bloom-1: #B0BEC5;
+  --bloom-2: #93C5FD;
+  --bloom-3: #6EE7B7;
+  --bloom-4: #FCD34D;
+  --bloom-5: #FB923C;
+  --bloom-6: #F472B6;
+
+  /* Legacy variable compatibility */
+  --color-bg: #0F0F14;
+  --color-surface: #1A1A24;
+  --color-soft: #27272A;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-ink: #FAFAFA;
+  --color-muted: #A1A1AA;
+  --color-subtle: #71717A;
+  --color-accent: #818CF8;
+  --color-accent-hover: #A5B4FC;
+  --color-secondary-accent: #FBBF24;
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
+html, body { height: 100%; margin: 0; padding: 0; }
+html { background: var(--background, #FAFAF8); }
+
+body {
+  font-family: var(--font-dm-sans), "DM Sans", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+  color: var(--foreground, #18181B);
+  background: var(--background, #FAFAF8);
+  touch-action: manipulation;
+  overflow: hidden;
+}
+
+.font-editorial {
+  font-family: var(--font-outfit), Outfit, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.35);
+}
+
+/* ── iOS zoom & mobile layout ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  input, textarea, select { font-size: 16px !important; }
+  .canvas-scroll { padding-bottom: 72px !important; }
+  .kbd-footer { display: none !important; }
+}
+
+/* ── Tailwind base ───────────────────────────────────────────────── */
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* ── Animation Keyframes ─────────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes stairGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes selectionPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-soft); }
+  50%      { box-shadow: 0 0 0 4px var(--accent-soft); }
+}
+
+@keyframes pop {
+  from { transform: scale(0.35); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.pop-in   { animation: pop 0.7s cubic-bezier(.2,.8,.2,1) both; }
+.pop-in-1 { animation: pop 0.7s cubic-bezier(.2,.8,.2,1) 0s    both; }
+.pop-in-2 { animation: pop 0.7s cubic-bezier(.2,.8,.2,1) 0.25s both; }
+.pop-in-3 { animation: pop 0.7s cubic-bezier(.2,.8,.2,1) 0.5s  both; }
+.pop-in-4 { animation: pop 0.7s cubic-bezier(.2,.8,.2,1) 0.75s both; }
+
+@keyframes milestonePop {
+  0%   { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+  60%  { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.milestone-pop { animation: milestonePop 0.5s cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes milestoneBadge {
+  0%   { transform: scale(0.4) rotate(-12deg); opacity: 0; }
+  70%  { transform: scale(1.12) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.milestone-badge { animation: milestoneBadge 0.7s cubic-bezier(.2,.8,.2,1) 0.15s both; }
+
+@keyframes ganttGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes logReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes checkBounce {
+  0%   { transform: scale(0.4); opacity: 0.6; }
+  55%  { transform: scale(1.3); opacity: 1;   }
+  75%  { transform: scale(0.88); }
+  100% { transform: scale(1);   }
+}
+.check-bounce { animation: checkBounce 0.28s cubic-bezier(.2,.8,.2,1) both; }

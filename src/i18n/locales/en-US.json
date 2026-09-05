@@ -1,0 +1,519 @@
+{
+  "brand": {
+    "name": "Gradus",
+    "char": "G",
+    "sub": "GRADUS",
+    "slogan": "Step by step, progress unfolds"
+  },
+  "nav": {
+    "today": "Today's Focus",
+    "plans": "All Plans",
+    "steps": "Ascending Steps",
+    "timeline": "Timeline",
+    "allPlansHeader": "All Learning Plans",
+    "noPlans": "No learning plans yet",
+    "quickSearch": "Quick Search & Commands",
+    "toggleThemeSage": "Switch to Calm Sage",
+    "toggleThemeDark": "Switch to Linear Dark",
+    "themeSage": "🍃 Sage",
+    "themeDark": "🌙 Dark"
+  },
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "loading": "Loading…",
+    "on": "On",
+    "off": "Off",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "userId": "User ID"
+  },
+  "language": {
+    "label": "Language",
+    "triggerLabel": "Language: {{language}}",
+    "followSystem": "System",
+    "followSystemWithLanguage": "System ({{language}})",
+    "enUS": "English",
+    "zhCN": "中文"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or may have been moved.",
+      "backHome": "Back to home"
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. You can try again or return to the home page.",
+      "tryAgain": "Try again",
+      "backHome": "Back to home"
+    }
+  },
+  "starter": {
+    "badge": "Eazo App Starter",
+    "title": "Build your next app with Eazo",
+    "subtitle": "Demo artifacts are removed. You now have a clean foundation with auth, data access, and platform integrations ready for your product.",
+    "steps": {
+      "readDocs": {
+        "title": "Read the docs",
+        "desc": "Open AGENTS.md and README.md to understand the template architecture.",
+        "code": "AGENTS.md + README.md"
+      },
+      "replacePage": {
+        "title": "Replace this page",
+        "desc": "Move your product UI into src/components and keep page.tsx thin.",
+        "code": "src/app/page.tsx"
+      },
+      "firstFeature": {
+        "title": "Build your first feature",
+        "desc": "Add API routes under src/app/api and call them from typed helpers.",
+        "code": "src/app/api/*"
+      },
+      "translations": {
+        "title": "Add translations",
+        "desc": "Edit en-US / zh-CN strings in src/i18n/locales. LanguageSwitcher and I18nProvider in layout.tsx are already wired.",
+        "code": "src/i18n/locales/"
+      }
+    },
+    "nextCommand": {
+      "title": "Next command",
+      "desc": "Start developing and iterate in real time.",
+      "command": "bun dev"
+    }
+  },
+  "timelineCard": {
+    "bloom": {
+      "1": "Remember",
+      "2": "Understand",
+      "3": "Apply",
+      "4": "Analyze",
+      "5": "Evaluate",
+      "6": "Create"
+    },
+    "pendingCount": "{{count}} pending",
+    "viewDetail": "{{title}}{{done}}, view details",
+    "completedMark": " (completed)",
+    "completeThis": "Complete this · ",
+    "toggle": "toggle",
+    "markUndone": "Unmark",
+    "markDone": "Mark complete",
+    "days": "{{count}}d",
+    "postponeAria": "Postpone one day",
+    "postponeTitle": "Postpone one day (shift schedule)",
+    "skipAria": "Skip this task",
+    "skipTitle": "Skip this task (mark complete without doing it)"
+  },
+  "home": {
+    "brand": "Gradus",
+    "tagline": "Break goals into small steps you can finish each day",
+    "newTask": "New task",
+    "calendar": "Study calendar",
+    "loadError": {
+      "title": "Failed to load",
+      "desc": "Something went wrong with the network or service",
+      "retry": "Retry"
+    },
+    "signedOut": {
+      "prompt": "Sign in to view and manage your tasks"
+    },
+    "empty": {
+      "title": "No study tasks yet",
+      "desc": "Pick a direction and AI will break it into actionable subtasks",
+      "custom": "+ Custom goal…"
+    },
+    "samples": {
+      "python": {
+        "label": "Master Python basics from scratch",
+        "value": "Master Python basics from scratch and write simple scripts"
+      },
+      "react": {
+        "label": "React Hooks in practice",
+        "value": "Master React Hooks and build a Todo app on your own"
+      },
+      "math": {
+        "label": "Math exam sprint",
+        "value": "Math exam sprint, focusing on derivatives and probability"
+      }
+    },
+    "footer": {
+      "today": "Today: {{date}}",
+      "kbdNew": "New",
+      "kbdSelect": "Select",
+      "kbdComplete": "Complete selected",
+      "kbdClose": "Close"
+    },
+    "postpone": {
+      "ariaLabel": "Postpone confirmation",
+      "title": "Postpone one day",
+      "desc": "The schedule will shift; other tasks are unaffected",
+      "confirmText": "Postpone “{{title}}” by one day?",
+      "confirm": "Postpone",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "markDoneFailed": "Failed to mark complete, reverted. Please retry",
+      "markUndoneFailed": "Failed to unmark, reverted. Please retry",
+      "postponeFailed": "Failed to postpone, please retry",
+      "postponed": "Postponed to tomorrow, “{{title}}” moved to the next day",
+      "undoFailed": "Failed to undo, please retry",
+      "skipped": "Skipped “{{title}}”",
+      "undo": "Undo"
+    },
+    "timeline": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "week": "This week",
+      "later": "Later",
+      "afterSevenDays": "After 7 days",
+      "startsInDays": "(starts in {{days}} days)"
+    }
+  },
+  "rightPanel": {
+    "title": "AI analysis panel",
+    "subtitle": "Intent → Resources → Plan → Review · Global scheduling",
+    "eta": {
+      "almost": "Almost done…",
+      "seconds": "About {{seconds}}s left"
+    },
+    "phases": {
+      "intent": "Parsing learning intent",
+      "intentRunning": "Parsing learning intent…",
+      "search": "Searching resources",
+      "plan": "Building the plan",
+      "validate": "Checking feasibility",
+      "done": "Done"
+    },
+    "analyzeFailed": "AI analysis failed",
+    "retryHint": "Analysis failed, please retry",
+    "collapse": "Collapse",
+    "expand": "Expand panel",
+    "collapsePanel": "Collapse panel",
+    "runningCount": "{{count}} running",
+    "emptyHint1": "Tap “+ New task”",
+    "emptyHint2": "Intent analysis → resource search",
+    "emptyHint3": "Build plan → review & refine",
+    "rawInput": "Raw input",
+    "planSummary": "{{days}}-day plan · {{done}}/{{total}} done",
+    "completed": "Completed",
+    "days": "{{count}}d",
+    "search": "Search: {{query}}",
+    "typeLabels": {
+      "link": "🔗 Link",
+      "search": "🔎 Search",
+      "person": "👤 Teacher",
+      "course": "📚 Course"
+    },
+    "progress": {
+      "allDone": "🎉 All done!",
+      "start": "Take your first step",
+      "almost": "🔥 Almost there",
+      "half": "💪 Halfway there, keep going",
+      "started": "👍 Off to a start, steady progress"
+    },
+    "allResources": "All recommended resources ({{count}})",
+    "adjustPrompt": "Have ideas about the plan? Enter adjustments and regenerate:",
+    "adjustPlaceholder": "e.g. too hard / focus on one module / add more practice",
+    "generating": "Generating…",
+    "regenerate": "↺ Regenerate",
+    "remove": "Remove",
+    "retry": "Retry"
+  },
+  "congrats": {
+    "title": "Congratulations, you completed",
+    "learned": "🌱 You now understand these topics better:",
+    "days": "{{count}}d",
+    "topic": "Topic: {{topic}}",
+    "learnMore": "📖 Learn more",
+    "close": "Close and view other tasks"
+  },
+  "milestone": {
+    "ariaLabel": "New level unlocked",
+    "unlockTitle": "New level unlocked",
+    "level": "Lv · {{name}}",
+    "reached": "Completed {{threshold}} learning steps in total 🎉",
+    "encourage": "Your persistence is turning into visible growth. Keep up the pace!",
+    "keepGoing": "Keep going"
+  },
+  "subtaskRow": {
+    "urgency": [
+      "",
+      "Critical",
+      "High",
+      "Normal",
+      "Low",
+      "Minimal"
+    ],
+    "importance": [
+      "",
+      "Critical",
+      "High",
+      "Normal",
+      "Minor",
+      "Reference"
+    ],
+    "days": "{{count}}d",
+    "markUndone": "Unmark",
+    "markDone": "Mark complete",
+    "deleteTask": "Delete task"
+  },
+  "subtaskDetail": {
+    "trustVerified": "✓ Verified",
+    "trustSearch": "🔎 Search",
+    "topic": "Topic: {{topic}}",
+    "urgency": "Urgency {{value}}/5",
+    "importance": "Importance {{value}}/5",
+    "durationLabel": "Duration",
+    "durationValue": "{{count}} days",
+    "dateLabel": "Date",
+    "statusLabel": "Status",
+    "statusDone": "Completed",
+    "statusDoing": "In progress",
+    "noDescription": "No detailed description",
+    "aiTitleWithRes": "Let AI explain it",
+    "aiTitleNoRes": "No ready resources? Let AI teach you",
+    "aiDesc": "Copy a tailored learning prompt for this step and paste it into ChatGPT / DeepSeek / any AI to start learning.",
+    "copied": "✓ Copied, paste into AI",
+    "copyPrompt": "📋 Copy learning prompt",
+    "recommendedRes": "📚 Recommended resources",
+    "verifiedCount": "{{count}} verified URLs",
+    "clickToSearch": "Click a search term to auto-search",
+    "search": "Search: {{query}}",
+    "deadLink": "⚠ This link is currently unreachable",
+    "legendAccessible": "✓ Accessible URL",
+    "legendSearch": "Search term — click to open a search engine",
+    "legendAuthority": "🏛 Official docs have the highest authority (10/10)",
+    "legendFreshness": "🟢 Recently updated 🟡 1-3 yrs 🔴 3+ yrs",
+    "startLearning": "Start learning",
+    "markUndone": "↩ Unmark",
+    "markDone": "✓ Mark complete",
+    "openTask": "Full task →",
+    "prompt": {
+      "bloom": {
+        "1": "Remember",
+        "2": "Understand",
+        "3": "Apply",
+        "4": "Analyze",
+        "5": "Evaluate",
+        "6": "Create"
+      },
+      "intro": "I am learning \"{{task}}\", and the specific step I need to master now is: {{title}}",
+      "description": "\nDescription of this step: {{desc}}",
+      "topic": "Subject area: {{topic}}",
+      "bloomLine": "Target cognitive level: {{level}} (Bloom L{{n}})",
+      "keywords": "Key concepts: {{list}}",
+      "keywordSep": ", ",
+      "instruction": "\nAs a senior teacher in this field, please explain this step systematically. Requirements:\n1. Explain the core concepts and principles in plain language;\n2. Provide 1-2 practical examples;\n3. Point out common misconceptions or pitfalls;\n4. Finally give me 2-3 self-check exercises (with reference approaches)."
+    }
+  },
+  "newTask": {
+    "title": "New learning task",
+    "placeholderUrl": "You can add notes after the link, e.g. focus on the Hooks part",
+    "placeholderDefault": "What do you want to learn? Describe a goal, or paste a link 🔗",
+    "willFetch": "✓ Content will be read automatically",
+    "needDesc": "⚠ Adding a description is recommended",
+    "enterHint": "Press Enter to start · AI shows the analysis live on the right · Paste a link directly",
+    "submitWithUrl": "Read {{label}} and analyze →",
+    "submit": "Start analysis →",
+    "cancel": "Cancel",
+    "examples": {
+      "python": "Python basics",
+      "math": "Exam math",
+      "english": "Spoken English",
+      "react": "React in practice"
+    },
+    "exampleValues": {
+      "python": "Master Python basics from scratch and write simple scripts",
+      "math": "Math exam sprint, focusing on derivatives and probability",
+      "english": "Improve spoken English to give a fluent 5-minute self-introduction",
+      "react": "Master React Hooks and build a Todo app on your own"
+    },
+    "platforms": {
+      "github_file": {
+        "label": "GitHub file",
+        "tip": "AI reads the file content and plans a learning path from the code/docs"
+      },
+      "github_repo": {
+        "label": "GitHub repo",
+        "tip": "AI reads the README and builds a targeted learning plan for the project"
+      },
+      "arxiv": {
+        "label": "arXiv paper",
+        "tip": "AI extracts the abstract and section structure to plan a close-reading path"
+      },
+      "pdf": {
+        "label": "PDF document",
+        "tip": "AI extracts metadata and body text to plan a learning path from the document"
+      },
+      "youtube": {
+        "label": "YouTube video",
+        "tip": "Video captions can't be fetched; add a line describing your learning goal"
+      },
+      "bilibili": {
+        "label": "Bilibili video",
+        "tip": "AI reads the video title, description and uploader info"
+      },
+      "coursera": {
+        "label": "Coursera course",
+        "tip": "AI extracts the syllabus, ratings and skill tags to plan the learning order"
+      },
+      "edx": {
+        "label": "edX course",
+        "tip": "AI extracts the syllabus and intro to help plan an efficient learning path"
+      },
+      "npm": {
+        "label": "npm package",
+        "tip": "AI reads the package description and dependencies to plan how to learn and use it"
+      },
+      "pypi": {
+        "label": "PyPI package",
+        "tip": "AI reads the package description and dependencies to plan learning this Python library"
+      },
+      "juejin": {
+        "label": "Juejin article",
+        "tip": "AI extracts the article body to build a learning plan from the content"
+      },
+      "zhihu": {
+        "label": "Zhihu article",
+        "tip": "AI extracts the body content and plans a learning path from the topic"
+      },
+      "medium": {
+        "label": "Medium article",
+        "tip": "AI extracts the article body to plan learning from the content"
+      },
+      "notion": {
+        "label": "Notion page",
+        "tip": "Notion is JS-rendered; only visible title and description are read. Add notes for private content"
+      },
+      "yuque": {
+        "label": "Yuque doc",
+        "tip": "Public docs are read automatically; configure a Yuque API Token in settings for private docs"
+      },
+      "feishu": {
+        "label": "Feishu doc",
+        "tip": "Public docs are read automatically; configure a Feishu User Token in settings for private docs"
+      },
+      "docs": {
+        "label": "Technical docs",
+        "tip": "AI fetches the docs content and plans a learning path for the technology"
+      },
+      "article": {
+        "label": "Web page / article",
+        "tip": "AI reads the page content and plans learning from the article topic"
+      }
+    }
+  },
+  "taskDetail": {
+    "bloom": {
+      "title": "BLOOM cognitive progress",
+      "labels": {
+        "1": "Remember",
+        "2": "Understand",
+        "3": "Apply",
+        "4": "Analyze",
+        "5": "Evaluate",
+        "6": "Create"
+      },
+      "allDone": "🎉 All done! Cognitive goal achieved",
+      "current": "Current stage: {{icon}} L{{level}} {{label}}"
+    },
+    "dayRange": {
+      "single": "Day {{start}}",
+      "range": "Days {{start}}–{{end}}"
+    },
+    "resourceCount": "📚 {{count}} resources",
+    "days": "{{count}}d",
+    "resourcesTitle": "📚 Learning resources",
+    "resourceTotal": "{{count}} total",
+    "verifiedCount": "✓ {{count}} verified",
+    "trustVerified": "✓ Verified",
+    "trustSearch": "🔎 Search",
+    "deadLink": "⚠ This link is currently unreachable",
+    "search": "Search: {{query}}",
+    "legendVerified": "Verified URL",
+    "legendSearch": "Click to search",
+    "planDays": "{{count}}-day plan",
+    "approxHours": "~{{count}}h",
+    "statusDone": "✓ Completed",
+    "statusDoing": "In progress",
+    "created": "Created {{date}}",
+    "statCompleted": "Completed",
+    "statPending": "Pending",
+    "statTotal": "Total",
+    "statPlanDays2": "Plan days",
+    "statPlanDays": "Plan duration",
+    "statHours": "Est. hours",
+    "stepsTitle": "Learning steps",
+    "subtaskCount": "{{count}} subtasks",
+    "needAuth": "Sign in required",
+    "signIn": "Sign in",
+    "notFound": "Task not found",
+    "historyTasks": "← History",
+    "loading": "Loading…",
+    "planSummary": "{{days}}-day plan · {{date}} · {{done}}/{{total}} done"
+  },
+  "analysisPanel": {
+    "steps": {
+      "analyzing": "Parse goal",
+      "decomposing": "Break into subtasks",
+      "scheduling": "Generate schedule",
+      "done": "Plan ready"
+    },
+    "hintReady": "Press Enter or click \"Start analysis\"",
+    "hintEmpty": "Enter your goal and AI breaks it into tasks",
+    "progressAria": "AI analysis progress",
+    "chars": "{{count}} chars",
+    "failed": "Analysis failed, please retry",
+    "waiting": "Please wait…",
+    "days": "{{count}}d"
+  },
+  "achievement": {
+    "defaultTitle": "Study calendar",
+    "todayDone": "Today",
+    "weekDone": "This week",
+    "totalDone": "Total",
+    "learnDays": "Study days",
+    "remainingGoal": "Remaining",
+    "unitItem": "",
+    "unitStep": "",
+    "unitDay": "d",
+    "unitCount": "",
+    "streakDays": "{{count}}d",
+    "today": "Today",
+    "pending": "{{count}} pending",
+    "level": "Lv · {{name}}",
+    "toNextLevel": "{{count}} more steps to reach \"{{name}}\"",
+    "maxLevel": "Highest level reached 👑"
+  },
+  "gantt": {
+    "ariaLabel": "Gantt timeline",
+    "barTitle": "{{title}} ({{days}}d)",
+    "timeline": "Timeline"
+  },
+  "taskInput": {
+    "analyzing": "Parsing goal…",
+    "analyzeFailed": "AI analysis failed",
+    "loading": "Loading…",
+    "placeholder": "What do you want to do?",
+    "ariaLabel": "Enter goal",
+    "viewFullTask": "View full task →",
+    "reset": "Reset",
+    "running": "Analyzing…",
+    "start": "Start analysis",
+    "signInToSave": "Sign in to save history"
+  },
+  "history": {
+    "signInPrompt": "Sign in to view your task history",
+    "signIn": "Sign in",
+    "empty": "No tasks yet — go to home and create your first one →",
+    "recentTasks": "Recent tasks",
+    "completed": "{{done}}/{{total}} done",
+    "days": "{{count}}d",
+    "delete": "Delete",
+    "brand": "← Gradus",
+    "loading": "Loading…"
+  }
+}

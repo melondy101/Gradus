@@ -1,0 +1,519 @@
+{
+  "brand": {
+    "name": "拾级",
+    "char": "拾",
+    "sub": "GRADUS",
+    "slogan": "循序渐进 · 聚木成林"
+  },
+  "nav": {
+    "today": "今日聚焦",
+    "plans": "所有计划",
+    "steps": "拾级天梯",
+    "timeline": "时间视图",
+    "allPlansHeader": "所有学习计划",
+    "noPlans": "暂无学习计划",
+    "quickSearch": "快捷搜索与指令",
+    "toggleThemeSage": "切换至竹青浅色",
+    "toggleThemeDark": "切换至夜幕深色",
+    "themeSage": "🍃 竹青",
+    "themeDark": "🌙 暗夜"
+  },
+  "common": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "loading": "加载中…",
+    "on": "开",
+    "off": "关",
+    "close": "关闭",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "userId": "用户 ID"
+  },
+  "language": {
+    "label": "语言",
+    "triggerLabel": "语言：{{language}}",
+    "followSystem": "跟随系统",
+    "followSystemWithLanguage": "跟随系统（{{language}}）",
+    "enUS": "English",
+    "zhCN": "中文"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "页面未找到",
+      "description": "你访问的页面不存在，或已被移动。",
+      "backHome": "返回首页"
+    },
+    "generic": {
+      "title": "出了点问题",
+      "description": "发生了意外错误。你可以重试，或返回首页继续。",
+      "tryAgain": "重试",
+      "backHome": "返回首页"
+    }
+  },
+  "starter": {
+    "badge": "Eazo 应用模板",
+    "title": "用 Eazo 构建你的下一个应用",
+    "subtitle": "演示代码已移除。你现在拥有干净的基础：认证、数据访问与平台能力已就绪，可直接开发产品功能。",
+    "steps": {
+      "readDocs": {
+        "title": "阅读文档",
+        "desc": "打开 AGENTS.md 与 README.md，了解模板架构与约定。",
+        "code": "AGENTS.md + README.md"
+      },
+      "replacePage": {
+        "title": "替换本页",
+        "desc": "将产品 UI 放到 src/components 下，并保持 page.tsx 为薄入口。",
+        "code": "src/app/page.tsx"
+      },
+      "firstFeature": {
+        "title": "开发第一个功能",
+        "desc": "在 src/app/api 添加接口，并通过 src/lib/api 中的类型化 helper 调用。",
+        "code": "src/app/api/*"
+      },
+      "translations": {
+        "title": "补充翻译",
+        "desc": "在 src/i18n/locales 编辑中英文文案；layout 已接入 LanguageSwitcher 与 I18nProvider。",
+        "code": "src/i18n/locales/"
+      }
+    },
+    "nextCommand": {
+      "title": "下一步命令",
+      "desc": "启动开发服务器，实时迭代你的产品。",
+      "command": "bun dev"
+    }
+  },
+  "timelineCard": {
+    "bloom": {
+      "1": "记忆",
+      "2": "理解",
+      "3": "应用",
+      "4": "分析",
+      "5": "评估",
+      "6": "创造"
+    },
+    "pendingCount": "{{count}} 项待完成",
+    "viewDetail": "{{title}}{{done}}，查看详情",
+    "completedMark": "（已完成）",
+    "completeThis": "完成此项 · ",
+    "toggle": "切换",
+    "markUndone": "取消完成",
+    "markDone": "标记已完成",
+    "days": "{{count}}天",
+    "postponeAria": "延迟一天",
+    "postponeTitle": "延迟一天（顺延排期）",
+    "skipAria": "跳过此任务",
+    "skipTitle": "跳过此任务（标记为已完成，无需执行）"
+  },
+  "home": {
+    "brand": "拾级",
+    "tagline": "把目标拆成每天能完成的小步骤",
+    "newTask": "新建任务",
+    "calendar": "学习日历",
+    "loadError": {
+      "title": "加载失败",
+      "desc": "网络或服务出了点问题",
+      "retry": "重试"
+    },
+    "signedOut": {
+      "prompt": "登录后可查看和管理任务"
+    },
+    "empty": {
+      "title": "还没有学习任务",
+      "desc": "选一个方向，AI 帮你拆解成可执行的子任务",
+      "custom": "+ 自定义目标…"
+    },
+    "samples": {
+      "python": {
+        "label": "从零掌握 Python 基础",
+        "value": "从零开始掌握 Python 基础，能写简单脚本"
+      },
+      "react": {
+        "label": "React Hooks 实战",
+        "value": "掌握 React Hooks，能独立开发 Todo 应用"
+      },
+      "math": {
+        "label": "高考数学冲刺",
+        "value": "高考数学冲刺，重点突破导数与概率"
+      }
+    },
+    "footer": {
+      "today": "今天：{{date}}",
+      "kbdNew": "新建",
+      "kbdSelect": "选择",
+      "kbdComplete": "完成选中",
+      "kbdClose": "关闭"
+    },
+    "postpone": {
+      "ariaLabel": "延迟确认",
+      "title": "延迟一天",
+      "desc": "排期将顺延，其它任务不受影响",
+      "confirmText": "确定把「{{title}}」往后延迟一天吗？",
+      "confirm": "确定延迟",
+      "cancel": "取消"
+    },
+    "toast": {
+      "markDoneFailed": "标记完成失败，已撤回，请重试",
+      "markUndoneFailed": "取消完成失败，已撤回，请重试",
+      "postponeFailed": "延迟失败，请重试",
+      "postponed": "已延迟到明天，「{{title}}」移到次日",
+      "undoFailed": "撤销失败，请重试",
+      "skipped": "已跳过「{{title}}」",
+      "undo": "撤销"
+    },
+    "timeline": {
+      "today": "今天",
+      "tomorrow": "明天",
+      "week": "本周",
+      "later": "更晚",
+      "afterSevenDays": "7 天之后",
+      "startsInDays": "（{{days}} 天后开始）"
+    }
+  },
+  "rightPanel": {
+    "title": "AI 分析面板",
+    "subtitle": "意图→资源→计划→核查 · 全局排期",
+    "eta": {
+      "almost": "即将完成…",
+      "seconds": "约还需 {{seconds}} 秒"
+    },
+    "phases": {
+      "intent": "解析学习意图",
+      "intentRunning": "解析学习意图…",
+      "search": "搜索学习资源",
+      "plan": "制定学习计划",
+      "validate": "核查可执行性",
+      "done": "完成"
+    },
+    "analyzeFailed": "AI 分析失败",
+    "retryHint": "分析失败，请重试",
+    "collapse": "收起",
+    "expand": "展开面板",
+    "collapsePanel": "收起面板",
+    "runningCount": "{{count}} 个进行中",
+    "emptyHint1": "点击「+ 新建任务」",
+    "emptyHint2": "意图分析 → 资源搜索",
+    "emptyHint3": "制定计划 → 核查优化",
+    "rawInput": "原始输入",
+    "planSummary": "{{days}}天计划 · {{done}}/{{total}} 完成",
+    "completed": "已完成",
+    "days": "{{count}}天",
+    "search": "搜：{{query}}",
+    "typeLabels": {
+      "link": "🔗 链接",
+      "search": "🔎 搜索",
+      "person": "👤 老师",
+      "course": "📚 课程"
+    },
+    "progress": {
+      "allDone": "🎉 全部完成！",
+      "start": "开始你的第一步",
+      "almost": "🔥 就快完成了",
+      "half": "💪 已过半，继续保持",
+      "started": "👍 已经起步，稳步推进"
+    },
+    "allResources": "全部推荐资源 ({{count}})",
+    "adjustPrompt": "对计划有想法？输入调整意见后重新生成：",
+    "adjustPlaceholder": "例：难度太高 / 专注某模块 / 增加实践内容",
+    "generating": "生成中…",
+    "regenerate": "↺ 重新生成",
+    "remove": "移除",
+    "retry": "重试"
+  },
+  "congrats": {
+    "title": "恭喜你完成了",
+    "learned": "🌱 恭喜你对以下内容有了进一步的了解：",
+    "days": "{{count}}天",
+    "topic": "主题：{{topic}}",
+    "learnMore": "📖 进一步学习",
+    "close": "关闭，查看其他任务"
+  },
+  "milestone": {
+    "ariaLabel": "解锁新等级",
+    "unlockTitle": "解锁新等级",
+    "level": "Lv · {{name}}",
+    "reached": "累计完成 {{threshold}} 个学习步骤 🎉",
+    "encourage": "你的坚持正在积累成看得见的成长，继续保持这个节奏！",
+    "keepGoing": "继续加油"
+  },
+  "subtaskRow": {
+    "urgency": [
+      "",
+      "极紧急",
+      "较紧急",
+      "一般",
+      "较宽松",
+      "不紧急"
+    ],
+    "importance": [
+      "",
+      "极重要",
+      "较重要",
+      "一般",
+      "较次要",
+      "参考"
+    ],
+    "days": "{{count}}天",
+    "markUndone": "取消完成",
+    "markDone": "标记已完成",
+    "deleteTask": "删除大任务"
+  },
+  "subtaskDetail": {
+    "trustVerified": "✓ 已验证",
+    "trustSearch": "🔎 搜索",
+    "topic": "主题：{{topic}}",
+    "urgency": "紧急度 {{value}}/5",
+    "importance": "重要度 {{value}}/5",
+    "durationLabel": "工期",
+    "durationValue": "{{count}} 天",
+    "dateLabel": "日期",
+    "statusLabel": "状态",
+    "statusDone": "已完成",
+    "statusDoing": "进行中",
+    "noDescription": "暂无详细说明",
+    "aiTitleWithRes": "让 AI 帮你讲解",
+    "aiTitleNoRes": "没有现成资源？让 AI 讲给你听",
+    "aiDesc": "一键复制为这个环节量身生成的学习提示词，粘贴到 ChatGPT / DeepSeek / 豆包等任意 AI 即可开始学习。",
+    "copied": "✓ 已复制，去 AI 粘贴吧",
+    "copyPrompt": "📋 复制学习 Prompt",
+    "recommendedRes": "📚 推荐资源",
+    "verifiedCount": "{{count}} 个已验证 URL",
+    "clickToSearch": "点击搜索词自动检索",
+    "search": "搜：{{query}}",
+    "deadLink": "⚠ 该链接当前不可访问",
+    "legendAccessible": "✓ 可访问 URL",
+    "legendSearch": "搜索词 — 点击跳转搜索引擎",
+    "legendAuthority": "🏛 官方文档权威分最高（10/10）",
+    "legendFreshness": "🟢 近期更新 🟡 1-3年 🔴 3年以上",
+    "startLearning": "开始学习",
+    "markUndone": "↩ 取消完成",
+    "markDone": "✓ 标记已完成",
+    "openTask": "大任务 →",
+    "prompt": {
+      "bloom": {
+        "1": "记忆",
+        "2": "理解",
+        "3": "应用",
+        "4": "分析",
+        "5": "评估",
+        "6": "创造"
+      },
+      "intro": "我正在学习「{{task}}」，当前要掌握的具体环节是：{{title}}",
+      "description": "\n这个环节的说明：{{desc}}",
+      "topic": "所属主题领域：{{topic}}",
+      "bloomLine": "期望达到的认知层级：{{level}}（Bloom L{{n}}）",
+      "keywords": "关键概念：{{list}}",
+      "keywordSep": "、",
+      "instruction": "\n请作为该领域的资深老师，为我系统讲解这个环节。要求：\n1. 用通俗的语言讲清核心概念与原理；\n2. 给出 1-2 个贴近实际的例子；\n3. 指出常见误区或易错点；\n4. 最后给我 2-3 道可自测的练习题（附参考思路）。"
+    }
+  },
+  "newTask": {
+    "title": "新建学习任务",
+    "placeholderUrl": "可以在链接后补充说明，例如：侧重学习 Hooks 部分",
+    "placeholderDefault": "你想学什么？直接描述目标，或粘贴一个链接 🔗",
+    "willFetch": "✓ 将自动读取内容",
+    "needDesc": "⚠ 建议补充描述",
+    "enterHint": "按 Enter 开始分析 · AI 将在右侧实时展示分析过程 · 支持直接粘贴链接",
+    "submitWithUrl": "读取 {{label}} 并分析 →",
+    "submit": "开始分析 →",
+    "cancel": "取消",
+    "examples": {
+      "python": "Python 入门",
+      "math": "高考数学",
+      "english": "英语口语",
+      "react": "React 实战"
+    },
+    "exampleValues": {
+      "python": "从零开始掌握 Python 基础，能写简单脚本",
+      "math": "高考数学冲刺，重点突破导数与概率",
+      "english": "提升英语口语，能流利做5分钟自我介绍",
+      "react": "掌握 React Hooks，能独立开发 Todo 应用"
+    },
+    "platforms": {
+      "github_file": {
+        "label": "GitHub 文件",
+        "tip": "AI 将读取文件内容，基于代码/文档规划学习路径"
+      },
+      "github_repo": {
+        "label": "GitHub 仓库",
+        "tip": "AI 将读取 README，了解项目后制定针对性学习计划"
+      },
+      "arxiv": {
+        "label": "arXiv 论文",
+        "tip": "AI 将抓取摘要与章节结构，规划论文精读学习路径"
+      },
+      "pdf": {
+        "label": "PDF 文档",
+        "tip": "AI 将提取元数据与正文文字，根据文档内容规划学习路径"
+      },
+      "youtube": {
+        "label": "YouTube 视频",
+        "tip": "视频字幕无法抓取，建议补充一句学习目标描述"
+      },
+      "bilibili": {
+        "label": "Bilibili 视频",
+        "tip": "AI 将读取视频标题、简介和 UP 主信息"
+      },
+      "coursera": {
+        "label": "Coursera 课程",
+        "tip": "AI 将抓取课程大纲、评分与技能标签，规划学习顺序"
+      },
+      "edx": {
+        "label": "edX 课程",
+        "tip": "AI 将抓取课程大纲与介绍，帮你高效规划学习路径"
+      },
+      "npm": {
+        "label": "npm 包",
+        "tip": "AI 将读取包描述与依赖，规划该库的学习与使用路径"
+      },
+      "pypi": {
+        "label": "PyPI 包",
+        "tip": "AI 将读取包描述与依赖，规划该 Python 库的学习路径"
+      },
+      "juejin": {
+        "label": "掘金文章",
+        "tip": "AI 将提取文章正文，根据内容制定学习计划"
+      },
+      "zhihu": {
+        "label": "知乎文章",
+        "tip": "AI 将提取正文内容，基于文章主题规划学习路径"
+      },
+      "medium": {
+        "label": "Medium 文章",
+        "tip": "AI 将提取文章正文，根据内容规划学习计划"
+      },
+      "notion": {
+        "label": "Notion 页面",
+        "tip": "Notion 为 JS 渲染页面，将读取可见标题和描述；私有内容请补充说明"
+      },
+      "yuque": {
+        "label": "语雀文档",
+        "tip": "公开文档自动读取；私有文档可在设置中配置语雀 API Token"
+      },
+      "feishu": {
+        "label": "飞书文档",
+        "tip": "公开文档自动读取；私有文档可在设置中配置飞书 User Token"
+      },
+      "docs": {
+        "label": "技术文档",
+        "tip": "AI 将抓取文档内容，规划对应技术的学习路径"
+      },
+      "article": {
+        "label": "网页/文章",
+        "tip": "AI 将读取页面内容，根据文章主题规划学习计划"
+      }
+    }
+  },
+  "taskDetail": {
+    "bloom": {
+      "title": "BLOOM 认知进度",
+      "labels": {
+        "1": "记忆",
+        "2": "理解",
+        "3": "应用",
+        "4": "分析",
+        "5": "评估",
+        "6": "创造"
+      },
+      "allDone": "🎉 全部完成！认知目标达成",
+      "current": "当前阶段：{{icon}} L{{level}} {{label}}"
+    },
+    "dayRange": {
+      "single": "第 {{start}} 天",
+      "range": "第 {{start}}–{{end}} 天"
+    },
+    "resourceCount": "📚 {{count}} 个资源",
+    "days": "{{count}}天",
+    "resourcesTitle": "📚 学习资源",
+    "resourceTotal": "共 {{count}} 个",
+    "verifiedCount": "✓ {{count}} 已验证",
+    "trustVerified": "✓ 已验证",
+    "trustSearch": "🔎 搜索",
+    "deadLink": "⚠ 该链接当前不可访问",
+    "search": "搜：{{query}}",
+    "legendVerified": "已验证 URL",
+    "legendSearch": "点击跳转搜索",
+    "planDays": "{{count}} 天计划",
+    "approxHours": "约 {{count}}h",
+    "statusDone": "✓ 已完成",
+    "statusDoing": "进行中",
+    "created": "{{date}} 创建",
+    "statCompleted": "已完成",
+    "statPending": "待完成",
+    "statTotal": "总计",
+    "statPlanDays2": "计划天数",
+    "statPlanDays": "计划工期",
+    "statHours": "预计学时",
+    "stepsTitle": "学习步骤",
+    "subtaskCount": "{{count}} 个子任务",
+    "needAuth": "需要登录",
+    "signIn": "登录",
+    "notFound": "任务未找到",
+    "historyTasks": "← 历史任务",
+    "loading": "加载中…",
+    "planSummary": "{{days}}天计划 · {{date}} · {{done}}/{{total}} 完成"
+  },
+  "analysisPanel": {
+    "steps": {
+      "analyzing": "解析目标",
+      "decomposing": "拆解子任务",
+      "scheduling": "生成排期",
+      "done": "计划就绪"
+    },
+    "hintReady": "按 Enter 或点击「开始分析」",
+    "hintEmpty": "输入你的目标，AI 自动拆解任务",
+    "progressAria": "AI 分析进度",
+    "chars": "{{count}} 字",
+    "failed": "分析失败，请重试",
+    "waiting": "请稍候…",
+    "days": "{{count}}天"
+  },
+  "achievement": {
+    "defaultTitle": "学习日历",
+    "todayDone": "今日完成",
+    "weekDone": "本周完成",
+    "totalDone": "累计完成",
+    "learnDays": "学习天数",
+    "remainingGoal": "剩余目标",
+    "unitItem": "项",
+    "unitStep": "步",
+    "unitDay": "天",
+    "unitCount": "个",
+    "streakDays": "{{count}}天",
+    "today": "今日",
+    "pending": "待完成 {{count}}",
+    "level": "Lv · {{name}}",
+    "toNextLevel": "再完成 {{count}} 步升级「{{name}}」",
+    "maxLevel": "已达最高等级 👑"
+  },
+  "gantt": {
+    "ariaLabel": "甘特图时间线",
+    "barTitle": "{{title}} ({{days}}天)",
+    "timeline": "时间线"
+  },
+  "taskInput": {
+    "analyzing": "解析目标…",
+    "analyzeFailed": "AI 分析失败",
+    "loading": "加载中…",
+    "placeholder": "你想做什么？",
+    "ariaLabel": "输入目标",
+    "viewFullTask": "查看完整任务 →",
+    "reset": "重置",
+    "running": "分析中…",
+    "start": "开始分析",
+    "signInToSave": "登录以保存历史"
+  },
+  "history": {
+    "signInPrompt": "登录后可查看历史任务",
+    "signIn": "登录",
+    "empty": "还没有任务记录，回首页创建第一个吧 →",
+    "recentTasks": "最近任务",
+    "completed": "{{done}}/{{total}} 已完成",
+    "days": "{{count}}天",
+    "delete": "删除",
+    "brand": "← 拾级",
+    "loading": "加载中…"
+  }
+}

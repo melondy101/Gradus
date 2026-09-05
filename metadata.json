@@ -1,0 +1,6 @@
+{
+  "name": "TalkTask",
+  "description": "AI 学习任务规划器 (拾级 Gradus) — 将模糊目标拆解为带排期、资源与甘特图的可执行子任务",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785913817530,
+      "tag": "0000_lush_wind_dancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786022481728,
+      "tag": "0001_cultured_dust",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786100609467,
+      "tag": "0002_streak_completed_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786101008174,
+      "tag": "0003_bloom_persist",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786200000000,
+      "tag": "0004_auth_user_fields",
+      "breakpoints": true
+    }
+  ]
+}

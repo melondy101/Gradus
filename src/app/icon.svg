@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img">
+  <title>拾级 Gradus — AI 认知学习排期系统</title>
+  <desc>等距立体阶梯与顶端星芒，寓意拾级而上、循序渐进掌握知识</desc>
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#1E1B4B" />
+      <stop offset="40%" stopColor="#312E81" />
+      <stop offset="100%" stopColor="#4338CA" />
+    </linearGradient>
+
+    <!-- 阶梯一 (识记/理解) -->
+    <linearGradient id="step1-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#A5B4FC" />
+      <stop offset="100%" stopColor="#818CF8" />
+    </linearGradient>
+    <linearGradient id="step1-front" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#6366F1" />
+      <stop offset="100%" stopColor="#4F46E5" />
+    </linearGradient>
+    <linearGradient id="step1-side" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#4338CA" />
+      <stop offset="100%" stopColor="#3730A3" />
+    </linearGradient>
+
+    <!-- 阶梯二 (应用/分析) -->
+    <linearGradient id="step2-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#7DD3FC" />
+      <stop offset="100%" stopColor="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="step2-front" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#0EA5E9" />
+      <stop offset="100%" stopColor="#0284C7" />
+    </linearGradient>
+    <linearGradient id="step2-side" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#0369A1" />
+      <stop offset="100%" stopColor="#075985" />
+    </linearGradient>
+
+    <!-- 阶梯三 (评价/创造) -->
+    <linearGradient id="step3-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#6EE7B7" />
+      <stop offset="100%" stopColor="#34D399" />
+    </linearGradient>
+    <linearGradient id="step3-front" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#10B981" />
+      <stop offset="100%" stopColor="#059669" />
+    </linearGradient>
+    <linearGradient id="step3-side" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#047857" />
+      <stop offset="100%" stopColor="#065F46" />
+    </linearGradient>
+
+    <!-- 顶点星芒光晕 -->
+    <radialGradient id="beacon-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#FDE047" stop-opacity="1" />
+      <stop offset="40%" stopColor="#F59E0B" stop-opacity="0.8" />
+      <stop offset="100%" stopColor="#D97706" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- 柔和阴影 -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" floodColor="#000000" floodOpacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- 图标背景容器 -->
+  <rect width="512" height="512" rx="120" fill="url(#bg-grad)" />
+  <rect width="504" height="504" x="4" y="4" rx="116" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
+
+  <!-- 主体等距阶梯群组 -->
+  <g filter="url(#shadow)">
+    <!-- ====== 第 1 层阶梯 (Base) ====== -->
+    <!-- Front Face -->
+    <path d="M 88 380 L 192 380 L 192 320 L 88 320 Z" fill="url(#step1-front)" />
+    <!-- Top Face -->
+    <path d="M 88 320 L 152 276 L 256 276 L 192 320 Z" fill="url(#step1-top)" />
+    <!-- Side Face -->
+    <path d="M 192 380 L 256 336 L 256 276 L 192 320 Z" fill="url(#step1-side)" />
+
+    <!-- ====== 第 2 层阶梯 (Middle) ====== -->
+    <!-- Front Face -->
+    <path d="M 184 320 L 288 320 L 288 236 L 184 236 Z" fill="url(#step2-front)" />
+    <!-- Top Face -->
+    <path d="M 184 236 L 248 192 L 352 192 L 288 236 Z" fill="url(#step2-top)" />
+    <!-- Side Face -->
+    <path d="M 288 320 L 352 276 L 352 192 L 288 236 Z" fill="url(#step2-side)" />
+
+    <!-- ====== 第 3 层阶梯 (Top Peak) ====== -->
+    <!-- Front Face -->
+    <path d="M 280 236 L 384 236 L 384 152 L 280 152 Z" fill="url(#step3-front)" />
+    <!-- Top Face -->
+    <path d="M 280 152 L 344 108 L 448 108 L 384 152 Z" fill="url(#step3-top)" />
+    <!-- Side Face -->
+    <path d="M 384 236 L 448 192 L 448 108 L 384 152 Z" fill="url(#step3-side)" />
+
+    <!-- ====== 顶端突破之星 (Gradus Beacon) ====== -->
+    <!-- 外层光晕 -->
+    <circle cx="396" cy="100" r="32" fill="url(#beacon-glow)" opacity="0.6" />
+    
+    <!-- 八角星芒 -->
+    <path d="M 396 52 
+             L 404 88 
+             L 440 100 
+             L 404 112 
+             L 396 148 
+             L 388 112 
+             L 352 100 
+             L 388 88 Z" 
+          fill="#FFFBEB" />
+    <circle cx="396" cy="100" r="7" fill="#F59E0B" />
+  </g>
+</svg>
