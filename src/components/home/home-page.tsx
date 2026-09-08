@@ -32,7 +32,6 @@ import { AscendingStepsView } from "./ascending-steps-view";
 import { AllPlansView } from "./all-plans-view";
 import { TimelineView } from "./timeline-view";
 import { CommandPalette } from "./command-palette";
-import { CalendarSyncModal } from "@/components/calendar/calendar-sync-modal";
 import { ShareCardModal, type ShareData } from "@/components/share/share-card-modal";
 import { AiGenerationRitualModal } from "@/components/task/ai-generation-ritual-modal";
 import { T } from "@/lib/design-tokens";
@@ -101,18 +100,11 @@ export function HomePage() {
   const [postponeTarget, setPostponeTarget] = useState<SubtaskWithTask | null>(null);
   const [toast, setToast] = useState<{ msg: string; actionLabel?: string; onAction?: () => void } | null>(null);
   const [milestone, setMilestone] = useState<Level | null>(null);
-  const [calendarSyncOpen, setCalendarSyncOpen] = useState(false);
-  const [calendarSyncTask, setCalendarSyncTask] = useState<{ id?: string; title?: string }>({});
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [ritualMinimized, setRitualMinimized] = useState(false);
   const prevTotalRef = useRef<number | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleOpenCalendarSync = useCallback((taskId?: string, taskTitle?: string) => {
-    setCalendarSyncTask({ id: taskId, title: taskTitle });
-    setCalendarSyncOpen(true);
-  }, []);
 
   const handleOpenWeeklyReport = useCallback(
     (stats: { streak: number; todayCount: number; weekCount: number; totalCompleted: number; activeTaskCount: number }) => {
@@ -519,7 +511,6 @@ export function HomePage() {
         todayPendingCount={todayPendingCount}
         totalPlansCount={tasksList.length}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-        onOpenCalendarSync={() => handleOpenCalendarSync()}
         onNewPlan={() => setShowInput(true)}
       />
 
@@ -812,7 +803,6 @@ export function HomePage() {
                   subtasks={subtaskRows}
                   onSelectSubtask={(s) => setDetailSubtask(s)}
                   onToggleSubtask={(s) => handleToggleSubtask(s.taskId, s.id, s.completed)}
-                  onOpenCalendarSync={() => handleOpenCalendarSync()}
                 />
               </div>
             )}
@@ -875,15 +865,7 @@ export function HomePage() {
         subtasks={subtaskRows}
         onSelectSubtask={(s) => setDetailSubtask(s)}
         onNewPlan={() => setShowInput(true)}
-        onOpenCalendarSync={() => handleOpenCalendarSync()}
         onSwitchView={(v) => setCurrentView(v)}
-      />
-
-      <CalendarSyncModal
-        isOpen={calendarSyncOpen}
-        onClose={() => setCalendarSyncOpen(false)}
-        taskId={calendarSyncTask.id}
-        taskTitle={calendarSyncTask.title}
       />
 
       {showInput && (

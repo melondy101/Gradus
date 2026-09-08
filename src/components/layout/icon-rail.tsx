@@ -10,7 +10,6 @@ import {
   Command,
   ChevronLeft,
   ChevronRight,
-  Calendar,
 } from "lucide-react";
 import { UserBadge } from "@/components/user-profile/user-badge";
 import { ThemeToggle } from "./theme-toggle";
@@ -26,7 +25,6 @@ interface IconRailProps {
   todayPendingCount: number;
   totalPlansCount: number;
   onOpenCommandPalette: () => void;
-  onOpenCalendarSync?: () => void;
   onNewPlan: () => void;
 }
 
@@ -38,7 +36,6 @@ export function IconRail({
   todayPendingCount,
   totalPlansCount,
   onOpenCommandPalette,
-  onOpenCalendarSync,
   onNewPlan,
 }: IconRailProps) {
   const navItems = [
@@ -256,32 +253,6 @@ export function IconRail({
             borderTop: "1px solid var(--border)",
           }}
         >
-          {/* Calendar Sync Trigger */}
-          {onOpenCalendarSync && (
-            <button
-              onClick={onOpenCalendarSync}
-              title="导出与同步到系统日历 (飞书 / Apple / Google / Outlook)"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: collapsed ? "center" : "flex-start",
-                height: 32,
-                padding: collapsed ? "0" : "0 8px",
-                borderRadius: 6,
-                border: "1px solid var(--border)",
-                background: "var(--secondary)",
-                color: "var(--foreground)",
-                cursor: "pointer",
-                fontSize: 12,
-                gap: 6,
-                transition: "all 0.12s ease",
-              }}
-            >
-              <Calendar size={14} style={{ color: "var(--accent)" }} />
-              {!collapsed && <span>日历同步</span>}
-            </button>
-          )}
-
           {/* Command Palette Trigger */}
           <button
             onClick={onOpenCommandPalette}

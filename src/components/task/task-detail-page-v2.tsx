@@ -7,8 +7,6 @@ import { useEazo, auth, memory } from "@/lib/eazo-shim";
 import { getTask, toggleSubtask, updateTaskStatusApi } from "@/lib/api/tasks";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
 import { GanttChart } from "@/components/task/gantt-chart";
-import { CalendarSyncModal } from "@/components/calendar/calendar-sync-modal";
-import { Calendar } from "lucide-react";
 import { T } from "@/lib/design-tokens";
 
 interface TaskDetailPageProps { taskId: string; }
@@ -20,7 +18,6 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
   const [task, setTask] = useState<TaskWithSubtasks | null>(null);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [calendarSyncOpen, setCalendarSyncOpen] = useState(false);
 
   const completedCount = task?.subtasks.filter((s) => s.completed).length ?? 0;
   const totalCount = task?.subtasks.length ?? 0;
@@ -130,19 +127,6 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
                 ✓ {t("taskDetail.completedMark", "已完成")}
               </span>
             )}
-            <button
-              onClick={() => setCalendarSyncOpen(true)}
-              className="mt-1 px-3 py-1 rounded-full text-[12px] font-medium flex items-center gap-1.5 border transition-all hover:opacity-80"
-              style={{
-                borderColor: T.line,
-                background: T.soft,
-                color: T.ink,
-              }}
-              title="导出或订阅此任务到系统日历"
-            >
-              <Calendar size={13} style={{ color: T.accent }} />
-              <span>{t("home.calendar", "同步日历")}</span>
-            </button>
           </div>
           <p
             className="mt-2 text-[13px]"
@@ -228,13 +212,6 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
           <Stat label={t("taskDetail.statDays", "计划天数")} value={t("history.days", { count: task.totalDays })} />
         </div>
       </div>
-
-      <CalendarSyncModal
-        isOpen={calendarSyncOpen}
-        onClose={() => setCalendarSyncOpen(false)}
-        taskId={task.id}
-        taskTitle={task.title}
-      />
     </PageShell>
   );
 }

@@ -13,7 +13,6 @@ interface CommandPaletteProps {
   subtasks: SubtaskWithTask[];
   onSelectSubtask: (subtask: SubtaskWithTask) => void;
   onNewPlan: () => void;
-  onOpenCalendarSync?: () => void;
   onSwitchView: (view: "today" | "plans" | "steps" | "timeline") => void;
 }
 
@@ -23,7 +22,6 @@ export function CommandPalette({
   subtasks,
   onSelectSubtask,
   onNewPlan,
-  onOpenCalendarSync,
   onSwitchView,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
@@ -73,16 +71,6 @@ export function CommandPalette({
       action: () => {
         onClose();
         onNewPlan();
-      },
-    },
-    {
-      id: "action-sync-calendar",
-      title: "导出与同步到系统日历 (飞书 / Apple / Google / Outlook)",
-      category: "快捷操作",
-      icon: "📅",
-      action: () => {
-        onClose();
-        onOpenCalendarSync?.();
       },
     },
     {

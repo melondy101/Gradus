@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Calendar } from "lucide-react";
 import { T, BLOOM_CONFIG } from "@/lib/design-tokens";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 
@@ -10,14 +9,12 @@ interface TimelineViewProps {
   subtasks: SubtaskWithTask[];
   onSelectSubtask: (subtask: SubtaskWithTask) => void;
   onToggleSubtask: (subtask: SubtaskWithTask) => void;
-  onOpenCalendarSync?: () => void;
 }
 
 export function TimelineView({
   subtasks,
   onSelectSubtask,
   onToggleSubtask,
-  onOpenCalendarSync,
 }: TimelineViewProps) {
   // Sort subtasks by startDay and task
   const sorted = [...subtasks].sort((a, b) => a.startDay - b.startDay);
@@ -49,7 +46,7 @@ export function TimelineView({
           </div>
         </div>
 
-        {/* 图例与同步按钮 */}
+        {/* 图例 */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: T.muted }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: T.accent }} />
@@ -67,30 +64,6 @@ export function TimelineView({
             />
             <span>复习节点</span>
           </div>
-
-          {onOpenCalendarSync && (
-            <button
-              onClick={onOpenCalendarSync}
-              title="导出与订阅到系统日历"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                background: "var(--secondary)",
-                border: `1px solid ${T.line}`,
-                borderRadius: 6,
-                padding: "4px 10px",
-                fontSize: 12,
-                fontWeight: 600,
-                color: T.ink,
-                cursor: "pointer",
-                transition: "all 0.12s ease",
-              }}
-            >
-              <Calendar size={13} style={{ color: T.accent }} />
-              <span>同步日历</span>
-            </button>
-          )}
         </div>
       </div>
 
