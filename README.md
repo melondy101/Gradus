@@ -8,6 +8,9 @@
 
 *“千里之行，始于足下；博学审问，拾级而上。”*
 
+> 独立开发、已部署的学习规划原型：把模糊目标变成有真实资源支撑、可排进日程的下一步。<br>
+> *An independently built prototype that turns a vague learning goal into a resource-backed, scheduled learning plan.*
+
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.0_(App_Router)-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript 5](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -107,7 +110,7 @@
 ### 2. 克隆与安装
 
 ```bash
-git clone https://github.com/huang-yi-dae/TalkTask.git
+git clone https://github.com/melondy101/Gradus.git
 cd TalkTask
 bun install
 ```
