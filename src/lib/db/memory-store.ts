@@ -1,4 +1,4 @@
-import type { Task, Subtask, User, RedemptionCode, RedemptionRecord, EmailVerification } from "./schema";
+import type { Task, Subtask, User, RedemptionCode, RedemptionRecord, EmailVerification, Notification } from "./schema";
 
 export interface AuthAttemptRecord {
   id: string;
@@ -15,6 +15,7 @@ export interface MemoryStore {
   redemptionCodes: Map<string, RedemptionCode>;
   redemptionRecords: Map<string, RedemptionRecord>;
   emailVerifications: Map<string, EmailVerification>;
+  notifications: Map<string, Notification>;
 }
 
 const globalForStore = globalThis as unknown as {
@@ -96,6 +97,7 @@ export const memStore: MemoryStore =
     redemptionCodes: createInitialRedemptionCodes(),
     redemptionRecords: new Map<string, RedemptionRecord>(),
     emailVerifications: new Map<string, EmailVerification>(),
+    notifications: new Map<string, Notification>(),
   };
 
 if (process.env.NODE_ENV !== "production") {

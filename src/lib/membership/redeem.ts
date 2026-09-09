@@ -86,6 +86,19 @@ export async function redeemMembershipCode(
   const tierConfig = TIER_CONFIGS[targetTier];
   const tierName = tierConfig?.name || targetTier.toUpperCase();
 
+  // 触发站内通知
+  try {
+    const { createNotification } = await import("@/lib/db/queries/notifications");
+    await createNotification({
+      userId,
+      title: "👑 会员特权兑换成功",
+      content: `您已成功激活「${tierName}」${durationDays} 天特权，有效期至 ${newExpiresAt.toLocaleDateString("zh-CN")}。每日配额与全部功能已解锁！`,
+      type: "membership",
+    });
+  } catch {
+    // ignore
+  }
+
   return {
     ok: true,
     tier: targetTier,

@@ -20,6 +20,7 @@ import {
   updateTaskTitleAndRawInput,
   updateTaskStartDate,
   getScheduledTasksByUser,
+  createNotification,
 } from "@/lib/db/queries";
 import {
   computeNewTaskStartDate,
@@ -50,24 +51,36 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
 async function callAI(
   systemPrompt: string,
   userMessage: string,
-  onDelta?: (delta: string) => void
+  onDelta?: (delta: string) => void,
+  timeoutMs = 45000
 ): Promise<string> {
-  const stream = await appAi.chat({
+  const streamPromise = appAi.chat({
     model: process.env.EAZO_AI_MODEL_KEY || "deepseek.v3.2",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userMessage },
     ],
     stream: true,
-    // Reasoning models (e.g. deepseek-v4-flash) spend token budget on
-    // reasoning_content first, then populate content. 2500 was too low —
-    // the model exhausted tokens on reasoning and never produced content.
-    // Make configurable; default 8000 covers reasoning + JSON output.
     max_tokens: Number(process.env.AI_MAX_TOKENS) || 8000,
   });
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("AI 服务响应超时，请稍后重试")), timeoutMs)
+  );
+
+  const stream = await Promise.race([streamPromise, timeoutPromise]);
 
   let accumulated = "";
   for await (const chunk of stream) {
@@ -81,11 +94,23 @@ async function callAI(
 }
 
 function parseJson<T>(text: string): T | null {
+  if (!text || typeof text !== "string") return null;
   try {
-    const match = text.match(/\{[\s\S]*\}/);
+    let cleaned = text.trim();
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+    }
+    const match = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
     if (!match) return null;
-    return JSON.parse(match[0]) as T;
+    const candidate = match[0].replace(/,\s*([\}\]])/g, "$1");
+    return JSON.parse(candidate) as T;
   } catch {
+    try {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) return JSON.parse(match[0]) as T;
+    } catch {
+      return null;
+    }
     return null;
   }
 }
@@ -99,12 +124,21 @@ export async function POST(
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
 
-  // 限流：昂贵 AI 端点，每用户每分钟最多 10 次，防刷量放大成本
-  const rl = rateLimit(`analyze:${auth.user.id}`, 10, 60_000);
-  if (!rl.ok) {
+  // 双重限流：用户 ID 限流 + 客户端 IP 限流，防止注册大量账号刷量
+  const userRl = rateLimit(`analyze:user:${auth.user.id}`, 10, 60_000);
+  if (!userRl.ok) {
     return NextResponse.json(
       { error: "请求过于频繁，请稍后再试" },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      { status: 429, headers: { "Retry-After": String(userRl.retryAfterSec) } }
+    );
+  }
+
+  const clientIp = getClientIp(request);
+  const ipRl = rateLimit(`analyze:ip:${clientIp}`, 6, 60_000);
+  if (!ipRl.ok) {
+    return NextResponse.json(
+      { error: "当前网络请求过于频繁，请稍候再试" },
+      { status: 429, headers: { "Retry-After": String(ipRl.retryAfterSec) } }
     );
   }
 
@@ -361,6 +395,19 @@ export async function POST(
     );
     await updateTaskTotalDays(id, totalDays);
     await updateTaskStatus(id, "done");
+
+    // 发送站内通知
+    try {
+      await createNotification({
+        userId: auth.user.id,
+        title: "🎯 学习任务拆解已就绪",
+        content: `《${taskName}》已成功拆解为 ${saved.length} 个递进子任务，预计总周期 ${totalDays} 天，已智能排期并注入学习资源。`,
+        type: "task",
+        link: `/task/${id}`,
+      });
+    } catch {
+      // ignore
+    }
 
     return NextResponse.json({
       ok: true,

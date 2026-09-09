@@ -629,16 +629,12 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                             <span>最多同时拥有 2 个任务</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Zap className="h-3.5 w-3.5 text-blue-500" />
-                            <span>每日最多新建+删除 5 次</span>
+                            <Bot className="h-3.5 w-3.5 text-emerald-500" />
+                            <span>每日 5 次 AI 规划全案拆解</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
                             <Sliders className="h-3.5 w-3.5 text-amber-500" />
-                            <span>每日最多 10 次提示词微调</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Bot className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>每日 3 次 AI 规划全案拆解</span>
+                            <span>每日 10 次提示词微调</span>
                           </div>
                         </div>
                       </div>
@@ -676,19 +672,15 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                         <div className="space-y-2 pt-2 border-t border-border text-xs">
                           <div className="flex items-center gap-2 text-foreground font-medium">
                             <Layers className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>最多同时拥有 20 个任务</span>
+                            <span>最多同时拥有 5 个任务</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Zap className="h-3.5 w-3.5 text-blue-500" />
-                            <span>每日 50 次新建与删除操作</span>
+                            <Bot className="h-3.5 w-3.5 text-emerald-500" />
+                            <span>每日 20 次 AI 规划全案拆解</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
                             <Sliders className="h-3.5 w-3.5 text-amber-500" />
                             <span>每日 100 次提示词微调</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Bot className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>每日 30 次 AI 规划全案拆解</span>
                           </div>
                         </div>
                       </div>
@@ -727,24 +719,20 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                           旗舰 <span className="text-xs font-normal text-muted-foreground">/ 年度</span>
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed">
-                          极致无拘体验，无限任务容量与优先算力通道。
+                          极致无拘体验，多任务容量与优先算力通道。
                         </p>
                         <div className="space-y-2 pt-2 border-t border-border text-xs">
                           <div className="flex items-center gap-2 text-foreground font-medium">
                             <Layers className="h-3.5 w-3.5 text-amber-500" />
-                            <span>无限任务容量 (999+)</span>
+                            <span>最多同时拥有 10 个任务</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Zap className="h-3.5 w-3.5 text-blue-500" />
-                            <span>每日 500 次新建与删除操作</span>
+                            <Bot className="h-3.5 w-3.5 text-amber-500" />
+                            <span>每日 100 次 AI 规划全案拆解</span>
                           </div>
                           <div className="flex items-center gap-2 text-foreground font-medium">
                             <Sliders className="h-3.5 w-3.5 text-amber-500" />
                             <span>每日 500 次深度提示词微调</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Bot className="h-3.5 w-3.5 text-amber-500" />
-                            <span>每日 100 次 AI 规划生成</span>
                           </div>
                         </div>
                       </div>

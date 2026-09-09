@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 import { readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
-import { getUserById } from "@/lib/db/queries";
+import { getUserById, getUserByEmailLower, upsertUser } from "@/lib/db/queries";
+import { ADMIN_EMAIL, ADMIN_DEFAULT_PASSWORD } from "./admin-shared";
+import { hashPassword } from "./password";
+import type { User } from "@/lib/db/schema";
 
 /**
  * 解析"当前请求的用户"。
@@ -24,6 +27,32 @@ export interface CurrentUserView {
   membershipExpiresAt?: string | null;
 }
 
+async function resolveUserFromDecoded(decoded: { sub: string; email?: string; name?: string }): Promise<User | null> {
+  let user = await getUserById(decoded.sub);
+  if (!user && decoded.email) {
+    user = await getUserByEmailLower(decoded.email.toLowerCase());
+  }
+
+  // 管理员账号特权自愈：若 Token 为系统管理员但 DB 中记录缺失，自动补齐
+  if (
+    !user &&
+    ((decoded.email && decoded.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
+      decoded.sub === "admin-system-root")
+  ) {
+    user = await upsertUser({
+      id: decoded.sub || "admin-system-root",
+      email: ADMIN_EMAIL,
+      emailLower: ADMIN_EMAIL.toLowerCase(),
+      name: decoded.name || "系统管理员",
+      passwordHash: await hashPassword(ADMIN_DEFAULT_PASSWORD),
+      membershipTier: "premium",
+      membershipExpiresAt: new Date("2099-12-31T23:59:59Z"),
+    });
+  }
+
+  return user || null;
+}
+
 /**
  * API 路由 handler 入口：从 Request 中解析 user（拿到 Request 后调用）。
  */
@@ -36,7 +65,7 @@ export async function getCurrentUserFromRequest(
   const decoded = await verifySession(token);
   if (!decoded) return null;
 
-  const user = await getUserById(decoded.sub);
+  const user = await resolveUserFromDecoded(decoded);
   if (!user) return null;
 
   return {
@@ -62,7 +91,7 @@ export async function getCurrentUser(): Promise<CurrentUserView | null> {
   const decoded = await verifySession(token);
   if (!decoded) return null;
 
-  const user = await getUserById(decoded.sub);
+  const user = await resolveUserFromDecoded(decoded);
   if (!user) return null;
 
   return {

@@ -34,6 +34,7 @@ import { TimelineView } from "./timeline-view";
 import { CommandPalette } from "./command-palette";
 import { ShareCardModal, type ShareData } from "@/components/share/share-card-modal";
 import { AiGenerationRitualModal } from "@/components/task/ai-generation-ritual-modal";
+import { OnboardingTour, TourHelpButton } from "./onboarding-tour";
 import { T } from "@/lib/design-tokens";
 
 // 骨架屏组件
@@ -585,6 +586,7 @@ export function HomePage() {
             </button>
 
             <button
+              id="btn-header-new-task"
               onClick={() => setShowInput(true)}
               style={{
                 background: "var(--accent)",
@@ -613,7 +615,7 @@ export function HomePage() {
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
             {/* VIEW 1: 今日聚焦 (Today) */}
             {currentView === "today" && (
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <div id="today-task-area" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {user && !fetching && subtaskRows.length > 0 && (
                   <AchievementPanel
                     refreshTick={streakTick}
@@ -809,15 +811,17 @@ export function HomePage() {
           </div>
 
           {/* ── 3. 右侧上下文检查面板 (Right Context Inspector) ── */}
-          <RightPanel
-            entries={entries}
-            focusedId={focusedId}
-            setFocusedId={setFocusedId}
-            regenAnalysis={regenAnalysis}
-            removeEntry={removeEntry}
-            onToggleSubtask={handleToggleSubtask}
-            onJumpToSubtask={handleJumpToSubtask}
-          />
+          <div id="panel-right-container" style={{ display: "flex", height: "100%" }}>
+            <RightPanel
+              entries={entries}
+              focusedId={focusedId}
+              setFocusedId={setFocusedId}
+              regenAnalysis={regenAnalysis}
+              removeEntry={removeEntry}
+              onToggleSubtask={handleToggleSubtask}
+              onJumpToSubtask={handleJumpToSubtask}
+            />
+          </div>
         </div>
 
         {/* 底部快捷键提示 */}
@@ -835,7 +839,8 @@ export function HomePage() {
           }}
         >
           <span>{todayStr}</span>
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <TourHelpButton />
             <span>
               <kbd style={{ background: T.soft, padding: "1px 5px", borderRadius: 4, fontFamily: "var(--font-geist-mono), monospace" }}>
                 ⌘K
@@ -1041,6 +1046,15 @@ export function HomePage() {
           )}
         </div>
       )}
+
+      {/* 🧭 新用户 1-2-3 步气泡高亮引导 (Step-by-step Onboarding Tour) */}
+      <OnboardingTour
+        onStartExample={(goal) => {
+          setRitualMinimized(false);
+          startAnalysis(goal);
+        }}
+        onOpenNewTaskModal={() => setShowInput(true)}
+      />
     </div>
   );
 }

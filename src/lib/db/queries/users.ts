@@ -57,8 +57,26 @@ export async function upsertUser(data: {
 }): Promise<User> {
   const normalizedEmailLower = data.emailLower ?? (data.email ? data.email.toLowerCase() : null);
   const normalizedEmail = data.email ?? normalizedEmailLower;
+  
+  // 1. 如果存在邮箱，先检查数据库中是否已存在该邮箱的用户（避免产生新的 ID 触发 email UNIQUE 冲突）
+  let targetId = data.id;
+  try {
+    if (normalizedEmailLower) {
+      const existingByEmail = await db
+        .select()
+        .from(users)
+        .where(eq(users.emailLower, normalizedEmailLower))
+        .limit(1);
+      if (existingByEmail[0]) {
+        targetId = existingByEmail[0].id;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   const values: User = {
-    id: data.id,
+    id: targetId,
     email: normalizedEmail,
     emailLower: normalizedEmailLower,
     name: data.name ?? null,
@@ -87,6 +105,9 @@ export async function upsertUser(data: {
           name: values.name,
           avatarUrl: values.avatarUrl,
           watchaOpenId: values.watchaOpenId,
+          passwordHash: data.passwordHash ? values.passwordHash : sql`COALESCE(NULLIF(${values.passwordHash}, ''), users.password_hash)`,
+          membershipTier: data.membershipTier ? values.membershipTier : sql`users.membership_tier`,
+          membershipExpiresAt: data.membershipExpiresAt !== undefined ? values.membershipExpiresAt : sql`users.membership_expires_at`,
           updatedAt: new Date(),
         },
       })
@@ -95,21 +116,21 @@ export async function upsertUser(data: {
       memStore.users.set(rows[0].id, rows[0]);
       return rows[0];
     }
-  } catch {
-    // DB offline, fallback to memory
+  } catch (dbErr) {
+    console.warn("[users] upsertUser fallback to memory or update:", dbErr);
   }
 
-  const existing = memStore.users.get(data.id);
+  const existing = memStore.users.get(targetId) || Array.from(memStore.users.values()).find(u => u.emailLower === normalizedEmailLower);
   const updatedUser: User = {
-    id: data.id,
+    id: targetId,
     email: values.email,
     emailLower: values.emailLower,
     name: values.name,
     avatarUrl: values.avatarUrl,
     watchaOpenId: values.watchaOpenId ?? existing?.watchaOpenId ?? null,
-    passwordHash: existing ? existing.passwordHash : values.passwordHash,
-    membershipTier: existing?.membershipTier ?? values.membershipTier,
-    membershipExpiresAt: existing?.membershipExpiresAt ?? values.membershipExpiresAt,
+    passwordHash: data.passwordHash ? values.passwordHash : (existing ? existing.passwordHash : values.passwordHash),
+    membershipTier: data.membershipTier ?? existing?.membershipTier ?? values.membershipTier,
+    membershipExpiresAt: (data.membershipExpiresAt !== undefined ? values.membershipExpiresAt : existing?.membershipExpiresAt) ?? null,
     aiGenerateCount: existing?.aiGenerateCount ?? values.aiGenerateCount,
     aiAdjustCount: existing?.aiAdjustCount ?? values.aiAdjustCount,
     taskOpsCount: existing?.taskOpsCount ?? values.taskOpsCount,
@@ -117,7 +138,7 @@ export async function upsertUser(data: {
     createdAt: existing ? existing.createdAt : new Date(),
     updatedAt: new Date(),
   };
-  memStore.users.set(data.id, updatedUser);
+  memStore.users.set(targetId, updatedUser);
   return updatedUser;
 }
 

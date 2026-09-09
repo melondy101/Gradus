@@ -79,6 +79,16 @@ export function CommandPalette({
       },
     },
     {
+      id: "action-onboarding-tour",
+      title: "新手指引 · 体验 3 步气泡指引与功能导览",
+      category: "帮助与指引",
+      icon: "🧭",
+      action: () => {
+        onClose();
+        window.dispatchEvent(new CustomEvent("open-gradus-tour"));
+      },
+    },
+    {
       id: "action-membership",
       title: "会员中心 · 查看用量配额与特权",
       category: "会员与特权",

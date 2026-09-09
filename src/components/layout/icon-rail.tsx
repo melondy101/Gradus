@@ -16,6 +16,7 @@ import { UserBadge } from "@/components/user-profile/user-badge";
 import { ThemeToggle } from "./theme-toggle";
 import { GradusLogo } from "@/components/ui/gradus-logo";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 
 export type NavView = "today" | "plans" | "steps" | "timeline";
 
@@ -145,6 +146,7 @@ export function IconRail({
 
           {/* New Plan Quick Action */}
           <button
+            id="nav-btn-new-plan"
             onClick={onNewPlan}
             title="新建学习任务 (N)"
             style={{
@@ -172,13 +174,14 @@ export function IconRail({
           </button>
 
           {/* Navigation Items */}
-          <nav style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+          <nav id="nav-rail-group" style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
             {navItems.map((item) => {
               const active = currentView === item.id;
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
+                  id={`nav-item-${item.id}`}
                   onClick={() => onSelectView(item.id)}
                   title={item.label}
                   style={{
@@ -255,6 +258,9 @@ export function IconRail({
             borderTop: "1px solid var(--border)",
           }}
         >
+          {/* Notification Center */}
+          <NotificationCenter collapsed={collapsed} />
+
           {/* Membership / Quota Trigger */}
           <button
             onClick={() => openMembershipModal("overview")}

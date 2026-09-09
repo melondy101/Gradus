@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   if (emailLower === ADMIN_EMAIL.toLowerCase() && password === ADMIN_DEFAULT_PASSWORD) {
     const adminHash = await hashPassword(ADMIN_DEFAULT_PASSWORD);
     user = await upsertUser({
-      id: user?.id || `admin-${Date.now()}`,
+      id: user?.id || "admin-system-root",
       email: ADMIN_EMAIL,
       emailLower: ADMIN_EMAIL.toLowerCase(),
       name: user?.name || "系统管理员",

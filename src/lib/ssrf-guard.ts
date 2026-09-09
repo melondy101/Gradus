@@ -156,6 +156,7 @@ export async function safeFetch(
   input: string,
   init: RequestInit = {},
   maxRedirects = 4,
+  maxSizeBytes = 2 * 1024 * 1024 // 最大 2MB
 ): Promise<Response> {
   let currentUrl = input;
 
@@ -164,7 +165,14 @@ export async function safeFetch(
       throw new Error("SSRF blocked: unsafe URL");
     }
 
-    const res = await fetch(currentUrl, { ...init, redirect: "manual" });
+    const signal = init.signal || AbortSignal.timeout(5000);
+    const res = await fetch(currentUrl, { ...init, signal, redirect: "manual" });
+
+    // 检查响应头 Content-Length
+    const contentLength = res.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > maxSizeBytes) {
+      throw new Error("Response payload exceeds maximum allowed size (2MB)");
+    }
 
     // 非重定向状态直接返回
     if (res.status < 300 || res.status >= 400) {

@@ -21,6 +21,18 @@ export function getBeijingDateString(date = new Date()): string {
   return formatter.format(date);
 }
 
+export function isTempUser(user: User | null | undefined): boolean {
+  if (!user) return true;
+  // 临时账号判定：passwordHash 为空 且 邮箱为 temp-xxx@anon.local 或 包含 temp-
+  if (
+    user.passwordHash === "" &&
+    (!user.email || user.email.startsWith("temp-") || user.email.includes("@anon.local"))
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function getUserEffectiveTier(user: User | null | undefined): MembershipTier {
   if (!user) return "free";
   // 管理员专属特权：始终享受尊享版顶级配额与全部功能
@@ -229,7 +241,24 @@ export async function checkAndIncrementAiUsage(
     };
   } else {
     // 完整 AI 规划生成 / 分析
-    const limit = tierConfig.limits.dailyAiGenerateLimit;
+    const isTemp = isTempUser(user);
+    if (isTemp) {
+      // 访客临时账号生命周期严格限制为 1 次全案体验，防止刷接口滥用 AI
+      if (genCount >= 1) {
+        return {
+          allowed: false,
+          current: genCount,
+          limit: 1,
+          remaining: 0,
+          tier: "free",
+          tierConfig,
+          code: "AI_GENERATE_LIMIT_REACHED",
+          reason: "您当前为未注册访客身份，体验次数已满 (1/1 次)。请免费注册账号，即可每日享受 3 次免费 AI 全案拆解及云端存档！",
+        };
+      }
+    }
+
+    const limit = isTemp ? 1 : tierConfig.limits.dailyAiGenerateLimit;
     if (genCount >= limit) {
       return {
         allowed: false,
