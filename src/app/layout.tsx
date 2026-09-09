@@ -48,22 +48,33 @@ const SITE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : undefined;
 
-const SITE_TITLE = process.env.NEXT_PUBLIC_APP_TITLE?.trim() || "TalkTask";
+const SITE_TITLE = process.env.NEXT_PUBLIC_APP_TITLE?.trim() || "Gradus - 拾级 | AI 学习任务规划器";
 const SITE_DESCRIPTION =
   process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim() ||
-  "AI 学习任务规划器 (拾级 Gradus) — 将模糊目标拆解为带排期、资源与甘特图的可执行子任务";
+  "Gradus (拾级) — AI 学习任务规划器，将模糊目标拆解为带排期、资源与甘特图的可执行子任务";
 
 export const metadata: Metadata = {
   ...(SITE_URL ? { metadataBase: new URL(SITE_URL) } : {}),
-  title: SITE_TITLE,
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Gradus",
+  },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     type: "website",
-    siteName: SITE_TITLE,
+    siteName: "Gradus",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: "/",
-    locale: "en_US",
+    locale: "zh_CN",
   },
   twitter: {
     card: "summary_large_image",
