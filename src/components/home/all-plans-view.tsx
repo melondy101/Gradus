@@ -2,8 +2,10 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { Crown, Plus } from "lucide-react";
 import { T } from "@/lib/design-tokens";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
+import { openMembershipModal } from "@/components/membership/global-membership-modal";
 
 interface AllPlansViewProps {
   tasks: TaskWithSubtasks[];
@@ -39,32 +41,56 @@ export function AllPlansView({
           </div>
         </div>
 
-        <button
-          onClick={onNewPlan}
-          style={{
-            background: T.accent,
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "8px 16px",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            boxShadow: "0 2px 8px rgba(74,124,111,0.25)",
-            transition: "all 0.15s ease",
-          }}
-          onMouseDown={(e) => {
-            e.currentTarget.style.transform = "scale(0.97)";
-          }}
-          onMouseUp={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-        >
-          <span>+</span> 新增学习目标
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => openMembershipModal("overview")}
+            style={{
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: `1px solid ${T.line}`,
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              boxShadow: "var(--shadow-xs)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <Crown size={14} style={{ color: "#F59E0B" }} />
+            <span>会员与容量</span>
+          </button>
+
+          <button
+            onClick={onNewPlan}
+            style={{
+              background: T.accent,
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 16px",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              boxShadow: "0 2px 8px rgba(74,124,111,0.25)",
+              transition: "all 0.15s ease",
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "scale(0.97)";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            <Plus size={14} /> 新增学习目标
+          </button>
+        </div>
       </div>
 
       {/* 计划卡片网格 */}

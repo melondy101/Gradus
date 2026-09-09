@@ -46,7 +46,14 @@ export async function upsertUser(data: {
   emailLower?: string | null;
   name?: string | null;
   avatarUrl?: string | null;
+  watchaOpenId?: string | null;
   passwordHash?: string | null;
+  membershipTier?: string;
+  membershipExpiresAt?: Date | null;
+  aiGenerateCount?: number;
+  aiAdjustCount?: number;
+  taskOpsCount?: number;
+  lastUsageDate?: string | null;
 }): Promise<User> {
   const normalizedEmailLower = data.emailLower ?? (data.email ? data.email.toLowerCase() : null);
   const normalizedEmail = data.email ?? normalizedEmailLower;
@@ -56,7 +63,14 @@ export async function upsertUser(data: {
     emailLower: normalizedEmailLower,
     name: data.name ?? null,
     avatarUrl: data.avatarUrl ?? null,
+    watchaOpenId: data.watchaOpenId ?? null,
     passwordHash: data.passwordHash ?? "",
+    membershipTier: data.membershipTier ?? "free",
+    membershipExpiresAt: data.membershipExpiresAt ?? null,
+    aiGenerateCount: data.aiGenerateCount ?? 0,
+    aiAdjustCount: data.aiAdjustCount ?? 0,
+    taskOpsCount: data.taskOpsCount ?? 0,
+    lastUsageDate: data.lastUsageDate ?? null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -72,6 +86,7 @@ export async function upsertUser(data: {
           emailLower: values.emailLower,
           name: values.name,
           avatarUrl: values.avatarUrl,
+          watchaOpenId: values.watchaOpenId,
           updatedAt: new Date(),
         },
       })
@@ -91,7 +106,14 @@ export async function upsertUser(data: {
     emailLower: values.emailLower,
     name: values.name,
     avatarUrl: values.avatarUrl,
+    watchaOpenId: values.watchaOpenId ?? existing?.watchaOpenId ?? null,
     passwordHash: existing ? existing.passwordHash : values.passwordHash,
+    membershipTier: existing?.membershipTier ?? values.membershipTier,
+    membershipExpiresAt: existing?.membershipExpiresAt ?? values.membershipExpiresAt,
+    aiGenerateCount: existing?.aiGenerateCount ?? values.aiGenerateCount,
+    aiAdjustCount: existing?.aiAdjustCount ?? values.aiAdjustCount,
+    taskOpsCount: existing?.taskOpsCount ?? values.taskOpsCount,
+    lastUsageDate: existing?.lastUsageDate ?? values.lastUsageDate,
     createdAt: existing ? existing.createdAt : new Date(),
     updatedAt: new Date(),
   };
@@ -101,7 +123,16 @@ export async function upsertUser(data: {
 
 export async function updateUser(
   id: string,
-  data: { name?: string | null; avatarUrl?: string | null }
+  data: {
+    name?: string | null;
+    avatarUrl?: string | null;
+    membershipTier?: string;
+    membershipExpiresAt?: Date | null;
+    aiGenerateCount?: number;
+    aiAdjustCount?: number;
+    taskOpsCount?: number;
+    lastUsageDate?: string | null;
+  }
 ): Promise<User | undefined> {
   if (Object.keys(data).length === 0) return getUserById(id);
 

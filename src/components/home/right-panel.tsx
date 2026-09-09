@@ -163,10 +163,26 @@ export function useAnalysisPanel() {
   const startAnalysis = useCallback(async (goal: string) => {
     if (!goal.trim()) return;
     abortRef.current?.abort();
-    const task = await createTask(goal.trim());
-    setEntries((prev) => [{ taskId: task.id, taskTitle: goal.trim(), rawInput: goal.trim(), stream: INIT_STREAM, task: null }, ...prev]);
-    setFocusedId(task.id);
-    await runStream(task.id, goal.trim(), "", true);
+    const tempId = `temp-${Date.now()}`;
+    try {
+      const task = await createTask(goal.trim());
+      setEntries((prev) => [{ taskId: task.id, taskTitle: goal.trim(), rawInput: goal.trim(), stream: INIT_STREAM, task: null }, ...prev]);
+      setFocusedId(task.id);
+      await runStream(task.id, goal.trim(), "", true);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setEntries((prev) => [
+        {
+          taskId: tempId,
+          taskTitle: goal.trim(),
+          rawInput: goal.trim(),
+          stream: { phase: "error", label: "创建失败", deltaLen: 0, errorMsg },
+          task: null,
+        },
+        ...prev,
+      ]);
+      setFocusedId(tempId);
+    }
   }, [runStream]);
 
   const regenAnalysis = useCallback((taskId: string, adjustment: string) => {

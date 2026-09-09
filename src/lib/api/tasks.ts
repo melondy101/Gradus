@@ -49,7 +49,17 @@ export async function createTask(title: string): Promise<Task> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const raw = await res.text();
+    let msg = raw;
+    try {
+      const parsed = JSON.parse(raw) as { error?: string; message?: string };
+      msg = parsed.error || parsed.message || raw;
+    } catch {
+      // not json
+    }
+    throw new Error(msg || "创建任务失败");
+  }
   return res.json();
 }
 
@@ -67,7 +77,15 @@ export async function updateTaskStatusApi(
 
 export async function deleteTask(id: string): Promise<void> {
   const res = await request(`/api/tasks/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const raw = await res.text();
+    let msg = raw;
+    try {
+      const parsed = JSON.parse(raw) as { error?: string; message?: string };
+      msg = parsed.error || parsed.message || raw;
+    } catch {}
+    throw new Error(msg || "删除任务失败");
+  }
 }
 
 export async function toggleSubtask(

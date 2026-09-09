@@ -7,6 +7,7 @@ import {
   deleteTask,
   updateTaskStatus,
 } from "@/lib/db/queries";
+import { checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
 
 export async function GET(
   request: NextRequest,
@@ -72,6 +73,21 @@ export async function DELETE(
   const task = await getTaskById(id);
   if (!task || task.userId !== auth.user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // 每日「新建+删除」任务操作次数上限校验（普通用户每日限 5 次）
+  const taskOpQuota = await checkAndIncrementTaskOpQuota(auth.user.id, "delete");
+  if (!taskOpQuota.allowed) {
+    return NextResponse.json(
+      {
+        error: taskOpQuota.reason || "今日新建与删除任务操作已达上限",
+        code: "TASK_OP_LIMIT_REACHED",
+        current: taskOpQuota.current,
+        limit: taskOpQuota.limit,
+        tier: taskOpQuota.tier,
+      },
+      { status: 403 }
+    );
   }
 
   await deleteTask(id);

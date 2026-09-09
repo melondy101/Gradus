@@ -372,8 +372,8 @@ export function HomePage() {
         setTasksList((prev) => prev.filter((t) => t.id !== taskId));
         setSubtaskRows((prev) => prev.filter((s) => s.taskId !== taskId));
         showToast("已删除计划");
-      } catch {
-        showToast("删除失败，请稍后再试");
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : "删除失败，请稍后再试");
       }
     },
     [showToast]

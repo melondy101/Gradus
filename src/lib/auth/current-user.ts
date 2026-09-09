@@ -20,6 +20,8 @@ export interface CurrentUserView {
   id: string;
   name: string;
   email: string;
+  membershipTier?: string;
+  membershipExpiresAt?: string | null;
 }
 
 /**
@@ -41,6 +43,8 @@ export async function getCurrentUserFromRequest(
     id: user.id,
     name: user.name ?? decoded.name ?? "",
     email: user.email ?? decoded.email ?? "",
+    membershipTier: user.membershipTier ?? "free",
+    membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
   };
 }
 
@@ -65,5 +69,7 @@ export async function getCurrentUser(): Promise<CurrentUserView | null> {
     id: user.id,
     name: user.name ?? decoded.name ?? "",
     email: user.email ?? decoded.email ?? "",
+    membershipTier: user.membershipTier ?? "free",
+    membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
   };
 }

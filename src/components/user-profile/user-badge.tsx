@@ -2,10 +2,13 @@
 
 import { useRef, useState, useEffect, type ReactNode } from "react";
 import Image from "next/image";
-import { LogOut, UserRound, X } from "lucide-react";
+import { LogOut, UserRound, X, Crown, Ticket, KeyRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { auth, useEazo } from "@/lib/eazo-shim";
 import type { User } from "@/lib/eazo-shim";
+import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
+import { isAdminUser } from "@/lib/auth/admin-shared";
 
 export function UserBadge() {
   const { t } = useTranslation();
@@ -13,6 +16,7 @@ export function UserBadge() {
   const loading = useEazo((s) => s.auth.loading);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const isAdmin = isAdminUser(user);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -53,57 +57,144 @@ export function UserBadge() {
 
   return (
     <div ref={ref} className="relative">
-      <BadgeTrigger user={user} onClick={() => setOpen((v: boolean) => !v)} />
+      <BadgeTrigger user={user} isAdmin={isAdmin} onClick={() => setOpen((v: boolean) => !v)} />
       {open && (
-        <DropdownPanel user={user} onClose={() => setOpen(false)} userIdLabel={t("auth.userId", "用户 ID")}>
-          <button
-            onClick={async () => {
-              setOpen(false);
-              await auth.logout();
-            }}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            {t("auth.signOut", "退出")}
-          </button>
+        <DropdownPanel user={user} isAdmin={isAdmin} onClose={() => setOpen(false)} userIdLabel={t("auth.userId", "用户 ID")}>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => {
+                setOpen(false);
+                openMembershipModal("overview");
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                <span>会员中心 / 配额</span>
+              </div>
+              <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                <Ticket className="h-3 w-3" />
+                兑换
+              </span>
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  openMembershipModal("manage");
+                }}
+                className="flex w-full items-center justify-between rounded-lg bg-amber-500/10 px-2.5 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <KeyRound className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <span>⚡ 激活码管理后台</span>
+                </div>
+                <span className="rounded-sm bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] px-1 font-bold">
+                  管理员
+                </span>
+              </button>
+            )}
+
+            <button
+              onClick={async () => {
+                setOpen(false);
+                await auth.logout();
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              {t("auth.signOut", "退出")}
+            </button>
+          </div>
         </DropdownPanel>
       )}
     </div>
   );
 }
 
-function BadgeTrigger({ user, onClick }: { user: User; onClick: () => void }) {
+function BadgeTrigger({ user, isAdmin, onClick }: { user: User; isAdmin?: boolean; onClick: () => void }) {
+  const tier = (user.membershipTier || "free") as MembershipTier;
+  const config = TIER_CONFIGS[tier] || TIER_CONFIGS.free;
+
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 rounded-full border border-border bg-background px-2.5 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md"
+      className="flex items-center gap-2 rounded-full border border-border bg-background px-2.5 py-1.5 text-sm shadow-xs transition-all hover:shadow-sm"
     >
       <Avatar user={user} size={24} />
-      <span className="max-w-[120px] truncate font-medium text-foreground">
+      <span className="max-w-[100px] truncate font-medium text-foreground text-xs">
         {user.name ?? user.email ?? user.id}
       </span>
+      {isAdmin ? (
+        <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 text-[9px] font-bold font-mono">
+          👑 管理员
+        </span>
+      ) : (
+        <span
+          className="rounded-full px-1.5 py-0.2 text-[9px] font-bold font-mono"
+          style={{
+            backgroundColor:
+              tier === "premium"
+                ? "rgba(245, 158, 11, 0.15)"
+                : tier === "pro"
+                ? "rgba(16, 185, 129, 0.15)"
+                : "rgba(107, 114, 128, 0.15)",
+            color: config.color,
+          }}
+        >
+          {config.badge}
+        </span>
+      )}
     </button>
   );
 }
 
 function DropdownPanel({
   user,
+  isAdmin,
   onClose,
   userIdLabel,
   children,
 }: {
   user: User;
+  isAdmin?: boolean;
   onClose: () => void;
   userIdLabel: string;
   children?: ReactNode;
 }) {
+  const tier = (user.membershipTier || "free") as MembershipTier;
+  const config = TIER_CONFIGS[tier] || TIER_CONFIGS.free;
+
   return (
     <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
       <div className="flex items-start justify-between gap-3 px-4 py-4">
         <div className="flex items-center gap-3">
           <Avatar user={user} size={40} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{user.name ?? "—"}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-semibold">{user.name ?? "—"}</p>
+              {isAdmin ? (
+                <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 text-[9px] font-bold font-mono">
+                  👑 管理员
+                </span>
+              ) : (
+                <span
+                  className="rounded-full px-1.5 py-0.2 text-[9px] font-bold font-mono"
+                  style={{
+                    backgroundColor:
+                      tier === "premium"
+                        ? "rgba(245, 158, 11, 0.15)"
+                        : tier === "pro"
+                        ? "rgba(16, 185, 129, 0.15)"
+                        : "rgba(107, 114, 128, 0.15)",
+                    color: config.color,
+                  }}
+                >
+                  {config.badge}
+                </span>
+              )}
+            </div>
             {user.email && (
               <p className="truncate text-xs text-muted-foreground">{user.email}</p>
             )}
@@ -117,11 +208,12 @@ function DropdownPanel({
         </button>
       </div>
 
-      <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground space-y-1.5">
+      <div className="border-t border-border px-4 py-2.5 text-xs text-muted-foreground space-y-1">
+        <Row label="当前身份" value={isAdmin ? "👑 系统管理员 (dae201459)" : config.name} />
         <Row label={userIdLabel} value={user.id} mono />
       </div>
 
-      {children && <div className="border-t border-border px-4 py-2">{children}</div>}
+      {children && <div className="border-t border-border px-3 py-2">{children}</div>}
     </div>
   );
 }

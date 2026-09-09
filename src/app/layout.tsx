@@ -3,6 +3,7 @@ import "./globals.css";
 import { Outfit, DM_Sans, JetBrains_Mono, Lora } from "next/font/google";
 import { EazoProvider } from "@/lib/eazo-shim";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
+import { GlobalMembershipModal } from "@/components/membership/global-membership-modal";
 import { cn } from "@/utils/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
@@ -99,6 +100,7 @@ export default async function RootLayout({
                 <LocaleSyncEffect />
                 {children}
                 <GlobalAuthModal />
+                <GlobalMembershipModal />
                 <ThemePreviewModal />
                 <Toaster />
               </EazoProvider>

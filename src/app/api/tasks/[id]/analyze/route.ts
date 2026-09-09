@@ -5,6 +5,7 @@ import { appAi } from "@/lib/eazo-ai-billing";
 import { resolveResources, type SearchIntent, type TrustableResource } from "@/lib/tavily";
 import { validateResources } from "@/lib/resource-validator";
 import { extractUrl, fetchUrlContent, formatContentForPrompt } from "@/lib/url-fetcher";
+import { checkAndIncrementAiUsage } from "@/lib/membership/quota";
 import {
   INTENT_PROMPT,
   RESOURCE_INTENT_PROMPT,
@@ -129,6 +130,22 @@ export async function POST(
     // 限长：adjustment 会拼进 AI prompt，限制长度防止 token 成本放大
     if (typeof body.adjustment === "string") adjustment = body.adjustment.trim().slice(0, 1000);
   } catch { /* ignore */ }
+
+  // 每日 AI 规划生成 / 调整修改次数上限校验（分级管理）
+  const usageCheck = await checkAndIncrementAiUsage(auth.user.id, Boolean(adjustment));
+  if (!usageCheck.allowed) {
+    releaseLock();
+    return NextResponse.json(
+      {
+        error: usageCheck.reason || "今日 AI 使用次数已达上限",
+        code: usageCheck.code,
+        current: usageCheck.current,
+        limit: usageCheck.limit,
+        tier: usageCheck.tier,
+      },
+      { status: 403 }
+    );
+  }
 
   const rawGoal = task.rawInput || task.title;
 

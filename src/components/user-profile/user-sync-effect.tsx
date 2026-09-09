@@ -2,22 +2,11 @@
 
 import { useEffect } from "react";
 import { useCurrentUser, updateCurrentUser } from "@/lib/auth/user-provider";
+import { auth } from "@/lib/eazo-shim";
+import { toast } from "sonner";
 
 /**
- * No-op placeholder.
- *
- * 原来这个组件在 mobile 平台上 hit 一次 `/api/user/profile` 把 user upsert
- * 进本地 DB。改造后：
- *   - middleware 在任何受保护 API 请求前自动建临时账号
- *   - register 流程在自己的事务里把临时账号的 tasks 合并到正式账号
- *   - RSC 阶段根布局直接解出 user 注入 <UserProvider>，客户端无需再拉
- *
- * 因此该 effect 已经没有副作用，但仍保留导出避免破坏 import。
- *
- * 留下它同步 moduleUser 与 RSC 注入 user 的差异：客户端 hydrate 之前
- * moduleUser 是 null，hydrate 后 `<UserProvider>` 的 useEffect 会把 RSC
- * 注入的 user 写到 moduleUser；这里多调一次 updateCurrentUser 触发刷新，
- * 让首屏消费方（useCurrentUser）能拿到值（避免 tearing）。
+ * 同步用户状态与处理 OAuth 回调通知
  */
 export function UserSyncEffect() {
   const user = useCurrentUser();
@@ -25,5 +14,31 @@ export function UserSyncEffect() {
     if (user) updateCurrentUser(user);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 检测 OAuth 回调参数（如观猹登录成功或失败）
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const authSuccess = url.searchParams.get("auth_success");
+    const authError = url.searchParams.get("auth_error");
+
+    if (authSuccess) {
+      toast.success("登录成功！已为您关联观猹账号");
+      auth.refresh();
+      url.searchParams.delete("auth_success");
+      window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+    } else if (authError) {
+      const errorMsg =
+        authError === "state_mismatch"
+          ? "授权状态校验失败，请重试"
+          : authError === "watcha_oauth_not_configured"
+          ? "观猹 OAuth 尚未配置"
+          : decodeURIComponent(authError);
+      toast.error(`观猹授权登录失败：${errorMsg}`);
+      url.searchParams.delete("auth_error");
+      window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+    }
+  }, []);
+
   return null;
 }
