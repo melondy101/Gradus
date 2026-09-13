@@ -6,6 +6,7 @@ import {
   createTask,
   getTasksWithSubtasksByUser,
 } from "@/lib/db/queries";
+import { checkTaskCreationQuota, checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -29,6 +30,36 @@ export async function POST(request: NextRequest) {
   const limited = enforceRateLimit(`tasks:create:${auth.user.id}`, 30, 60_000);
   if (limited) return limited;
 
+  // 1. 会员等级与任务容量校验（普通用户最多同时拥有 2 个任务）
+  const taskQuota = await checkTaskCreationQuota(auth.user.id);
+  if (!taskQuota.allowed) {
+    return NextResponse.json(
+      {
+        error: taskQuota.reason || "任务创建数量已达当前会员等级上限",
+        code: "TASK_LIMIT_REACHED",
+        current: taskQuota.current,
+        limit: taskQuota.limit,
+        tier: taskQuota.tier,
+      },
+      { status: 403 }
+    );
+  }
+
+  // 2. 每日「新建+删除」任务操作次数上限校验（普通用户每日限 5 次）
+  const taskOpQuota = await checkAndIncrementTaskOpQuota(auth.user.id, "create");
+  if (!taskOpQuota.allowed) {
+    return NextResponse.json(
+      {
+        error: taskOpQuota.reason || "今日新建与删除任务操作已达上限",
+        code: "TASK_OP_LIMIT_REACHED",
+        current: taskOpQuota.current,
+        limit: taskOpQuota.limit,
+        tier: taskOpQuota.tier,
+      },
+      { status: 403 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
@@ -46,6 +77,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const task = await createTask(auth.user.id, title);
-  return NextResponse.json(task, { status: 201 });
+  try {
+    const task = await createTask(auth.user.id, title);
+    return NextResponse.json(task, { status: 201 });
+  } catch (err) {
+    console.error("[api/tasks] createTask failed with DB error:", err);
+    return NextResponse.json(
+      {
+        error: "任务创建失败，数据库服务异常，请稍后重试",
+        debug: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  }
 }

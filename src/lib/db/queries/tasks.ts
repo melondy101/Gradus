@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { tasks, subtasks } from "@/lib/db/schema";
 import type { Task, Subtask } from "@/lib/db/schema";
 import { memStore } from "../memory-store";
+import { ensureSchema } from "../ensure-schema";
 
 // ── Task with progress counts ─────────────────────────────────────────
 export type TaskWithProgress = Task & {
@@ -18,6 +19,25 @@ export type SubtaskWithTask = Subtask & {
   taskStatus: string;
   taskCreatedAt: Date;
 };
+
+/**
+ * 数据库操作重试封装（防止长时 AI 生成过程中连接池 socket 被远端 Neon/Supabase 闲置中断）
+ */
+async function withDbRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 300): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (i < retries) {
+        console.warn(`[db] Mutation attempt ${i + 1}/${retries + 1} failed, retrying after ${delayMs}ms:`, err);
+        await new Promise((res) => setTimeout(res, delayMs));
+      }
+    }
+  }
+  throw lastError;
+}
 
 // ── Tasks ────────────────────────────────────────────────────────────
 
@@ -43,9 +63,14 @@ export async function getTasksByUser(userId: string): Promise<TaskWithProgress[]
       .groupBy(tasks.id)
       .orderBy(desc(tasks.createdAt));
 
-    if (rows) return rows as TaskWithProgress[];
-  } catch {
-    // DB offline, fallback to memory
+    if (rows) {
+      for (const t of rows) {
+        memStore.tasks.set(t.id, t);
+      }
+      return rows as TaskWithProgress[];
+    }
+  } catch (err) {
+    console.error("[db] getTasksByUser DB query failed:", { userId, error: err });
   }
 
   const userTasks = Array.from(memStore.tasks.values())
@@ -67,7 +92,6 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
   try {
     const rows = await db
       .select({
-        // subtask fields
         id: subtasks.id,
         taskId: subtasks.taskId,
         title: subtasks.title,
@@ -81,8 +105,10 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
         urgency: subtasks.urgency,
         importance: subtasks.importance,
         keywords: subtasks.keywords,
+        completedAt: subtasks.completedAt,
+        bloomLevel: subtasks.bloomLevel,
+        deepWorkHours: subtasks.deepWorkHours,
         createdAt: subtasks.createdAt,
-        // parent task fields
         taskTitle: tasks.title,
         taskRawInput: tasks.rawInput,
         taskStartDate: tasks.startDate,
@@ -95,8 +121,8 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
       .orderBy(desc(tasks.createdAt), subtasks.sortOrder);
 
     if (rows) return rows as SubtaskWithTask[];
-  } catch {
-    // DB offline, fallback to memory
+  } catch (err) {
+    console.error("[db] getSubtasksWithTaskByUser DB query failed:", { userId, error: err });
   }
 
   const userTasks = Array.from(memStore.tasks.values()).filter((t) => t.userId === userId);
@@ -129,9 +155,12 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
 export async function getTaskById(id: string): Promise<Task | null> {
   try {
     const rows = await db.select().from(tasks).where(eq(tasks.id, id));
-    if (rows[0]) return rows[0];
-  } catch {
-    // DB offline, fallback to memory
+    if (rows[0]) {
+      memStore.tasks.set(rows[0].id, rows[0]);
+      return rows[0];
+    }
+  } catch (err) {
+    console.error("[db] getTaskById DB query failed:", { id, error: err });
   }
   return memStore.tasks.get(id) ?? null;
 }
@@ -140,6 +169,10 @@ export async function createTask(
   userId: string,
   title: string
 ): Promise<Task> {
+  await ensureSchema().catch((err) => {
+    console.warn("[tasks] ensureSchema check returned error:", err);
+  });
+
   const newTask: Task = {
     id: crypto.randomUUID(),
     userId,
@@ -153,20 +186,26 @@ export async function createTask(
   };
 
   try {
-    const rows = await db
-      .insert(tasks)
-      .values(newTask)
-      .returning();
+    const rows = await withDbRetry(() =>
+      db
+        .insert(tasks)
+        .values(newTask)
+        .returning()
+    );
     if (rows[0]) {
       memStore.tasks.set(rows[0].id, rows[0]);
       return rows[0];
     }
-  } catch {
-    // DB offline, fallback to memory
+    throw new Error(`createTask returning empty rows for id=${newTask.id}`);
+  } catch (err) {
+    console.error("[tasks] createTask FATAL DB ERROR:", {
+      userId,
+      title,
+      error: err instanceof Error ? err.message : err,
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+    throw err;
   }
-
-  memStore.tasks.set(newTask.id, newTask);
-  return newTask;
 }
 
 export async function updateTaskTitleAndRawInput(
@@ -175,19 +214,21 @@ export async function updateTaskTitleAndRawInput(
   rawInput: string,
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ title, rawInput, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  const existing = memStore.tasks.get(id);
-  if (existing) {
-    existing.title = title;
-    existing.rawInput = rawInput;
-    existing.updatedAt = new Date();
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ title, rawInput, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.title = title;
+      existing.rawInput = rawInput;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskTitleAndRawInput FATAL DB ERROR:", { id, error: err });
+    throw err;
   }
 }
 
@@ -196,18 +237,20 @@ export async function updateTaskStartDate(
   startDate: Date,
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ startDate, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  const existing = memStore.tasks.get(id);
-  if (existing) {
-    existing.startDate = startDate;
-    existing.updatedAt = new Date();
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ startDate, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.startDate = startDate;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskStartDate FATAL DB ERROR:", { id, error: err });
+    throw err;
   }
 }
 
@@ -216,18 +259,20 @@ export async function updateTaskTotalDays(
   totalDays: number
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ totalDays, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  const existing = memStore.tasks.get(id);
-  if (existing) {
-    existing.totalDays = totalDays;
-    existing.updatedAt = new Date();
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ totalDays, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.totalDays = totalDays;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskTotalDays FATAL DB ERROR:", { id, totalDays, error: err });
+    throw err;
   }
 }
 
@@ -236,35 +281,50 @@ export async function updateTaskStatus(
   status: string
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  const existing = memStore.tasks.get(id);
-  if (existing) {
-    existing.status = status;
-    existing.updatedAt = new Date();
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.status = status;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskStatus FATAL DB ERROR:", { id, status, error: err });
+    throw err;
   }
 }
 
 export async function deleteTask(id: string): Promise<void> {
   try {
-    await db.delete(tasks).where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  memStore.tasks.delete(id);
-  for (const [sId, s] of memStore.subtasks.entries()) {
-    if (s.taskId === id) memStore.subtasks.delete(sId);
+    await withDbRetry(() => db.delete(tasks).where(eq(tasks.id, id)));
+    memStore.tasks.delete(id);
+    for (const [sId, s] of memStore.subtasks.entries()) {
+      if (s.taskId === id) memStore.subtasks.delete(sId);
+    }
+  } catch (err) {
+    console.error("[tasks] deleteTask FATAL DB ERROR:", { id, error: err });
+    throw err;
   }
 }
 
 // ── Subtasks ─────────────────────────────────────────────────────────
+
+/** 删除指定大任务下的全部子任务（重新生成或微调排期时清理旧数据） */
+export async function deleteSubtasksByTaskId(taskId: string): Promise<void> {
+  try {
+    await withDbRetry(() => db.delete(subtasks).where(eq(subtasks.taskId, taskId)));
+    for (const [sId, s] of memStore.subtasks.entries()) {
+      if (s.taskId === taskId) memStore.subtasks.delete(sId);
+    }
+  } catch (err) {
+    console.error("[tasks] deleteSubtasksByTaskId FATAL DB ERROR:", { taskId, error: err });
+    throw err;
+  }
+}
 
 export async function getSubtasksByTask(taskId: string): Promise<Subtask[]> {
   try {
@@ -273,9 +333,14 @@ export async function getSubtasksByTask(taskId: string): Promise<Subtask[]> {
       .from(subtasks)
       .where(eq(subtasks.taskId, taskId))
       .orderBy(subtasks.sortOrder);
-    if (rows) return rows;
-  } catch {
-    // DB offline, fallback to memory
+    if (rows && rows.length > 0) {
+      for (const r of rows) {
+        memStore.subtasks.set(r.id, r);
+      }
+      return rows;
+    }
+  } catch (err) {
+    console.error("[db] getSubtasksByTask DB query failed:", { taskId, error: err });
   }
 
   return Array.from(memStore.subtasks.values())
@@ -324,24 +389,28 @@ export async function createSubtasks(
   }));
 
   try {
-    const rows = await db
-      .insert(subtasks)
-      .values(createdList)
-      .returning();
+    const rows = await withDbRetry(() =>
+      db
+        .insert(subtasks)
+        .values(createdList)
+        .returning()
+    );
     if (rows && rows.length > 0) {
       for (const row of rows) {
         memStore.subtasks.set(row.id, row);
       }
       return rows;
     }
-  } catch {
-    // DB offline, fallback to memory
+    throw new Error(`createSubtasks returned empty rows for taskId=${taskId}`);
+  } catch (err) {
+    console.error("[tasks] createSubtasks FATAL DB ERROR:", {
+      taskId,
+      itemCount: items.length,
+      error: err instanceof Error ? err.message : err,
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+    throw err;
   }
-
-  for (const item of createdList) {
-    memStore.subtasks.set(item.id, item);
-  }
-  return createdList;
 }
 
 export async function toggleSubtask(
@@ -350,20 +419,22 @@ export async function toggleSubtask(
   taskId: string
 ): Promise<void> {
   try {
-    await db.update(subtasks)
-      .set({
-        completed,
-        completedAt: completed ? new Date() : null,
-      })
-      .where(and(eq(subtasks.id, id), eq(subtasks.taskId, taskId)));
-  } catch {
-    // DB offline, fallback to memory
-  }
-
-  const existing = memStore.subtasks.get(id);
-  if (existing && existing.taskId === taskId) {
-    existing.completed = completed;
-    existing.completedAt = completed ? new Date() : null;
+    await withDbRetry(() =>
+      db.update(subtasks)
+        .set({
+          completed,
+          completedAt: completed ? new Date() : null,
+        })
+        .where(and(eq(subtasks.id, id), eq(subtasks.taskId, taskId)))
+    );
+    const existing = memStore.subtasks.get(id);
+    if (existing && existing.taskId === taskId) {
+      existing.completed = completed;
+      existing.completedAt = completed ? new Date() : null;
+    }
+  } catch (err) {
+    console.error("[tasks] toggleSubtask FATAL DB ERROR:", { id, taskId, error: err });
+    throw err;
   }
 }
 
@@ -380,23 +451,20 @@ export async function postponeSubtask(id: string, taskId: string, delta = 1): Pr
     if (rows.length > 0) {
       const current = rows[0].startDay ?? 0;
       const next = Math.max(0, current + delta);
-      await db.update(subtasks)
-        .set({ startDay: next })
-        .where(and(eq(subtasks.id, id), eq(subtasks.taskId, taskId)));
+      await withDbRetry(() =>
+        db.update(subtasks)
+          .set({ startDay: next })
+          .where(and(eq(subtasks.id, id), eq(subtasks.taskId, taskId)))
+      );
       const mem = memStore.subtasks.get(id);
       if (mem) mem.startDay = next;
       return next;
     }
-  } catch {
-    // DB offline, fallback to memory
+    return null;
+  } catch (err) {
+    console.error("[tasks] postponeSubtask FATAL DB ERROR:", { id, taskId, error: err });
+    throw err;
   }
-
-  const existing = memStore.subtasks.get(id);
-  if (!existing || existing.taskId !== taskId) return null;
-  const current = existing.startDay ?? 0;
-  const next = Math.max(0, current + delta);
-  existing.startDay = next;
-  return next;
 }
 
 /** 返回该用户所有任务的排期摘要（用于全局接续计算） */
@@ -420,8 +488,8 @@ export async function getScheduledTasksByUser(userId: string): Promise<Array<{
       .where(eq(tasks.userId, userId))
       .orderBy(tasks.createdAt);
     if (rows) return rows;
-  } catch {
-    // DB offline, fallback to memory
+  } catch (err) {
+    console.error("[db] getScheduledTasksByUser DB query failed:", { userId, error: err });
   }
 
   return Array.from(memStore.tasks.values())
@@ -464,13 +532,13 @@ export async function getTasksWithSubtasksByUser(userId: string): Promise<TaskWi
     }
 
     return taskRows.map((t) => ({ ...t, subtasks: byTask.get(t.id) ?? [] }));
-  } catch {
-    // DB offline, fallback to memory
+  } catch (err) {
+    console.error("[db] getTasksWithSubtasksByUser DB query failed:", { userId, error: err });
   }
 
   const userTasks = Array.from(memStore.tasks.values())
     .filter((t) => t.userId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return userTasks.map((t) => ({
     ...t,
@@ -479,4 +547,3 @@ export async function getTasksWithSubtasksByUser(userId: string): Promise<TaskWi
       .sort((a, b) => a.sortOrder - b.sortOrder),
   }));
 }
-

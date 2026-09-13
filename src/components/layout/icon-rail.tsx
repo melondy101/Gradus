@@ -10,10 +10,13 @@ import {
   Command,
   ChevronLeft,
   ChevronRight,
+  Crown,
 } from "lucide-react";
 import { UserBadge } from "@/components/user-profile/user-badge";
 import { ThemeToggle } from "./theme-toggle";
 import { GradusLogo } from "@/components/ui/gradus-logo";
+import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 
 export type NavView = "today" | "plans" | "steps" | "timeline";
 
@@ -143,6 +146,7 @@ export function IconRail({
 
           {/* New Plan Quick Action */}
           <button
+            id="nav-btn-new-plan"
             onClick={onNewPlan}
             title="新建学习任务 (N)"
             style={{
@@ -170,13 +174,14 @@ export function IconRail({
           </button>
 
           {/* Navigation Items */}
-          <nav style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+          <nav id="nav-rail-group" style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
             {navItems.map((item) => {
               const active = currentView === item.id;
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
+                  id={`nav-item-${item.id}`}
                   onClick={() => onSelectView(item.id)}
                   title={item.label}
                   style={{
@@ -243,7 +248,7 @@ export function IconRail({
           </nav>
         </div>
 
-        {/* Bottom: Command Palette, Theme, Profile */}
+        {/* Bottom: Membership, Command Palette, Theme, Profile */}
         <div
           style={{
             display: "flex",
@@ -253,6 +258,48 @@ export function IconRail({
             borderTop: "1px solid var(--border)",
           }}
         >
+          {/* Notification Center */}
+          <NotificationCenter collapsed={collapsed} />
+
+          {/* Membership / Quota Trigger */}
+          <button
+            onClick={() => openMembershipModal("overview")}
+            title="会员中心与配额"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: collapsed ? "center" : "space-between",
+              height: 32,
+              padding: collapsed ? "0" : "0 8px",
+              borderRadius: 6,
+              border: "1px solid var(--border)",
+              background: "var(--accent)",
+              color: "var(--accent-foreground)",
+              cursor: "pointer",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Crown size={14} style={{ color: "#F59E0B" }} />
+              {!collapsed && <span>会员权益 / 兑换</span>}
+            </div>
+            {!collapsed && (
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "1px 5px",
+                  borderRadius: 4,
+                  background: "rgba(245, 158, 11, 0.15)",
+                  color: "#D97706",
+                  fontWeight: 700,
+                }}
+              >
+                PRO
+              </span>
+            )}
+          </button>
+
           {/* Command Palette Trigger */}
           <button
             onClick={onOpenCommandPalette}

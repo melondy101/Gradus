@@ -10,14 +10,17 @@ import {
   buildSetSessionCookie,
   readSessionCookieFromRequest,
 } from "@/lib/auth/cookie";
+import { verifyEmailCode } from "@/lib/email/verification";
+import { isRealEmailConfigured } from "@/lib/email/mailer";
 
 /**
  * POST /api/auth/register
  *
- * Body: `{ name: string, email: string, password: string }`
+ * Body: `{ name: string, email: string, password: string, code?: string }`
  *
  * 行为：
  *   - 受 60s/5 次/IP 限流。
+ *   - 若配置了 QQ 邮箱/SMTP 发信服务或提供了 code，校验 6 位邮箱验证码。
  *   - email trim + 小写归一写入 `email` 与 `emailLower`，任一列 UNIQUE
  *     冲突返回 409。
  *   - bcrypt hash → 插 users 行 → 同事务执行"临时账号合并"：
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 1) 解析 body
-  let body: { name?: unknown; email?: unknown; password?: unknown };
+  let body: { name?: unknown; email?: unknown; password?: unknown; code?: unknown; verificationCode?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -49,6 +52,12 @@ export async function POST(request: NextRequest) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const rawEmail = typeof body.email === "string" ? body.email.trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const code =
+    typeof body.code === "string"
+      ? body.code.trim()
+      : typeof body.verificationCode === "string"
+      ? body.verificationCode.trim()
+      : "";
 
   if (!name) {
     return NextResponse.json({ error: "姓名不能为空" }, { status: 400 });
@@ -61,6 +70,21 @@ export async function POST(request: NextRequest) {
   }
   if (password.length > 200) {
     return NextResponse.json({ error: "密码过长" }, { status: 400 });
+  }
+
+  // 校验验证码（若配置了 QQ邮箱/SMTP/Resend 发信服务 或 输入了验证码）
+  const emailServiceConfigured = isRealEmailConfigured();
+  if (emailServiceConfigured || code) {
+    if (!code) {
+      return NextResponse.json({ error: "请输入 6 位邮箱验证码" }, { status: 400 });
+    }
+    const verifyResult = await verifyEmailCode(rawEmail, code);
+    if (!verifyResult.ok) {
+      return NextResponse.json(
+        { error: verifyResult.error || "验证码校验失败" },
+        { status: 400 }
+      );
+    }
   }
 
   const emailLower = rawEmail.toLowerCase();

@@ -1,5 +1,5 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { index, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable(
   "users",
@@ -13,6 +13,17 @@ export const users = pgTable(
     passwordHash: text("password_hash").notNull().default(""),
     name: text("name"),
     avatarUrl: text("avatar_url"),
+    // 观猹 (Watcha.cn) OAuth OpenID
+    watchaOpenId: varchar("watcha_openid", { length: 128 }).unique(),
+    // 会员等级与有效期：free (普通) | pro (专业版) | premium (尊享版)
+    membershipTier: varchar("membership_tier", { length: 32 }).notNull().default("free"),
+    membershipExpiresAt: timestamp("membership_expires_at"),
+    // 每日 AI 生成与调整配额计数（每日按 lastUsageDate 自动重置）
+    aiGenerateCount: integer("ai_generate_count").notNull().default(0),
+    aiAdjustCount: integer("ai_adjust_count").notNull().default(0),
+    // 每日任务新建+删除操作总次数（每日按 lastUsageDate 自动重置）
+    taskOpsCount: integer("task_ops_count").notNull().default(0),
+    lastUsageDate: varchar("last_usage_date", { length: 10 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

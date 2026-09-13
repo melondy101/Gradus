@@ -13,16 +13,10 @@ import {
   updateCurrentUser,
   getCurrentUserSnapshot,
 } from "@/lib/auth/user-provider";
+import type { CurrentUserView } from "@/lib/auth/current-user";
 import type { User } from "@/lib/db/schema";
 
-export type { User };
-
-// Re-export the user view type so existing imports keep working.
-export type CurrentUserView = {
-  id: string;
-  name: string;
-  email: string;
-};
+export type { User, CurrentUserView };
 
 /**
  * Adapter: `CurrentUserView` (auth/current-user.ts) → `User` (db schema).
@@ -50,7 +44,9 @@ function adaptUser(view: CurrentUserView | null): User | null {
     cachedUserView !== null &&
     cachedUserView.id === view.id &&
     cachedUserView.email === view.email &&
-    cachedUserView.name === view.name;
+    cachedUserView.name === view.name &&
+    cachedUserView.membershipTier === view.membershipTier &&
+    cachedUserView.membershipExpiresAt === view.membershipExpiresAt;
   if (same) return cachedUser;
   cachedUserView = view;
   cachedUser = {
@@ -60,6 +56,13 @@ function adaptUser(view: CurrentUserView | null): User | null {
     avatarUrl: null,
     passwordHash: "",
     emailLower: view.email ? view.email.toLowerCase() : null,
+    watchaOpenId: null,
+    membershipTier: view.membershipTier ?? "free",
+    membershipExpiresAt: view.membershipExpiresAt ? new Date(view.membershipExpiresAt) : null,
+    aiGenerateCount: 0,
+    aiAdjustCount: 0,
+    taskOpsCount: 0,
+    lastUsageDate: null,
     createdAt: new Date(0),
     updatedAt: new Date(0),
   };

@@ -28,23 +28,26 @@ export const INTENT_PROMPT = `你是一名专业学习规划顾问，擅长应�
   "bloom_target_level": 3,
   "estimated_total_hours": 20,
   "search_keywords": ["关键词1", "关键词2", "关键词3"],
-  "subject_domain": "具体领域，如：高中数学/Python入门/英语口语/投资理财（2-8字）"
+  "subject_domain": "具体领域，如：高中数学/Python入门/英语口语/投资理财（2-8字）",
+  "search_intents": [
+    {
+      "query": "可以直接放入搜索引擎的精准搜索词（严禁生成任何 URL 或链接）",
+      "purpose": "用途说明（10字以内，如：Python入门教程/基础练习题）",
+      "learning_phase": "input",
+      "suitable_for": "beginner",
+      "resource_type": "course"
+    }
+  ]
 }
 
 字段说明：
 - urgency/importance：1-5 整数，根据学习场景合理判断（备考=高urgency，兴趣探索=低urgency）
-- prior_knowledge_level：评估学习者可能的基础
-  * beginner：完全零基础，需要从头开始
-  * intermediate：有一定了解，可跳过入门直接进阶
-  * advanced：已有较深基础，目标是专项提升
-- learning_goal_type：
-  * skill：需要反复练习才能掌握（编程/乐器/语言口语）
-  * knowledge：以理解和记忆为主（历史/理论/概念）
-  * project：以完成具体产出为目标（写论文/做项目/准备考试）
-- bloom_target_level：该目标在 Bloom 认知分类法中的目标层级
-  * 1=记忆（背诵）2=理解（解释）3=应用（使用）4=分析（检验）5=评估（判断）6=创造（设计）
+- prior_knowledge_level：评估学习者可能的基础（beginner / intermediate / advanced）
+- learning_goal_type：skill（技能） / knowledge（知识） / project（项目）
+- bloom_target_level：1=记忆 2=理解 3=应用 4=分析 5=评估 6=创造
 - estimated_total_hours：完成该目标预计需要的总小时数（15-200小时范围）
-- search_keywords：3-5个最能代表该主题的中英文搜索词`;
+- search_keywords：3-5个最能代表该主题的中英文搜索词
+- search_intents：4-6个针对该目标的搜索意图（涵盖 input/practice/reference，严禁包含任何 URL 网址）`;
 
 // ─── Stage 2: Resource Search Intent ─────────────────────────────────────────
 // 设计原则（来自 Perplexity Pipeline 研究 + arXiv 引用验证研究）：

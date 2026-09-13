@@ -6,6 +6,9 @@ import { T } from "@/lib/design-tokens";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import type { ThemeId } from "@/lib/theme-config";
+import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { useEazo } from "@/lib/eazo-shim";
+import { isAdminUser } from "@/lib/auth/admin-shared";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -28,6 +31,8 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { setThemeId } = useAppTheme();
+  const user = useEazo((s) => s.auth.user);
+  const isAdmin = isAdminUser(user);
 
   // Focus input when opened
   useEffect(() => {
@@ -73,6 +78,50 @@ export function CommandPalette({
         onNewPlan();
       },
     },
+    {
+      id: "action-onboarding-tour",
+      title: "新手指引 · 体验 3 步气泡指引与功能导览",
+      category: "帮助与指引",
+      icon: "🧭",
+      action: () => {
+        onClose();
+        window.dispatchEvent(new CustomEvent("open-gradus-tour"));
+      },
+    },
+    {
+      id: "action-membership",
+      title: "会员中心 · 查看用量配额与特权",
+      category: "会员与特权",
+      icon: "👑",
+      action: () => {
+        onClose();
+        openMembershipModal("overview");
+      },
+    },
+    {
+      id: "action-redeem-code",
+      title: "兑换码激活 · 升级会员解锁任务容量",
+      category: "会员与特权",
+      icon: "🎟️",
+      action: () => {
+        onClose();
+        openMembershipModal("redeem");
+      },
+    },
+    ...(isAdmin
+      ? [
+          {
+            id: "action-manage-codes",
+            title: "激活码生成与管理 · 批量制码与配额发放",
+            category: "会员与特权",
+            icon: "⚡",
+            action: () => {
+              onClose();
+              openMembershipModal("manage");
+            },
+          },
+        ]
+      : []),
     {
       id: "view-today",
       title: "切换至：今日聚焦 (Today Focus)",

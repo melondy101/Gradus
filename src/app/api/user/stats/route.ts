@@ -3,10 +3,12 @@ import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db/client";
 import { subtasks, tasks } from "@/lib/db/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
+import { getBeijingDateString } from "@/lib/membership/quota";
 
 /**
  * GET /api/user/stats
  * 返回用户学习统计：连续天数、今日完成数、本周完成数、历史累计、活跃任务数
+ * （统一按东八区 24:00 / 次日 00:00 换日计算）
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -25,15 +27,15 @@ export async function GET(request: NextRequest) {
       .where(and(eq(tasks.userId, user.id), eq(subtasks.completed, true)));
 
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = getBeijingDateString(now);
 
-    // 提取所有完成日期（去重）
+    // 提取所有完成日期（去重，以东八区为准）
     const completedDates = new Set<string>();
     let todayCount = 0;
 
     for (const row of rows) {
       if (row.completedAt) {
-        const d = row.completedAt.toISOString().slice(0, 10);
+        const d = getBeijingDateString(row.completedAt);
         completedDates.add(d);
         if (d === todayStr) todayCount++;
       }
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
       check.setDate(check.getDate() - 1);
     }
     while (true) {
-      const d = check.toISOString().slice(0, 10);
+      const d = getBeijingDateString(check);
       if (!completedDates.has(d)) break;
       streak++;
       check.setDate(check.getDate() - 1);

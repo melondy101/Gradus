@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, X, UserPlus, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, X, UserPlus, LogIn, Send } from "lucide-react";
 import { auth } from "@/lib/eazo-shim";
 
 type Mode = "login" | "register";
@@ -20,9 +20,38 @@ export function AuthModal({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [authConfig, setAuthConfig] = useState<{
+    watchaEnabled?: boolean;
+    emailConfigured?: boolean;
+    emailProvider?: "qq" | "smtp" | "mock";
+    emailVerificationEnabled?: boolean;
+  }>({});
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  // 获取服务端认证配置（是否启用观猹 OAuth 等）
+  useEffect(() => {
+    if (!open) return;
+    fetch("/api/auth/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok) setAuthConfig(data);
+      })
+      .catch(() => {});
+  }, [open]);
+
+  // 倒计时计时器
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   // ESC 关闭 modal
   useEffect(() => {
@@ -48,12 +77,62 @@ export function AuthModal({
 
   if (!open) return null;
 
+  // 发送邮箱验证码
+  async function handleSendCode() {
+    if (sendingCode || countdown > 0) return;
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      toast.error("请先输入邮箱地址");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("请输入正确的邮箱格式");
+      return;
+    }
+
+    setSendingCode(true);
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, type: "register" }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        message?: string;
+        error?: string;
+        waitSeconds?: number;
+        devCode?: string;
+      };
+
+      if (!res.ok || !data.ok) {
+        toast.error(data.error || "发送验证码失败");
+        if (data.waitSeconds) setCountdown(data.waitSeconds);
+        return;
+      }
+
+      setCountdown(60);
+      toast.success(data.message || "验证码已发送至邮箱，请查收");
+      if (data.devCode) {
+        toast.info(`[开发提示] 模拟验证码：${data.devCode}`);
+      }
+    } catch (err) {
+      console.error("[auth] send code error:", err);
+      toast.error("发送网络异常，请稍后再试");
+    } finally {
+      setSendingCode(false);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (submitting) return;
 
     const trimmedEmail = email.trim();
     const trimmedName = name.trim();
+    const trimmedCode = code.trim();
+
     if (!trimmedEmail) {
       toast.error("请输入邮箱");
       return;
@@ -66,6 +145,17 @@ export function AuthModal({
       toast.error("请输入姓名");
       return;
     }
+    const isEmailServiceActive = Boolean(authConfig.emailConfigured);
+    if (mode === "register" && (isEmailServiceActive || trimmedCode)) {
+      if (!trimmedCode) {
+        toast.error("请输入 6 位邮箱验证码");
+        return;
+      }
+      if (trimmedCode.length !== 6) {
+        toast.error("验证码应为 6 位数字");
+        return;
+      }
+    }
     if (password.length < 6) {
       toast.error("密码至少 6 个字符");
       return;
@@ -76,7 +166,7 @@ export function AuthModal({
       const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const payload =
         mode === "register"
-          ? { name: trimmedName, email: trimmedEmail, password }
+          ? { name: trimmedName, email: trimmedEmail, password, code: trimmedCode }
           : { email: trimmedEmail, password };
 
       const res = await fetch(endpoint, {
@@ -191,17 +281,51 @@ export function AuthModal({
           )}
 
           <Field label="邮箱" htmlFor="auth-email">
-            <input
-              id="auth-email"
-              type="email"
-              value={email}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-              disabled={submitting}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10 disabled:opacity-60"
-            />
+            <div className="relative flex items-center">
+              <input
+                id="auth-email"
+                type="email"
+                value={email}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                disabled={submitting}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10 disabled:opacity-60"
+              />
+            </div>
           </Field>
+
+          {isRegister && (
+            <Field label="邮箱验证码" htmlFor="auth-code">
+              <div className="flex gap-2">
+                <input
+                  id="auth-code"
+                  type="text"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  placeholder="6 位数字验证码"
+                  disabled={submitting}
+                  className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono tracking-wider outline-none focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10 disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={sendingCode || countdown > 0 || submitting}
+                  className="flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-input bg-muted/50 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                >
+                  {sendingCode ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
+                  {countdown > 0 ? `${countdown}s 后重发` : "获取验证码"}
+                </button>
+              </div>
+            </Field>
+          )}
 
           <Field label="密码" htmlFor="auth-password">
             <div className="relative">
@@ -236,7 +360,31 @@ export function AuthModal({
             {isRegister ? "注册并开始" : "登录"}
           </button>
 
-          <p className="text-center text-xs text-muted-foreground">
+          {/* 观猹 OAuth 快捷登录（仅在服务端检测到配置了 WATCHA_CLIENT_ID 时呈现） */}
+          {authConfig.watchaEnabled && (
+            <div className="pt-2 space-y-3">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <span className="relative bg-background px-2 text-[11px] text-muted-foreground">
+                  或使用第三方平台
+                </span>
+              </div>
+
+              <a
+                href="/api/auth/oauth/watcha"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors"
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs">
+                  猹
+                </div>
+                使用观猹账号快捷登录
+              </a>
+            </div>
+          )}
+
+          <p className="text-center text-xs text-muted-foreground pt-1">
             {isRegister ? (
               <>
                 已有账号？{" "}

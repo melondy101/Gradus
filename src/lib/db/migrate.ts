@@ -3,30 +3,57 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "path";
 import postgres from "postgres";
+import { ensureSchema } from "./ensure-schema";
 
 config({ path: ".env" });
 
-const runMigrate = async () => {
-  const client = postgres(
-    process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/myapp",
-    { max: 1 }
-  );
+export const runMigrate = async () => {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error("❌ DATABASE_URL environment variable is not defined.");
+    process.exit(1);
+  }
+
+  // 打印脱敏连接信息（便于核对连接的目标是 neondb、postgres 还是其他库）
+  try {
+    const parsed = new URL(dbUrl);
+    console.log(`[db] Target Host: ${parsed.hostname}:${parsed.port || 5432}, Database: ${parsed.pathname.replace(/^\//, "")}, User: ${parsed.username}`);
+  } catch {
+    console.log("[db] Target: [Custom or complex connection string]");
+  }
+
+  const client = postgres(dbUrl, { max: 1, connect_timeout: 15 });
   const db = drizzle(client);
 
-  console.log("⏳ Running migrations...");
-
+  console.log("⏳ Running Drizzle migrations from migrations folder...");
   const start = Date.now();
-  const migrationsFolder = path.join(process.cwd(), "src/lib/db/migrations");
-  await migrate(db, { migrationsFolder });
-  const end = Date.now();
 
-  console.log("✅ Migrations completed in", end - start, "ms");
+  try {
+    const migrationsFolder = path.join(process.cwd(), "src/lib/db/migrations");
+    await migrate(db, { migrationsFolder });
+    console.log(`✅ File migrations completed in ${Date.now() - start} ms`);
+  } catch (migErr) {
+    console.warn("⚠️ Migrator encountered an issue, running DDL schema self-heal fallback...", migErr);
+  }
+
+  // 紧接着运行幂等 schema ensure，确保所有业务表与列均已就位
+  try {
+    await ensureSchema();
+    console.log("✅ Schema validation & self-heal succeeded.");
+  } catch (schemaErr) {
+    console.error("❌ Schema ensure failed:", schemaErr);
+    throw schemaErr;
+  }
+
   await client.end();
-  process.exit(0);
+  console.log(`🎉 Database ready in ${Date.now() - start} ms`);
 };
 
-runMigrate().catch((err) => {
-  console.error("❌ Migration failed");
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module || process.argv[1]?.endsWith("migrate.ts")) {
+  runMigrate()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("❌ Migration failed with fatal error:", err);
+      process.exit(1);
+    });
+}

@@ -155,6 +155,14 @@ NEXT_PUBLIC_APP_DESCRIPTION="AI 学习任务规划与排期系统"
 
 # Vercel Cron 每日提醒鉴权密钥
 CRON_SECRET="your-cron-secret-token"
+
+# 邮箱验证码（QQ 邮箱 SMTP，推荐国内使用）
+QQ_EMAIL_USER="your-qq-number@qq.com"
+QQ_EMAIL_PASS="your-16-char-smtp-auth-code" # QQ邮箱网页端-设置-账户-开启POP3/SMTP生成的16位授权码
+# 可选通用配置：
+# SMTP_HOST="smtp.qq.com" # 默认 smtp.qq.com，也支持 163 等
+# SMTP_PORT=465           # 默认 465 (SSL)
+# EMAIL_FROM="拾级 Gradus"  # 发件人显示名称
 ```
 
 ### 4. 初始化数据库与启动
