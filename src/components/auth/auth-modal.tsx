@@ -27,7 +27,8 @@ export function AuthModal({
   const [countdown, setCountdown] = useState(0);
   const [authConfig, setAuthConfig] = useState<{
     watchaEnabled?: boolean;
-    resendConfigured?: boolean;
+    emailConfigured?: boolean;
+    emailProvider?: "qq" | "smtp" | "mock";
     emailVerificationEnabled?: boolean;
   }>({});
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -144,7 +145,8 @@ export function AuthModal({
       toast.error("请输入姓名");
       return;
     }
-    if (mode === "register" && (authConfig.resendConfigured || trimmedCode)) {
+    const isEmailServiceActive = Boolean(authConfig.emailConfigured);
+    if (mode === "register" && (isEmailServiceActive || trimmedCode)) {
       if (!trimmedCode) {
         toast.error("请输入 6 位邮箱验证码");
         return;

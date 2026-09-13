@@ -11,6 +11,7 @@ import {
   readSessionCookieFromRequest,
 } from "@/lib/auth/cookie";
 import { verifyEmailCode } from "@/lib/email/verification";
+import { isRealEmailConfigured } from "@/lib/email/mailer";
 
 /**
  * POST /api/auth/register
@@ -19,7 +20,7 @@ import { verifyEmailCode } from "@/lib/email/verification";
  *
  * 行为：
  *   - 受 60s/5 次/IP 限流。
- *   - 若配置了 RESEND_API_KEY 或提供了 code，校验 6 位邮箱验证码。
+ *   - 若配置了 QQ 邮箱/SMTP 发信服务或提供了 code，校验 6 位邮箱验证码。
  *   - email trim + 小写归一写入 `email` 与 `emailLower`，任一列 UNIQUE
  *     冲突返回 409。
  *   - bcrypt hash → 插 users 行 → 同事务执行"临时账号合并"：
@@ -71,9 +72,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "密码过长" }, { status: 400 });
   }
 
-  // 校验验证码（若配置了 RESEND_API_KEY 或输入了验证码）
-  const isResendConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
-  if (isResendConfigured || code) {
+  // 校验验证码（若配置了 QQ邮箱/SMTP/Resend 发信服务 或 输入了验证码）
+  const emailServiceConfigured = isRealEmailConfigured();
+  if (emailServiceConfigured || code) {
     if (!code) {
       return NextResponse.json({ error: "请输入 6 位邮箱验证码" }, { status: 400 });
     }

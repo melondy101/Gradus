@@ -2,7 +2,7 @@ import { db } from "@/lib/db/client";
 import { emailVerifications } from "@/lib/db/schema";
 import { memStore } from "@/lib/db/memory-store";
 import { eq, and, gt, desc } from "drizzle-orm";
-import { sendVerificationCodeEmail } from "./resend";
+import { sendVerificationCodeEmail, isRealEmailConfigured } from "./mailer";
 
 export interface CreateCodeResult {
   ok: boolean;
@@ -123,7 +123,7 @@ export async function createAndSendVerificationCode(
 
   return {
     ok: true,
-    devCode: !process.env.RESEND_API_KEY ? code : undefined,
+    devCode: !isRealEmailConfigured() ? code : undefined,
   };
 }
 
