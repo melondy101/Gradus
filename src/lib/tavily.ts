@@ -219,37 +219,45 @@ export async function resolveResources(
   topicCategory: string,
 ): Promise<TrustableResource[]> {
   const whitelistDomains = getWhitelistDomains(topicCategory);
-  const results: TrustableResource[] = [];
 
-  for (const intent of intents) {
-    const tavilyResults = await searchTavily(intent.query, whitelistDomains, 2);
+  // 并行检索资源，最多处理前 6 个意图，每个意图内部设置超时保护
+  const resolvedGroups = await Promise.all(
+    intents.slice(0, 6).map(async (intent) => {
+      try {
+        const tavilyResults = await searchTavily(intent.query, whitelistDomains, 2);
 
-    if (tavilyResults && tavilyResults.length > 0) {
-      // ✅ 有 Tavily 结果：trust_level = "verified"
-      for (const r of tavilyResults) {
-        results.push({
-          type: resourceTypeFromUrl(r.url, intent.resource_type),
-          title: r.title,
-          url: r.url,                              // ← 代码检索到的真实 URL
-          snippet: r.content.slice(0, 200),        // 内容摘要（最多 200 字符）
-          platform: extractPlatformName(r.url),
-          trust_level: "verified",                 // ← 经过实际 HTTP 检索验证
+        if (tavilyResults && tavilyResults.length > 0) {
+          // ✅ 有 Tavily 结果：trust_level = "verified"
+          return tavilyResults.map((r): TrustableResource => ({
+            type: resourceTypeFromUrl(r.url, intent.resource_type),
+            title: r.title,
+            url: r.url,                              // ← 代码检索到的真实 URL
+            snippet: r.content.slice(0, 200),        // 内容摘要（最多 200 字符）
+            platform: extractPlatformName(r.url),
+            trust_level: "verified",                 // ← 经过实际 HTTP 检索验证
+            learning_phase: intent.learning_phase,
+            suitable_for: intent.suitable_for,
+          }));
+        }
+      } catch {
+        // Tavily 检索异常或超时，降级到 search_only
+      }
+
+      // ⚠️ 无 Tavily 或搜索失败：trust_level = "search_only"，给用户搜索词
+      return [
+        {
+          type: mapResourceType(intent.resource_type),
+          title: intent.purpose,
+          searchQuery: intent.query,                 // ← 用户点击时跳转搜索
+          trust_level: "search_only" as const,       // ← 未经 URL 验证
           learning_phase: intent.learning_phase,
           suitable_for: intent.suitable_for,
-        });
-      }
-    } else {
-      // ⚠️ 无 Tavily 或搜索失败：trust_level = "search_only"，给用户搜索词
-      results.push({
-        type: mapResourceType(intent.resource_type),
-        title: intent.purpose,
-        searchQuery: intent.query,                 // ← 用户点击时跳转搜索
-        trust_level: "search_only",                // ← 未经 URL 验证
-        learning_phase: intent.learning_phase,
-        suitable_for: intent.suitable_for,
-      });
-    }
-  }
+        },
+      ];
+    })
+  );
+
+  const results = resolvedGroups.flat();
 
   // 去重（同一 URL 不重复）
   const seen = new Set<string>();

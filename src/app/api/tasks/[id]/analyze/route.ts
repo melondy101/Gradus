@@ -5,7 +5,7 @@ import { appAi } from "@/lib/eazo-ai-billing";
 import { resolveResources, type SearchIntent, type TrustableResource } from "@/lib/tavily";
 import { validateResources } from "@/lib/resource-validator";
 import { extractUrl, fetchUrlContent, formatContentForPrompt } from "@/lib/url-fetcher";
-import { checkAndIncrementAiUsage } from "@/lib/membership/quota";
+import { checkAiUsageQuota, incrementAiUsage } from "@/lib/membership/quota";
 import {
   INTENT_PROMPT,
   RESOURCE_INTENT_PROMPT,
@@ -15,6 +15,7 @@ import {
 import {
   getTaskById,
   createSubtasks,
+  deleteSubtasksByTaskId,
   updateTaskTotalDays,
   updateTaskStatus,
   updateTaskTitleAndRawInput,
@@ -93,6 +94,20 @@ async function callAI(
   return accumulated;
 }
 
+async function callAIWithRetry(
+  systemPrompt: string,
+  userMessage: string,
+  onDelta?: (delta: string) => void,
+  timeoutMs = 45000
+): Promise<string> {
+  try {
+    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs);
+  } catch (err) {
+    console.warn("[AutoTask] AI call failed, retrying once...", err);
+    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs);
+  }
+}
+
 function parseJson<T>(text: string): T | null {
   if (!text || typeof text !== "string") return null;
   try {
@@ -165,8 +180,8 @@ export async function POST(
     if (typeof body.adjustment === "string") adjustment = body.adjustment.trim().slice(0, 1000);
   } catch { /* ignore */ }
 
-  // 每日 AI 规划生成 / 调整修改次数上限校验（分级管理）
-  const usageCheck = await checkAndIncrementAiUsage(auth.user.id, Boolean(adjustment));
+  // 每日 AI 规划生成 / 调整修改次数上限校验（分级管理，只读检查，不提前消耗配额）
+  const usageCheck = await checkAiUsageQuota(auth.user.id, Boolean(adjustment));
   if (!usageCheck.allowed) {
     releaseLock();
     return NextResponse.json(
@@ -201,7 +216,7 @@ export async function POST(
       ? `${rawGoal}\n\n${urlContext}`
       : rawGoal;
 
-    const intentRaw = await callAI(
+    const intentRaw = await callAIWithRetry(
       INTENT_PROMPT,
       enrichedGoal + (adjustment ? `\n调整要求：${adjustment}` : ""),
       undefined,
@@ -218,6 +233,7 @@ export async function POST(
       estimated_total_hours?: number;
       search_keywords?: string[];
       subject_domain?: string;
+      search_intents?: SearchIntent[];
     }
     const intent = parseJson<IntentResult>(intentRaw);
     const taskName = intent?.task_name?.trim() || task.title;
@@ -231,19 +247,22 @@ export async function POST(
     const bloomTarget = intent?.bloom_target_level ?? 3;
     const estimatedHours = intent?.estimated_total_hours ?? 20;
 
-    // ── Stage 2: Resources（两阶段分离）──────────────────────────
-    const intentRawStr = await callAI(
-      "你是资深学习资源顾问，请以 JSON 格式精确回复，不要加 markdown 代码块。严禁生成任何 URL。",
-      RESOURCE_INTENT_PROMPT
-        .replace("{GOAL}", enrichedGoal.slice(0, 800))
-        .replace("{DOMAIN}", domain)
-        .replace(/{PRIOR_LEVEL}/g, priorLevel)
-        .replace("{KEYWORDS}", keywords),
-      undefined,
-    );
+    // ── Stage 2: Resources（两阶段分离，优先复用 Stage 1 产出的 search_intents）──────
+    let intentList = intent?.search_intents ?? [];
+    if (!intentList.length) {
+      const intentRawStr = await callAIWithRetry(
+        "你是资深学习资源顾问，请以 JSON 格式精确回复，不要加 markdown 代码块。严禁生成任何 URL。",
+        RESOURCE_INTENT_PROMPT
+          .replace("{GOAL}", enrichedGoal.slice(0, 800))
+          .replace("{DOMAIN}", domain)
+          .replace(/{PRIOR_LEVEL}/g, priorLevel)
+          .replace("{KEYWORDS}", keywords),
+        undefined,
+      );
 
-    interface IntentListResult { search_intents?: SearchIntent[] }
-    const intentList = parseJson<IntentListResult>(intentRawStr)?.search_intents ?? [];
+      interface IntentListResult { search_intents?: SearchIntent[] }
+      intentList = parseJson<IntentListResult>(intentRawStr)?.search_intents ?? [];
+    }
 
     const resources: TrustableResource[] = await resolveResources(intentList, topicCategory);
     await validateResources(resources);
@@ -252,7 +271,7 @@ export async function POST(
     const reachableCount = resources.filter((r) => r.url_status === "ok" || r.url_status === "redirect").length;
 
     // ── Stage 3: Plan ─────────────────────────────────────────────
-    const planRaw = await callAI(
+    const planRaw = await callAIWithRetry(
       "你是学习计划设计专家，精通Bloom认知分类法和认知负荷理论，请以 JSON 格式精确回复，不要加 markdown 代码块。",
       PLAN_PROMPT
         .replace("{GOAL}", enrichedGoal.slice(0, 1200))
@@ -282,7 +301,7 @@ export async function POST(
     if (!plan?.subtasks?.length) throw new Error("AI 未生成有效计划");
 
     // ── Stage 4: Validate ─────────────────────────────────────────
-    const validateRaw = await callAI(
+    const validateRaw = await callAIWithRetry(
       "你是教育心理学专家，请以 JSON 格式精确回复，不要加 markdown 代码块。",
       VALIDATE_PROMPT
         .replace("{GOAL}", rawGoal)
@@ -307,7 +326,7 @@ export async function POST(
         ? "Bloom层级跳跃：请确保层级从1-2渐进到3-4，相邻差不超过2级。"
         : (validation?.suggestions ?? "");
 
-      const revisedRaw = await callAI(
+      const revisedRaw = await callAIWithRetry(
         "你是学习计划设计专家，精通Bloom认知分类法，请以 JSON 格式精确回复，不要加 markdown 代码块。",
         PLAN_PROMPT
           .replace("{GOAL}", rawGoal)
@@ -382,6 +401,8 @@ export async function POST(
         urgency: urgencyScore,
         importance: importanceScore,
         keywords: keywordsArr.length > 0 ? JSON.stringify(keywordsArr) : null,
+        bloomLevel: s.bloom_level ?? 2,
+        deepWorkHours: s.deep_work_hours ?? 2,
       };
     });
 
@@ -389,12 +410,25 @@ export async function POST(
       subtaskItems.map((s) => ({ startDay: s.startDay, durationDays: s.durationDays }))
     );
 
+    // 清理可能已存在的旧子任务（如调整或重试时），保证原子替换
+    await deleteSubtasksByTaskId(id);
     const saved = await createSubtasks(id, subtaskItems);
+    if (!saved || saved.length === 0) {
+      throw new Error("写入子任务计划失败");
+    }
+
     const totalDays = saved.reduce(
       (max, s) => Math.max(max, s.startDay + s.durationDays), 0
     );
     await updateTaskTotalDays(id, totalDays);
     await updateTaskStatus(id, "done");
+
+    // 成功完成规划并落库后，才正式递增 AI 使用额度
+    try {
+      await incrementAiUsage(auth.user.id, Boolean(adjustment));
+    } catch (quotaErr) {
+      console.warn("[AutoTask] incrementAiUsage failed:", quotaErr);
+    }
 
     // 发送站内通知
     try {
@@ -429,7 +463,10 @@ export async function POST(
     const errMsg = err instanceof Error ? err.message : "Unknown error";
     const errStack = err instanceof Error ? err.stack : undefined;
     console.error("[AutoTask] analyze pipeline error:", errMsg, errStack);
-    // Surface the real error in the response for diagnosis (self-hosted, no PII).
+    // 失败时将任务状态置为 draft，避免前端卡死在 processing 状态
+    try {
+      await updateTaskStatus(id, "draft");
+    } catch { /* ignore */ }
     return NextResponse.json(
       { ok: false, error: "分析未能完成，请稍后重试", debug: errMsg },
       { status: 500 },

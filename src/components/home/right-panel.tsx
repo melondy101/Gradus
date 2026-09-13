@@ -5,6 +5,7 @@ import { request } from "@/lib/api/request";
 import { AppAIClientUnavailableError } from "@/lib/api/app-ai-request";
 import { createTask, getTask } from "@/lib/api/tasks";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
+import type { Subtask } from "@/lib/db/schema";
 import type { TrustableResource } from "@/lib/tavily";
 import { memory, auth } from "@/lib/eazo-shim";
 import { openExternalUrl } from "@/lib/safe-url";
@@ -63,15 +64,15 @@ const PHASE_LABELS: Record<string, string> = {
   saving: "写入数据库并排期…",
 };
 
-// Cumulative second at which each phase begins. Calibrated against a typical
-// 4-call pipeline (~70s end to end); the last phase is sticky, so a slower
+// Cumulative second at which each phase begins. Calibrated against our
+// optimized pipeline (~35-45s end to end); the last phase is sticky, so a slower
 // model just holds on "saving" while the elapsed counter keeps ticking.
 const PHASE_TIMELINE: Array<[startSec: number, phase: Phase]> = [
   [0, "intent"],
-  [8, "search"],
-  [22, "plan"],
-  [45, "validate"],
-  [65, "saving"],
+  [6, "search"],
+  [14, "plan"],
+  [30, "validate"],
+  [42, "saving"],
 ];
 
 function phaseForElapsed(elapsedSec: number): Phase {
@@ -137,7 +138,14 @@ export function useAnalysisPanel() {
 
       const json = (await res.json()) as {
         ok: boolean;
-        result?: { taskName?: string; rawInput?: string };
+        result?: {
+          taskName?: string;
+          rawInput?: string;
+          subtasks?: Subtask[];
+          totalDays?: number;
+          startDate?: string;
+          topicCategory?: string;
+        };
       };
       if (!json.ok || !json.result) throw new Error("AI 分析未返回有效结果");
 
@@ -147,7 +155,22 @@ export function useAnalysisPanel() {
       // 但客户端 user 态不会自动刷新。这里主动刷新，让 header / 左栏立即
       // 反映临时账号并展示刚创建的任务。（已登录用户刷新无害）
       auth.refresh().catch(() => {});
-      const full = await getTask(taskId).catch(() => null);
+      let full = await getTask(taskId).catch(() => null);
+      if ((!full || !full.subtasks || full.subtasks.length === 0) && json.result.subtasks && json.result.subtasks.length > 0) {
+        // 兜底补全：若后端或网络查询有极小延迟，直接用 analyze 返回的子任务数据水化任务对象
+        full = {
+          id: taskId,
+          userId: "",
+          title: json.result.taskName || goal,
+          rawInput: json.result.rawInput || goal,
+          totalDays: json.result.totalDays || 1,
+          status: "done",
+          startDate: json.result.startDate ? new Date(json.result.startDate) : new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          subtasks: json.result.subtasks,
+        } as TaskWithSubtasks;
+      }
       setEntries((prev) => prev.map((e) => e.taskId === taskId
         ? { ...e, task: full, taskTitle: json.result!.taskName || e.taskTitle, rawInput: json.result!.rawInput || e.rawInput }
         : e));

@@ -184,11 +184,11 @@ export interface AiUsageCheckResult {
 }
 
 /**
- * 校验并记录每日 AI 使用量：
+ * 校验每日 AI 使用量（只读检查，不扣减配额）：
  * - isAdjustment = true: 输入提示词微调修改任务难度或计划（普通用户上限 10 次/天）
- * - isAdjustment = false: 初始 AI 规划生成（普通用户上限 3 次/天）
+ * - isAdjustment = false: 初始 AI 规划生成（普通用户上限 3 次/天，访客 2 次）
  */
-export async function checkAndIncrementAiUsage(
+export async function checkAiUsageQuota(
   userId: string,
   isAdjustment: boolean
 ): Promise<AiUsageCheckResult> {
@@ -199,13 +199,11 @@ export async function checkAndIncrementAiUsage(
 
   let genCount = user?.aiGenerateCount ?? 0;
   let adjCount = user?.aiAdjustCount ?? 0;
-  let opsCount = user?.taskOpsCount ?? 0;
 
   // 跨天重置（以东八区 24:00 为分界）
   if (!user?.lastUsageDate || user.lastUsageDate !== todayStr) {
     genCount = 0;
     adjCount = 0;
-    opsCount = 0;
   }
 
   if (isAdjustment) {
@@ -223,19 +221,11 @@ export async function checkAndIncrementAiUsage(
       };
     }
 
-    const nextCount = adjCount + 1;
-    await updateUser(userId, {
-      aiAdjustCount: nextCount,
-      aiGenerateCount: genCount,
-      taskOpsCount: opsCount,
-      lastUsageDate: todayStr,
-    });
-
     return {
       allowed: true,
-      current: nextCount,
+      current: adjCount,
       limit,
-      remaining: Math.max(0, limit - nextCount),
+      remaining: Math.max(0, limit - adjCount),
       tier,
       tierConfig,
     };
@@ -243,22 +233,22 @@ export async function checkAndIncrementAiUsage(
     // 完整 AI 规划生成 / 分析
     const isTemp = isTempUser(user);
     if (isTemp) {
-      // 访客临时账号生命周期严格限制为 1 次全案体验，防止刷接口滥用 AI
-      if (genCount >= 1) {
+      // 访客临时账号生命周期提供 2 次全案体验，防止刷接口滥用 AI
+      if (genCount >= 2) {
         return {
           allowed: false,
           current: genCount,
-          limit: 1,
+          limit: 2,
           remaining: 0,
           tier: "free",
           tierConfig,
           code: "AI_GENERATE_LIMIT_REACHED",
-          reason: "您当前为未注册访客身份，体验次数已满 (1/1 次)。请免费注册账号，即可每日享受 3 次免费 AI 全案拆解及云端存档！",
+          reason: "您当前为未注册访客身份，体验次数已满 (2/2 次)。请免费注册账号，即可每日享受 3 次免费 AI 全案拆解及云端永久存档！",
         };
       }
     }
 
-    const limit = isTemp ? 1 : tierConfig.limits.dailyAiGenerateLimit;
+    const limit = isTemp ? 2 : tierConfig.limits.dailyAiGenerateLimit;
     if (genCount >= limit) {
       return {
         allowed: false,
@@ -272,23 +262,68 @@ export async function checkAndIncrementAiUsage(
       };
     }
 
-    const nextCount = genCount + 1;
-    await updateUser(userId, {
-      aiGenerateCount: nextCount,
-      aiAdjustCount: adjCount,
-      taskOpsCount: opsCount,
-      lastUsageDate: todayStr,
-    });
-
     return {
       allowed: true,
-      current: nextCount,
+      current: genCount,
       limit,
-      remaining: Math.max(0, limit - nextCount),
+      remaining: Math.max(0, limit - genCount),
       tier,
       tierConfig,
     };
   }
+}
+
+/**
+ * 成功落库后正式递增 AI 使用计数（确保失败或中断时不白白消耗用户配额）
+ */
+export async function incrementAiUsage(
+  userId: string,
+  isAdjustment: boolean
+): Promise<void> {
+  const user = await getUserById(userId);
+  const todayStr = getBeijingDateString();
+
+  let genCount = user?.aiGenerateCount ?? 0;
+  let adjCount = user?.aiAdjustCount ?? 0;
+  const opsCount = user?.taskOpsCount ?? 0;
+
+  if (!user?.lastUsageDate || user.lastUsageDate !== todayStr) {
+    genCount = 0;
+    adjCount = 0;
+  }
+
+  if (isAdjustment) {
+    adjCount += 1;
+  } else {
+    genCount += 1;
+  }
+
+  await updateUser(userId, {
+    aiGenerateCount: genCount,
+    aiAdjustCount: adjCount,
+    taskOpsCount: opsCount,
+    lastUsageDate: todayStr,
+  });
+}
+
+/**
+ * 校验并记录每日 AI 使用量（兼容旧调用）：
+ * - isAdjustment = true: 输入提示词微调修改任务难度或计划（普通用户上限 10 次/天）
+ * - isAdjustment = false: 初始 AI 规划生成（普通用户上限 3 次/天）
+ */
+export async function checkAndIncrementAiUsage(
+  userId: string,
+  isAdjustment: boolean
+): Promise<AiUsageCheckResult> {
+  const check = await checkAiUsageQuota(userId, isAdjustment);
+  if (!check.allowed) return check;
+
+  await incrementAiUsage(userId, isAdjustment);
+  return {
+    ...check,
+    current: check.current + 1,
+    remaining: Math.max(0, check.remaining - 1),
+  };
 }
 
 export interface UserQuotaSummary {

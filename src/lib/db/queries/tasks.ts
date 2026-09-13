@@ -81,6 +81,9 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
         urgency: subtasks.urgency,
         importance: subtasks.importance,
         keywords: subtasks.keywords,
+        completedAt: subtasks.completedAt,
+        bloomLevel: subtasks.bloomLevel,
+        deepWorkHours: subtasks.deepWorkHours,
         createdAt: subtasks.createdAt,
         // parent task fields
         taskTitle: tasks.title,
@@ -169,18 +172,39 @@ export async function createTask(
   return newTask;
 }
 
+/**
+ * 数据库操作重试封装（防止长时 AI 生成过程中连接池 socket 被远端 Neon/Supabase 闲置中断）
+ */
+async function withDbRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 300): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (i < retries) {
+        console.warn(`[db] Mutation failed (attempt ${i + 1}/${retries + 1}), retrying after ${delayMs}ms:`, err);
+        await new Promise((res) => setTimeout(res, delayMs));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function updateTaskTitleAndRawInput(
   id: string,
   title: string,
   rawInput: string,
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ title, rawInput, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ title, rawInput, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+  } catch (err) {
+    console.warn("[db] updateTaskTitleAndRawInput falling back to memory:", err);
   }
 
   const existing = memStore.tasks.get(id);
@@ -196,12 +220,14 @@ export async function updateTaskStartDate(
   startDate: Date,
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ startDate, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ startDate, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+  } catch (err) {
+    console.warn("[db] updateTaskStartDate falling back to memory:", err);
   }
 
   const existing = memStore.tasks.get(id);
@@ -216,12 +242,14 @@ export async function updateTaskTotalDays(
   totalDays: number
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ totalDays, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ totalDays, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+  } catch (err) {
+    console.warn("[db] updateTaskTotalDays falling back to memory:", err);
   }
 
   const existing = memStore.tasks.get(id);
@@ -236,12 +264,14 @@ export async function updateTaskStatus(
   status: string
 ): Promise<void> {
   try {
-    await db
-      .update(tasks)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+  } catch (err) {
+    console.warn("[db] updateTaskStatus falling back to memory:", err);
   }
 
   const existing = memStore.tasks.get(id);
@@ -253,9 +283,9 @@ export async function updateTaskStatus(
 
 export async function deleteTask(id: string): Promise<void> {
   try {
-    await db.delete(tasks).where(eq(tasks.id, id));
-  } catch {
-    // DB offline, fallback to memory
+    await withDbRetry(() => db.delete(tasks).where(eq(tasks.id, id)));
+  } catch (err) {
+    console.warn("[db] deleteTask falling back to memory:", err);
   }
 
   memStore.tasks.delete(id);
@@ -266,6 +296,18 @@ export async function deleteTask(id: string): Promise<void> {
 
 // ── Subtasks ─────────────────────────────────────────────────────────
 
+/** 删除指定大任务下的全部子任务（重新生成或微调排期时清理旧数据） */
+export async function deleteSubtasksByTaskId(taskId: string): Promise<void> {
+  try {
+    await withDbRetry(() => db.delete(subtasks).where(eq(subtasks.taskId, taskId)));
+  } catch (err) {
+    console.warn("[db] deleteSubtasksByTaskId falling back to memory:", err);
+  }
+  for (const [sId, s] of memStore.subtasks.entries()) {
+    if (s.taskId === taskId) memStore.subtasks.delete(sId);
+  }
+}
+
 export async function getSubtasksByTask(taskId: string): Promise<Subtask[]> {
   try {
     const rows = await db
@@ -273,7 +315,7 @@ export async function getSubtasksByTask(taskId: string): Promise<Subtask[]> {
       .from(subtasks)
       .where(eq(subtasks.taskId, taskId))
       .orderBy(subtasks.sortOrder);
-    if (rows) return rows;
+    if (rows && rows.length > 0) return rows;
   } catch {
     // DB offline, fallback to memory
   }
@@ -324,17 +366,20 @@ export async function createSubtasks(
   }));
 
   try {
-    const rows = await db
-      .insert(subtasks)
-      .values(createdList)
-      .returning();
+    const rows = await withDbRetry(() =>
+      db
+        .insert(subtasks)
+        .values(createdList)
+        .returning()
+    );
     if (rows && rows.length > 0) {
       for (const row of rows) {
         memStore.subtasks.set(row.id, row);
       }
       return rows;
     }
-  } catch {
+  } catch (err) {
+    console.error("[db] createSubtasks failed after retries:", err);
     // DB offline, fallback to memory
   }
 
