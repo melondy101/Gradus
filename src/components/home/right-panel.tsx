@@ -138,6 +138,8 @@ export function useAnalysisPanel() {
 
       const json = (await res.json()) as {
         ok: boolean;
+        error?: string;
+        debug?: string;
         result?: {
           taskName?: string;
           rawInput?: string;
@@ -147,7 +149,9 @@ export function useAnalysisPanel() {
           topicCategory?: string;
         };
       };
-      if (!json.ok || !json.result) throw new Error("AI 分析未返回有效结果");
+      if (!json.ok || !json.result) {
+        throw new Error(json.error || "AI 分析未返回有效结果，请稍后重试");
+      }
 
       clearInterval(ticker);
       patchStream({ phase: "done" });

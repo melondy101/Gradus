@@ -2,6 +2,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { notifications, type Notification } from "@/lib/db/schema";
 import { memStore } from "../memory-store";
+import { ensureSchema } from "../ensure-schema";
 
 export async function createNotification(data: {
   userId: string;
@@ -10,6 +11,8 @@ export async function createNotification(data: {
   type?: "system" | "task" | "membership" | "achievement";
   link?: string;
 }): Promise<Notification> {
+  await ensureSchema().catch(() => {});
+
   const id = `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const record: Notification = {
     id,
@@ -27,9 +30,12 @@ export async function createNotification(data: {
       .insert(notifications)
       .values(record)
       .returning();
-    if (inserted[0]) return inserted[0];
-  } catch {
-    // fallback
+    if (inserted[0]) {
+      memStore.notifications.set(id, inserted[0]);
+      return inserted[0];
+    }
+  } catch (err) {
+    console.error("[notifications] createNotification DB error:", err);
   }
 
   memStore.notifications.set(id, record);
@@ -45,8 +51,8 @@ export async function getNotificationsByUser(userId: string, limit = 50): Promis
       .orderBy(desc(notifications.createdAt))
       .limit(limit);
     if (list) return list;
-  } catch {
-    // fallback
+  } catch (err) {
+    console.error("[notifications] getNotificationsByUser DB error:", err);
   }
 
   return Array.from(memStore.notifications.values())
@@ -61,8 +67,8 @@ export async function markNotificationAsRead(id: string, userId: string): Promis
       .update(notifications)
       .set({ isRead: true })
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-  } catch {
-    // fallback
+  } catch (err) {
+    console.error("[notifications] markNotificationAsRead DB error:", err);
   }
 
   const notif = memStore.notifications.get(id);
@@ -79,8 +85,8 @@ export async function markAllNotificationsAsRead(userId: string): Promise<boolea
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
-  } catch {
-    // fallback
+  } catch (err) {
+    console.error("[notifications] markAllNotificationsAsRead DB error:", err);
   }
 
   for (const notif of memStore.notifications.values()) {
@@ -97,8 +103,8 @@ export async function clearAllNotifications(userId: string): Promise<boolean> {
     await db
       .delete(notifications)
       .where(eq(notifications.userId, userId));
-  } catch {
-    // fallback
+  } catch (err) {
+    console.error("[notifications] clearAllNotifications DB error:", err);
   }
 
   for (const [id, notif] of memStore.notifications.entries()) {

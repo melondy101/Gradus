@@ -36,6 +36,13 @@
       "when": 1786200000000,
       "tag": "0004_auth_user_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789302600490,
+      "tag": "0005_remarkable_norman_osborn",
+      "breakpoints": true
     }
   ]
 }

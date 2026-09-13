@@ -77,6 +77,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const task = await createTask(auth.user.id, title);
-  return NextResponse.json(task, { status: 201 });
+  try {
+    const task = await createTask(auth.user.id, title);
+    return NextResponse.json(task, { status: 201 });
+  } catch (err) {
+    console.error("[api/tasks] createTask failed with DB error:", err);
+    return NextResponse.json(
+      {
+        error: "任务创建失败，数据库服务异常，请稍后重试",
+        debug: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  }
 }
