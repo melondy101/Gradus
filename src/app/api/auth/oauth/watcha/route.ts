@@ -6,9 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(request: NextRequest) {
   const clientId = process.env.WATCHA_CLIENT_ID?.trim();
-  if (!clientId) {
+  const clientSecret = process.env.WATCHA_CLIENT_SECRET?.trim();
+  if (!clientId || !clientSecret) {
     return NextResponse.json(
-      { error: "观猹 OAuth 尚未配置 WATCHA_CLIENT_ID 环境变量" },
+      { error: "观猹 OAuth 尚未配置服务端凭据" },
       { status: 503 }
     );
   }
@@ -16,12 +17,14 @@ export async function GET(request: NextRequest) {
   const authBaseUrl =
     process.env.WATCHA_AUTH_URL?.trim() || "https://watcha.cn/oauth/authorize";
 
-  // 构建回调地址（自动适配当前 Host 或配置域名）
+  // 生产环境配置 WATCHA_REDIRECT_URI，确保 Vercel 预览域名不会成为 OAuth 回调地址。
   const origin =
     request.nextUrl.origin ||
     request.headers.get("x-forwarded-host") ||
     "https://watcha.cn";
-  const redirectUri = `${origin}/api/auth/oauth/watcha/callback`;
+  const redirectUri =
+    process.env.WATCHA_REDIRECT_URI?.trim() ||
+    `${origin}/api/auth/oauth/watcha/callback`;
 
   // 生成防伪 state
   const state = crypto.randomUUID();
@@ -30,7 +33,7 @@ export async function GET(request: NextRequest) {
   authUrl.searchParams.set("client_id", clientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", "user_info email");
+  authUrl.searchParams.set("scope", "read email");
   authUrl.searchParams.set("state", state);
 
   const response = NextResponse.redirect(authUrl.toString());

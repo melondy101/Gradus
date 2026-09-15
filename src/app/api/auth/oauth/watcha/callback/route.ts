@@ -14,10 +14,14 @@ import {
  * 处理观猹（Watcha.cn）OAuth 2.0 回调
  */
 export async function GET(request: NextRequest) {
-  const origin =
+  const requestOrigin =
     request.nextUrl.origin ||
     request.headers.get("x-forwarded-host") ||
     "https://watcha.cn";
+  const redirectUri =
+    process.env.WATCHA_REDIRECT_URI?.trim() ||
+    `${requestOrigin}/api/auth/oauth/watcha/callback`;
+  const origin = new URL(redirectUri).origin;
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -39,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   // 校验 state 防 CSRF
   const savedState = request.cookies.get("watcha_oauth_state")?.value;
-  if (savedState && state && savedState !== state) {
+  if (!savedState || !state || savedState !== state) {
     return NextResponse.redirect(
       new URL("/?auth_error=state_mismatch", origin)
     );
@@ -53,18 +57,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const redirectUri = `${origin}/api/auth/oauth/watcha/callback`;
   const tokenUrl =
-    process.env.WATCHA_TOKEN_URL?.trim() || "https://watcha.cn/oauth/token";
+    process.env.WATCHA_TOKEN_URL?.trim() || "https://watcha.cn/oauth/api/token";
   const userinfoUrl =
-    process.env.WATCHA_USERINFO_URL?.trim() || "https://watcha.cn/api/user/info";
+    process.env.WATCHA_USERINFO_URL?.trim() || "https://watcha.cn/oauth/api/userinfo";
 
   try {
     // 1. 用 code 换取 access_token
     const tokenRes = await fetch(tokenUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
         grant_type: "authorization_code",
         client_id: clientId,
         client_secret: clientSecret,
@@ -103,17 +106,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const userInfo = (await userRes.json().catch(() => ({}))) as {
-      id?: string;
-      openid?: string;
-      name?: string;
-      nickname?: string;
-      email?: string;
-      avatar?: string;
-      avatar_url?: string;
+    const userInfoResponse = (await userRes.json().catch(() => ({}))) as {
+      data?: {
+        user_id?: string | number;
+        nickname?: string;
+        email?: string;
+        avatar_url?: string;
+      };
     };
+    const userInfo = userInfoResponse.data;
 
-    const watchaUid = userInfo.openid || userInfo.id || openId;
+    const watchaUid = userInfo?.user_id || openId;
     if (!watchaUid) {
       return NextResponse.redirect(
         new URL("/?auth_error=unable_to_get_watcha_user_id", origin)
@@ -121,9 +124,9 @@ export async function GET(request: NextRequest) {
     }
 
     const watchaName =
-      userInfo.nickname || userInfo.name || `观猹用户_${String(watchaUid).slice(0, 6)}`;
-    const watchaEmail = userInfo.email?.trim() || "";
-    const watchaAvatar = userInfo.avatar_url || userInfo.avatar || null;
+      userInfo?.nickname || `观猹用户_${String(watchaUid).slice(0, 6)}`;
+    const watchaEmail = userInfo?.email?.trim() || "";
+    const watchaAvatar = userInfo?.avatar_url || null;
 
     // 3. 查重 / 匹配用户
     let existingUser = null;

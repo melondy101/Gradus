@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, X, UserPlus, LogIn, Send } from "lucide-react";
 import { auth } from "@/lib/eazo-shim";
@@ -36,7 +37,7 @@ export function AuthModal({
   // 获取服务端认证配置（是否启用观猹 OAuth 等）
   useEffect(() => {
     if (!open) return;
-    fetch("/api/auth/config")
+    fetch("/api/auth/config", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.ok) setAuthConfig(data);
@@ -376,9 +377,12 @@ export function AuthModal({
                 href="/api/auth/oauth/watcha"
                 className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors"
               >
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs">
-                  猹
-                </div>
+                <Image
+                  src="/watcha-logo.svg"
+                  alt="观猹"
+                  width={20}
+                  height={20}
+                />
                 使用观猹账号快捷登录
               </a>
             </div>
