@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Outfit, DM_Sans, JetBrains_Mono, Lora } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { EazoProvider } from "@/lib/eazo-shim";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
 import { GlobalMembershipModal } from "@/components/membership/global-membership-modal";
@@ -114,6 +115,7 @@ export default async function RootLayout({
                 <GlobalMembershipModal />
                 <ThemePreviewModal />
                 <Toaster />
+                <Analytics />
               </EazoProvider>
             </UserProvider>
           </ThemeProvider>
