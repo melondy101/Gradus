@@ -21,6 +21,7 @@ export const tasks = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     rawInput: text("raw_input"),          // 用户原始输入，AI 生成正式 title 后保留
+    tags: text("tags").default("[]"),     // 任务标签（JSON 数组，如 ["编程", "理科"]）
     startDate: timestamp("start_date", { withTimezone: true }), // 大任务开始日期
     status: text("status").notNull().default("active"),
     totalDays: integer("total_days").notNull().default(0),

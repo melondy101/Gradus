@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { getResolvedLocale } from "@/i18n";
 import { motion } from "framer-motion";
+import { CheckCircle2, ListFilter, Tag as TagIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEazo } from "@/lib/eazo-shim";
 import {
@@ -16,6 +17,7 @@ import {
   deleteTask,
 } from "@/lib/api/tasks";
 import type { SubtaskWithTask, TaskWithSubtasks } from "@/lib/api/tasks";
+import { parseTaskTags } from "@/lib/task-tags";
 import { AchievementPanel, LevelBadge } from "./achievement-panel";
 import { RightPanel, useAnalysisPanel } from "./right-panel";
 import { NewTaskInput } from "./new-task-input";
@@ -35,6 +37,7 @@ import { CommandPalette } from "./command-palette";
 import { ShareCardModal, type ShareData } from "@/components/share/share-card-modal";
 import { AiGenerationRitualModal } from "@/components/task/ai-generation-ritual-modal";
 import { OnboardingTour, TourHelpButton } from "./onboarding-tour";
+import { DeletePlanModal } from "./delete-plan-modal";
 import { T } from "@/lib/design-tokens";
 
 // 骨架屏组件
@@ -99,6 +102,12 @@ export function HomePage() {
   const [streakTick, setStreakTick] = useState(0);
   const prevUserIdRef = useRef<string | null>(user?.id ?? null);
   const [postponeTarget, setPostponeTarget] = useState<SubtaskWithTask | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    title: string;
+    subtaskCount?: number;
+  } | null>(null);
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [toast, setToast] = useState<{ msg: string; actionLabel?: string; onAction?: () => void } | null>(null);
   const [milestone, setMilestone] = useState<Level | null>(null);
   const [shareData, setShareData] = useState<ShareData | null>(null);
@@ -106,6 +115,33 @@ export function HomePage() {
   const prevTotalRef = useRef<number | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 今日聚焦任务展示过滤状态（仅未完成 vs 全部）
+  const [showOnlyPending, setShowOnlyPending] = useState(false);
+
+  // 标签过滤状态 (null 表示不过滤展示全部，string 表示当前激活的过滤标签)
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("gradus_today_filter_pending");
+      if (saved === "true") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShowOnlyPending(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleToggleFilterPending = useCallback((onlyPending: boolean) => {
+    setShowOnlyPending(onlyPending);
+    try {
+      localStorage.setItem("gradus_today_filter_pending", String(onlyPending));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const handleOpenWeeklyReport = useCallback(
     (stats: { streak: number; todayCount: number; weekCount: number; totalCompleted: number; activeTaskCount: number }) => {
@@ -358,27 +394,64 @@ export function HomePage() {
   const handleSkip = useCallback(
     async (row: SubtaskWithTask) => {
       if (row.completed) return;
-      await handleToggleSubtask(row.taskId, row.id, false, true);
+      // 跳过此任务：顺延排期至次日（不标记完成，不增加完成计数）
+      setSubtaskRows((prev) =>
+        prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay + 1 } : s))
+      );
+      const newStartDay = await postponeSubtask(row.taskId, row.id).catch(() => null);
+      if (newStartDay === null) {
+        setSubtaskRows((prev) =>
+          prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay - 1 } : s))
+        );
+        showToast(t("home.toast.postponeFailed", "跳过失败，请重试"));
+        return;
+      }
       showToast(t("home.toast.skipped", { title: row.title }), t("home.toast.undo"), () => {
-        handleToggleSubtask(row.taskId, row.id, true);
+        setSubtaskRows((prev) =>
+          prev.map((s) => (s.id === row.id ? { ...s, startDay: Math.max(0, s.startDay - 1) } : s))
+        );
+        unpostponeSubtask(row.taskId, row.id).catch(() => {
+          setSubtaskRows((prev) =>
+            prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay + 1 } : s))
+          );
+          showToast(t("home.toast.undoFailed", "撤销失败，请重试"));
+        });
       });
     },
-    [handleToggleSubtask, showToast, t]
+    [showToast, t]
   );
 
-  const handleDeleteTask = useCallback(
-    async (taskId: string) => {
-      try {
-        await deleteTask(taskId);
-        setTasksList((prev) => prev.filter((t) => t.id !== taskId));
-        setSubtaskRows((prev) => prev.filter((s) => s.taskId !== taskId));
-        showToast("已删除计划");
-      } catch (err) {
-        showToast(err instanceof Error ? err.message : "删除失败，请稍后再试");
-      }
+  const handleRequestDelete = useCallback(
+    (taskId: string, title?: string, subtaskCount?: number) => {
+      const taskInList = tasksList.find((t) => t.id === taskId);
+      const rowsInList = subtaskRows.filter((s) => s.taskId === taskId);
+      const taskTitle = title || taskInList?.title || rowsInList[0]?.taskTitle || "未命名计划";
+      const count = subtaskCount ?? taskInList?.subtasks?.length ?? rowsInList.length;
+      setDeleteTarget({
+        id: taskId,
+        title: taskTitle,
+        subtaskCount: count,
+      });
     },
-    [showToast]
+    [tasksList, subtaskRows]
   );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setIsDeletingTask(true);
+    try {
+      await deleteTask(deleteTarget.id);
+      setTasksList((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      setSubtaskRows((prev) => prev.filter((s) => s.taskId !== deleteTarget.id));
+      removeEntry(deleteTarget.id);
+      showToast(`已删除计划「${deleteTarget.title}」`);
+      setDeleteTarget(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "删除失败，请稍后再试");
+    } finally {
+      setIsDeletingTask(false);
+    }
+  }, [deleteTarget, removeEntry, showToast]);
 
   const handleJumpToSubtask = useCallback(
     (subtaskId: string) => {
@@ -395,9 +468,52 @@ export function HomePage() {
 
   // 时间轴分组
   const sections = buildTimelineSections(subtaskRows, t, i18n.language);
-  const flatRows = sections.flatMap((s) => s.rows);
   const totalPending = subtaskRows.filter((r) => !r.completed).length;
+  const completedCount = subtaskRows.filter((r) => r.completed).length;
   const todayPendingCount = sections.find((s) => s.key === "today")?.rows.filter((r) => !r.completed).length ?? 0;
+
+  // 计算当前用户所有任务中出现的标签及任务计数
+  const availableTags = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of tasksList) {
+      const tags = parseTaskTags(t.tags);
+      for (const tag of tags) {
+        counts[tag] = (counts[tag] || 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [tasksList]);
+
+  // 根据“仅展示未完成任务”与“标签筛选”过滤后的展示分组
+  const displayedSections = useMemo(() => {
+    return sections.map((sec) => ({
+      ...sec,
+      rows: sec.rows.filter((r) => {
+        if (showOnlyPending && r.completed) return false;
+        if (selectedTag) {
+          const rTags = parseTaskTags(r.taskTags);
+          if (!rTags.includes(selectedTag)) return false;
+        }
+        return true;
+      }),
+    }));
+  }, [sections, showOnlyPending, selectedTag]);
+
+  const displayedFlatRows = useMemo(() => {
+    return displayedSections.flatMap((s) => s.rows);
+  }, [displayedSections]);
+
+  const displayedTasksList = useMemo(() => {
+    if (!selectedTag) return tasksList;
+    return tasksList.filter((t) => parseTaskTags(t.tags).includes(selectedTag));
+  }, [tasksList, selectedTag]);
+
+  const displayedSubtaskRows = useMemo(() => {
+    if (!selectedTag) return subtaskRows;
+    return subtaskRows.filter((r) => parseTaskTags(r.taskTags).includes(selectedTag));
+  }, [subtaskRows, selectedTag]);
 
   const [todayStr, setTodayStr] = useState("");
   useEffect(() => {
@@ -444,19 +560,19 @@ export function HomePage() {
         !congrats &&
         !commandPaletteOpen
       ) {
-        if (flatRows.length === 0) return;
+        if (displayedFlatRows.length === 0) return;
         e.preventDefault();
-        const idx = flatRows.findIndex((r) => r.id === activeSubtaskId);
+        const idx = displayedFlatRows.findIndex((r) => r.id === activeSubtaskId);
         let next: number;
         if (idx === -1) {
-          next = e.key === "ArrowDown" ? 0 : flatRows.length - 1;
+          next = e.key === "ArrowDown" ? 0 : displayedFlatRows.length - 1;
         } else {
           next =
             e.key === "ArrowDown"
-              ? Math.min(flatRows.length - 1, idx + 1)
+              ? Math.min(displayedFlatRows.length - 1, idx + 1)
               : Math.max(0, idx - 1);
         }
-        const target = flatRows[next];
+        const target = displayedFlatRows[next];
         if (target) {
           setActiveSubtaskId(target.id);
           setFocusedId(target.taskId);
@@ -485,7 +601,7 @@ export function HomePage() {
     congrats,
     focusedId,
     activeSubtaskId,
-    flatRows,
+    displayedFlatRows,
     subtaskRows,
     handleToggleSubtask,
     setFocusedId,
@@ -513,6 +629,9 @@ export function HomePage() {
         totalPlansCount={tasksList.length}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         onNewPlan={() => setShowInput(true)}
+        availableTags={availableTags}
+        selectedTag={selectedTag}
+        onSelectTag={setSelectedTag}
       />
 
       {/* ── 2. 中央主视图与顶栏 ── */}
@@ -533,7 +652,7 @@ export function HomePage() {
           }}
         >
           {/* 面包屑与视图切换指示 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", minWidth: 0 }}>
             <span
               style={{
                 fontFamily: "var(--font-outfit), Outfit, sans-serif",
@@ -548,6 +667,44 @@ export function HomePage() {
               {currentView === "steps" && "拾级天梯 · Ascending Steps"}
               {currentView === "timeline" && "时间甘特图 · Timeline"}
             </span>
+
+            {/* 标签过滤生效状态指示条 */}
+            {selectedTag && (
+              <div
+                id="header-active-tag-filter"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "var(--accent-soft)",
+                  border: "1px solid var(--accent)",
+                  color: "var(--accent)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                <TagIcon size={12} />
+                <span>{selectedTag}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTag(null)}
+                  title="清除标签过滤"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--accent)",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
 
             {user && subtaskRows.length > 0 && <LevelBadge refreshTick={streakTick} />}
           </div>
@@ -642,7 +799,7 @@ export function HomePage() {
                         重新加载
                       </button>
                     </div>
-                  ) : sections.every((s) => s.rows.length === 0) ? (
+                  ) : subtaskRows.length === 0 ? (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -725,48 +882,238 @@ export function HomePage() {
                       </div>
                     </motion.div>
                   ) : (
-                    sections
-                      .filter((s) => s.rows.length > 0)
-                      .map((section) => (
-                        <div key={section.key} style={{ marginBottom: 28 }}>
-                          <TimelineSectionHeader
-                            label={section.label}
-                            sublabel={section.sublabel}
-                            accentColor={section.accentColor}
-                            pendingCount={section.rows.filter((r) => !r.completed).length}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                            {section.rows.map((row) => (
-                              <div key={row.id} id={`subtask-card-${row.id}`}>
-                                <TimelineCard
-                                  row={row}
-                                  isSelected={focusedId === row.taskId}
-                                  isActive={activeSubtaskId === row.id}
-                                  isHighlighted={highlightedSubtaskId === row.id}
-                                  onOpen={() => setDetailSubtask(row)}
-                                  onSelect={() => {
-                                    setActiveSubtaskId(row.id);
-                                    setFocusedId(row.taskId);
-                                    focusTask(row.taskId);
-                                  }}
-                                  onToggle={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleSubtask(row.taskId, row.id, row.completed);
-                                  }}
-                                  onSkip={(e) => {
-                                    e.stopPropagation();
-                                    handleSkip(row);
-                                  }}
-                                  onPostpone={(e) => {
-                                    e.stopPropagation();
-                                    setPostponeTarget(row);
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
+                    <div>
+                      {/* 今日聚焦顶栏控制区: 任务列表信息与过滤切换按钮 */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: 16,
+                          paddingBottom: 10,
+                          borderBottom: `1px solid ${T.line}`,
+                          flexWrap: "wrap",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span
+                            style={{
+                              fontFamily: "var(--font-outfit), Outfit, sans-serif",
+                              fontSize: 14,
+                              fontWeight: 700,
+                              color: T.ink,
+                              letterSpacing: "-0.01em",
+                            }}
+                          >
+                            任务排期列表
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color: T.muted,
+                            }}
+                          >
+                            {showOnlyPending
+                              ? `仅待完成 · 待办 ${totalPending} 项`
+                              : `全部任务 · 共 ${subtaskRows.length} 项（已完成 ${completedCount}）`}
+                          </span>
                         </div>
-                      ))
+
+                        {/* 切换按钮组 */}
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            background: T.soft,
+                            padding: 3,
+                            borderRadius: 8,
+                            border: `1px solid ${T.line}`,
+                          }}
+                          role="group"
+                          aria-label="任务展示模式切换"
+                        >
+                          <button
+                            type="button"
+                            id="btn-filter-all-tasks"
+                            onClick={() => handleToggleFilterPending(false)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "5px 12px",
+                              borderRadius: 6,
+                              fontSize: 12,
+                              fontWeight: !showOnlyPending ? 600 : 500,
+                              border: "none",
+                              cursor: "pointer",
+                              background: !showOnlyPending ? T.surface : "transparent",
+                              color: !showOnlyPending ? T.ink : T.muted,
+                              boxShadow: !showOnlyPending ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                              transition: "all 0.15s ease",
+                            }}
+                            title="展示所有任务（包含已完成与未完成）"
+                          >
+                            <ListFilter size={13} />
+                            <span>展示所有任务</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            id="btn-filter-pending-tasks"
+                            onClick={() => handleToggleFilterPending(true)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "5px 12px",
+                              borderRadius: 6,
+                              fontSize: 12,
+                              fontWeight: showOnlyPending ? 600 : 500,
+                              border: "none",
+                              cursor: "pointer",
+                              background: showOnlyPending ? T.surface : "transparent",
+                              color: showOnlyPending ? T.accent : T.muted,
+                              boxShadow: showOnlyPending ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                              transition: "all 0.15s ease",
+                            }}
+                            title="仅展示未完成任务，减轻信息密度"
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>仅展示未完成任务</span>
+                            {completedCount > 0 && (
+                              <span
+                                style={{
+                                  fontSize: 10.5,
+                                  padding: "1px 6px",
+                                  borderRadius: 10,
+                                  background: showOnlyPending ? T.accentSoft : "rgba(0,0,0,0.05)",
+                                  color: showOnlyPending ? T.accent : T.muted,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                隐藏 {completedCount}
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {displayedSections.every((s) => s.rows.length === 0) ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          style={{
+                            padding: "40px 24px",
+                            textAlign: "center",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 14,
+                            maxWidth: 420,
+                            margin: "28px auto",
+                            background: T.surface,
+                            border: `1px solid ${T.line}`,
+                            borderRadius: 14,
+                            boxShadow: "0 2px 14px rgba(0,0,0,0.02)",
+                          }}
+                        >
+                          <div style={{ fontSize: 32 }}>{selectedTag ? "🏷️" : "🎉"}</div>
+                          <div>
+                            <div style={{ color: T.ink, fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
+                              {selectedTag
+                                ? `暂无属于「${selectedTag}」的任务`
+                                : "待完成任务已全部清空！"}
+                            </div>
+                            <div style={{ color: T.muted, fontSize: 13, lineHeight: 1.6 }}>
+                              {selectedTag
+                                ? "当前标签下未找到符合条件的任务，你可以清除筛选查看全部任务。"
+                                : "当前已过滤隐藏全部已完成的任务。你可以切换查看所有任务，或开启新的学习目标。"}
+                            </div>
+                          </div>
+                          {selectedTag ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedTag(null)}
+                              style={{
+                                background: T.accent,
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 8,
+                                padding: "8px 20px",
+                                fontSize: 13,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                boxShadow: "0 2px 8px var(--accent-glow)",
+                              }}
+                            >
+                              清除标签筛选 (共 {subtaskRows.length} 项)
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleFilterPending(false)}
+                              style={{
+                                background: T.accent,
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 8,
+                                padding: "8px 20px",
+                                fontSize: 13,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                boxShadow: "0 2px 8px var(--accent-glow)",
+                              }}
+                            >
+                              展示所有任务 ({subtaskRows.length})
+                            </button>
+                          )}
+                        </motion.div>
+                      ) : (
+                        displayedSections
+                          .filter((s) => s.rows.length > 0)
+                          .map((section) => (
+                            <div key={section.key} style={{ marginBottom: 28 }}>
+                              <TimelineSectionHeader
+                                label={section.label}
+                                sublabel={section.sublabel}
+                                accentColor={section.accentColor}
+                                pendingCount={section.rows.filter((r) => !r.completed).length}
+                              />
+                              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                {section.rows.map((row) => (
+                                  <div key={row.id} id={`subtask-card-${row.id}`}>
+                                    <TimelineCard
+                                      row={row}
+                                      isSelected={focusedId === row.taskId}
+                                      isActive={activeSubtaskId === row.id}
+                                      isHighlighted={highlightedSubtaskId === row.id}
+                                      onOpen={() => setDetailSubtask(row)}
+                                      onSelect={() => {
+                                        setActiveSubtaskId(row.id);
+                                        setFocusedId(row.taskId);
+                                        focusTask(row.taskId);
+                                      }}
+                                      onToggle={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleSubtask(row.taskId, row.id, row.completed);
+                                      }}
+                                      onSkip={(e) => {
+                                        e.stopPropagation();
+                                        handleSkip(row);
+                                      }}
+                                      onPostpone={(e) => {
+                                        e.stopPropagation();
+                                        setPostponeTarget(row);
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -776,13 +1123,13 @@ export function HomePage() {
             {currentView === "plans" && (
               <div className="canvas-scroll" style={{ flex: 1, overflowY: "auto" }}>
                 <AllPlansView
-                  tasks={tasksList}
+                  tasks={displayedTasksList}
                   onSelectTask={(taskId) => {
                     setFocusedId(taskId);
                     focusTask(taskId);
                   }}
                   onNewPlan={() => setShowInput(true)}
-                  onDeleteTask={handleDeleteTask}
+                  onDeleteTask={(task) => handleRequestDelete(task.id, task.title, task.subtasks?.length)}
                 />
               </div>
             )}
@@ -791,7 +1138,7 @@ export function HomePage() {
             {currentView === "steps" && (
               <div className="canvas-scroll" style={{ flex: 1, overflowY: "auto" }}>
                 <AscendingStepsView
-                  subtasks={subtaskRows}
+                  subtasks={displayedSubtaskRows}
                   onToggleSubtask={(s) => handleToggleSubtask(s.taskId, s.id, s.completed)}
                   onSelectSubtask={(s) => setDetailSubtask(s)}
                 />
@@ -802,7 +1149,7 @@ export function HomePage() {
             {currentView === "timeline" && (
               <div className="canvas-scroll" style={{ flex: 1, overflowY: "auto" }}>
                 <TimelineView
-                  subtasks={subtaskRows}
+                  subtasks={displayedSubtaskRows}
                   onSelectSubtask={(s) => setDetailSubtask(s)}
                   onToggleSubtask={(s) => handleToggleSubtask(s.taskId, s.id, s.completed)}
                 />
@@ -818,6 +1165,7 @@ export function HomePage() {
               setFocusedId={setFocusedId}
               regenAnalysis={regenAnalysis}
               removeEntry={removeEntry}
+              onRequestDelete={(taskId, title, count) => handleRequestDelete(taskId, title, count)}
               onToggleSubtask={handleToggleSubtask}
               onJumpToSubtask={handleJumpToSubtask}
             />
@@ -1003,6 +1351,16 @@ export function HomePage() {
           </div>
         </>
       )}
+
+      {/* 🗑 统一删除计划安全二次确认弹窗 (Delete Plan Confirmation Modal) */}
+      <DeletePlanModal
+        isOpen={Boolean(deleteTarget)}
+        taskTitle={deleteTarget?.title ?? ""}
+        subtaskCount={deleteTarget?.subtaskCount}
+        isDeleting={isDeletingTask}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
       {toast && (
         <div

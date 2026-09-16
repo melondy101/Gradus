@@ -62,6 +62,7 @@ export async function ensureSchema(): Promise<void> {
           );
 
           ALTER TABLE tasks ADD COLUMN IF NOT EXISTS raw_input text;
+          ALTER TABLE tasks ADD COLUMN IF NOT EXISTS tags text DEFAULT '[]';
           ALTER TABLE tasks ADD COLUMN IF NOT EXISTS start_date timestamp with time zone;
           ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status text DEFAULT 'active' NOT NULL;
           ALTER TABLE tasks ADD COLUMN IF NOT EXISTS total_days integer DEFAULT 0 NOT NULL;

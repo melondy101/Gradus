@@ -24,6 +24,8 @@ function useIsMobile() {
 }
 
 import { T } from "@/lib/design-tokens";
+import { parseTaskTags } from "@/lib/task-tags";
+import { TagBadge } from "@/components/task/tag-badges";
 
 // Resource 与 TrustableResource 对齐，保留 export 供外部兼容引用
 export type Resource = TrustableResource;
@@ -187,12 +189,12 @@ export function useAnalysisPanel() {
     }
   }, []);
 
-  const startAnalysis = useCallback(async (goal: string) => {
+  const startAnalysis = useCallback(async (goal: string, tags: string[] = []) => {
     if (!goal.trim()) return;
     abortRef.current?.abort();
     const tempId = `temp-${Date.now()}`;
     try {
-      const task = await createTask(goal.trim());
+      const task = await createTask(goal.trim(), tags);
       setEntries((prev) => [{ taskId: task.id, taskTitle: goal.trim(), rawInput: goal.trim(), stream: INIT_STREAM, task: null }, ...prev]);
       setFocusedId(task.id);
       await runStream(task.id, goal.trim(), "", true);
@@ -352,12 +354,13 @@ export interface RightPanelProps {
   setFocusedId: (id: string | null) => void;
   regenAnalysis: (taskId: string, adjustment: string) => void;
   removeEntry: (taskId: string) => void;
+  onRequestDelete?: (taskId: string, title?: string, subtaskCount?: number) => void;
   onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
   /** 点击子任务 → 跳转到对应日期视图并高亮 */
   onJumpToSubtask?: (subtaskId: string, taskStartDate: string | null, startDay: number, durationDays: number) => void;
 }
 
-export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, removeEntry, onToggleSubtask, onJumpToSubtask }: RightPanelProps) {
+export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, removeEntry, onRequestDelete, onToggleSubtask, onJumpToSubtask }: RightPanelProps) {
   const focused = entries.find((e) => e.taskId === focusedId) ?? entries[0] ?? null;
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useIsMobile();
@@ -395,7 +398,23 @@ export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, re
         </div>
       )}
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
-        {!focused ? <EmptyState /> : <EntryDetail entry={focused} onRegen={regenAnalysis} onRemove={removeEntry} onToggleSubtask={onToggleSubtask} onJumpToSubtask={onJumpToSubtask} />}
+        {!focused ? (
+          <EmptyState />
+        ) : (
+          <EntryDetail
+            entry={focused}
+            onRegen={regenAnalysis}
+            onRemove={(id) => {
+              if (onRequestDelete) {
+                onRequestDelete(id, focused.taskTitle, focused.task?.subtasks?.length);
+              } else {
+                removeEntry(id);
+              }
+            }}
+            onToggleSubtask={onToggleSubtask}
+            onJumpToSubtask={onJumpToSubtask}
+          />
+        )}
       </div>
     </>
   );
@@ -561,6 +580,13 @@ function EntryDetail({ entry, onRegen, onRemove, onToggleSubtask, onJumpToSubtas
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
             <span style={{ background: T.soft, color: T.muted, fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, border: `1px solid ${T.line}`, letterSpacing: "0.04em", textTransform: "uppercase" as const, fontFamily: "var(--font-geist-mono), monospace", flexShrink: 0 }}>原始输入</span>
             <span style={{ color: T.muted, fontSize: 12 }}>{entry.rawInput}</span>
+          </div>
+        )}
+        {task && parseTaskTags(task.tags).length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+            {parseTaskTags(task.tags).map((tag) => (
+              <TagBadge key={tag} tag={tag} size="xs" />
+            ))}
           </div>
         )}
         {task && <div style={{ color: T.muted, fontSize: 11, marginTop: 4, fontFamily: "var(--font-geist-mono), monospace" }}>{task.totalDays}天计划 · {completedCount}/{totalCount} 完成{task.status === "done" && <span style={{ marginLeft: 6, color: T.green }}>✓ 已完成</span>}</div>}

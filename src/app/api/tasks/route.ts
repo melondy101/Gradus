@@ -7,6 +7,7 @@ import {
   getTasksWithSubtasksByUser,
 } from "@/lib/db/queries";
 import { checkTaskCreationQuota, checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
+import { parseTaskTags } from "@/lib/task-tags";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -77,8 +78,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const tags = parseTaskTags((body as { tags?: unknown }).tags);
+
   try {
-    const task = await createTask(auth.user.id, title);
+    const task = await createTask(auth.user.id, title, tags);
     return NextResponse.json(task, { status: 201 });
   } catch (err) {
     console.error("[api/tasks] createTask failed with DB error:", err);

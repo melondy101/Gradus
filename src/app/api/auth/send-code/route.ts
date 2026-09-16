@@ -34,6 +34,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请输入有效的电子邮箱地址" }, { status: 400 });
   }
 
+  // 1.1 校验保留测试域名与不可达域名（RFC 2606 / RFC 6761），提供清晰友好的提示
+  const domain = email.split("@")[1]?.toLowerCase() || "";
+  const reservedTestDomains = [
+    "example.com",
+    "example.org",
+    "example.net",
+    "example.edu",
+    "test.com",
+    "test.org",
+    "test.net",
+    "invalid",
+    "localhost",
+  ];
+  if (
+    reservedTestDomains.includes(domain) ||
+    domain.endsWith(".example") ||
+    domain.endsWith(".invalid") ||
+    domain.endsWith(".test") ||
+    domain.endsWith(".localhost")
+  ) {
+    return NextResponse.json(
+      {
+        error: `邮箱域名「${domain}」为保留测试域名，无法接收验证码邮件。请输入真实可收信的邮箱（如 QQ、163、Gmail 等）。`,
+      },
+      { status: 400 }
+    );
+  }
+
   // 2. 注册场景下查重提前拦截
   if (type === "register") {
     const existing = await getUserByEmailLower(email.toLowerCase());

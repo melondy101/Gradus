@@ -6,12 +6,14 @@ import { Crown, Plus } from "lucide-react";
 import { T } from "@/lib/design-tokens";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { parseTaskTags } from "@/lib/task-tags";
+import { TagBadge } from "@/components/task/tag-badges";
 
 interface AllPlansViewProps {
   tasks: TaskWithSubtasks[];
   onSelectTask: (taskId: string) => void;
   onNewPlan: () => void;
-  onDeleteTask?: (taskId: string) => void;
+  onDeleteTask?: (task: TaskWithSubtasks) => void;
 }
 
 export function AllPlansView({
@@ -165,6 +167,17 @@ export function AllPlansView({
                       💡 {task.rawInput}
                     </div>
                   )}
+                  {(() => {
+                    const taskTags = parseTaskTags(task.tags);
+                    if (taskTags.length === 0) return null;
+                    return (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 8 }}>
+                        {taskTags.map((tag) => (
+                          <TagBadge key={tag} tag={tag} size="sm" />
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* 状态胶囊 (Status Pill) */}
@@ -287,19 +300,31 @@ export function AllPlansView({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm(`确定删除计划「${task.title}」吗？`)) {
-                          onDeleteTask(task.id);
-                        }
+                        onDeleteTask(task);
                       }}
                       style={{
                         background: "transparent",
                         border: "none",
                         color: T.muted,
                         cursor: "pointer",
-                        fontSize: 11,
-                        padding: "2px 4px",
+                        fontSize: 13,
+                        padding: "4px 6px",
+                        borderRadius: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#EF4444";
+                        e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = T.muted;
+                        e.currentTarget.style.background = "transparent";
                       }}
                       title="删除此计划"
+                      aria-label={`删除计划 ${task.title}`}
                     >
                       ✕
                     </button>

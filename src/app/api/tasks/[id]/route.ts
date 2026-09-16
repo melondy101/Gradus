@@ -6,8 +6,10 @@ import {
   getSubtasksByTask,
   deleteTask,
   updateTaskStatus,
+  updateTaskTags,
 } from "@/lib/db/queries";
 import { checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
+import { parseTaskTags } from "@/lib/task-tags";
 
 export async function GET(
   request: NextRequest,
@@ -55,6 +57,14 @@ export async function PATCH(
     }
     await updateTaskStatus(id, body.status);
   }
+
+  // 支持更新任务标签
+  if ("tags" in body) {
+    const updatedTags = parseTaskTags(body.tags);
+    await updateTaskTags(id, updatedTags);
+    return NextResponse.json({ ok: true, tags: updatedTags });
+  }
+
   return NextResponse.json({ ok: true });
 }
 

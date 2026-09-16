@@ -11,12 +11,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Tag as TagIcon,
+  X,
 } from "lucide-react";
 import { UserBadge } from "@/components/user-profile/user-badge";
 import { ThemeToggle } from "./theme-toggle";
 import { GradusLogo } from "@/components/ui/gradus-logo";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { NotificationCenter } from "@/components/notifications/notification-center";
+import { getTagStyle } from "@/lib/task-tags";
 
 export type NavView = "today" | "plans" | "steps" | "timeline";
 
@@ -29,6 +32,9 @@ interface IconRailProps {
   totalPlansCount: number;
   onOpenCommandPalette: () => void;
   onNewPlan: () => void;
+  availableTags?: Array<{ tag: string; count: number }>;
+  selectedTag?: string | null;
+  onSelectTag?: (tag: string | null) => void;
 }
 
 export function IconRail({
@@ -40,6 +46,9 @@ export function IconRail({
   totalPlansCount,
   onOpenCommandPalette,
   onNewPlan,
+  availableTags = [],
+  selectedTag = null,
+  onSelectTag,
 }: IconRailProps) {
   const navItems = [
     {
@@ -246,6 +255,229 @@ export function IconRail({
               );
             })}
           </nav>
+
+          {/* ── 标签筛选分类 (Tag Filters) ── */}
+          {!collapsed ? (
+            <div
+              style={{
+                marginTop: 8,
+                paddingTop: 8,
+                borderTop: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
+                maxHeight: "calc(100vh - 430px)",
+                overflowY: "auto",
+              }}
+              className="canvas-scroll"
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "2px 6px 4px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <TagIcon size={12} style={{ color: "var(--muted-foreground)" }} />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--muted-foreground)",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    标签筛选
+                  </span>
+                </div>
+                {selectedTag && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectTag?.(null)}
+                    title="清除标签过滤"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      fontSize: 10.5,
+                      color: "var(--accent)",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "1px 4px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    <X size={11} />
+                    <span>全部</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 全部计划选项 */}
+              <button
+                type="button"
+                id="tag-filter-all"
+                onClick={() => onSelectTag?.(null)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  height: 30,
+                  padding: "0 8px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: selectedTag === null ? "var(--accent-soft)" : "transparent",
+                  color: selectedTag === null ? "var(--accent)" : "var(--foreground)",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: selectedTag === null ? 600 : 500,
+                  transition: "all 0.12s ease",
+                }}
+              >
+                <span>全部任务</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "var(--font-jetbrains), monospace",
+                    color: "var(--muted-foreground)",
+                  }}
+                >
+                  {totalPlansCount}
+                </span>
+              </button>
+
+              {/* 用户各标签 */}
+              {availableTags && availableTags.length > 0 ? (
+                availableTags.map(({ tag, count }) => {
+                  const isSelected = selectedTag === tag;
+                  const style = getTagStyle(tag);
+                  return (
+                    <button
+                      key={tag}
+                      id={`tag-filter-${tag}`}
+                      type="button"
+                      onClick={() => onSelectTag?.(isSelected ? null : tag)}
+                      title={`按标签「${tag}」筛选`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        height: 30,
+                        padding: "0 8px",
+                        borderRadius: 6,
+                        border: isSelected ? `1px solid ${style.border}` : "1px solid transparent",
+                        background: isSelected ? style.bg : "transparent",
+                        color: isSelected ? style.text : "var(--foreground)",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: isSelected ? 600 : 500,
+                        transition: "all 0.12s ease",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: style.dot,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontFamily: "var(--font-jetbrains), monospace",
+                          color: isSelected ? style.text : "var(--muted-foreground)",
+                          background: isSelected ? "rgba(255,255,255,0.7)" : "var(--secondary)",
+                          padding: "1px 5px",
+                          borderRadius: 99,
+                          marginLeft: 4,
+                        }}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div
+                  style={{
+                    padding: "6px 8px",
+                    fontSize: 11,
+                    color: "var(--muted-foreground)",
+                    lineHeight: 1.4,
+                    opacity: 0.8,
+                  }}
+                >
+                  新建任务时打上『编程』『文学』『理科』等标签，即可在此分类过滤
+                </div>
+              )}
+            </div>
+          ) : (
+            /* 折叠侧边栏状态下的标签按钮 */
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: 6,
+                paddingTop: 6,
+                borderTop: "1px solid var(--border)",
+              }}
+            >
+              <button
+                type="button"
+                id="collapsed-tag-filter-btn"
+                onClick={onToggleCollapsed}
+                title={
+                  selectedTag
+                    ? `当前筛选标签：${selectedTag}（点击展开）`
+                    : "按标签筛选（点击展开）"
+                }
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 8,
+                  border: "none",
+                  background: selectedTag ? "var(--accent-soft)" : "transparent",
+                  color: selectedTag ? "var(--accent)" : "var(--muted-foreground)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                }}
+              >
+                <TagIcon size={18} />
+                {selectedTag && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 7,
+                      right: 7,
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: "var(--accent)",
+                    }}
+                  />
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Bottom: Membership, Command Palette, Theme, Profile */}

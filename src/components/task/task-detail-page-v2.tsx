@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useEazo, auth, memory } from "@/lib/eazo-shim";
-import { getTask, toggleSubtask, updateTaskStatusApi } from "@/lib/api/tasks";
+import { getTask, toggleSubtask, updateTaskStatusApi, updateTaskTagsApi } from "@/lib/api/tasks";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
 import { GanttChart } from "@/components/task/gantt-chart";
 import { T } from "@/lib/design-tokens";
+import { parseTaskTags } from "@/lib/task-tags";
+import { TagEditor } from "@/components/task/tag-badges";
 
 interface TaskDetailPageProps { taskId: string; }
 
@@ -67,6 +69,22 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
         content: `User ${next ? "completed" : "uncompleted"} subtask in task "${task.title}"`,
         event_type: next ? "complete" : "update",
       }).catch(() => {});
+    },
+    [task, taskId]
+  );
+
+  const handleUpdateTags = useCallback(
+    async (newTags: string[]) => {
+      if (!task) return;
+      const oldTags = task.tags;
+      // 乐观更新
+      setTask((prev) => (prev ? { ...prev, tags: JSON.stringify(newTags) } : prev));
+      try {
+        await updateTaskTagsApi(taskId, newTags);
+      } catch {
+        // 失败回滚
+        setTask((prev) => (prev ? { ...prev, tags: oldTags } : prev));
+      }
     },
     [task, taskId]
   );
@@ -139,6 +157,22 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
               total: totalCount,
             })}
           </p>
+
+          {/* 任务标签编辑器 */}
+          <div
+            className="mt-4 p-3.5 rounded-xl border"
+            style={{
+              borderColor: T.line,
+              background: T.surface,
+              boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+            }}
+          >
+            <TagEditor
+              tags={parseTaskTags(task.tags)}
+              onChange={handleUpdateTags}
+              label="任务分类标签"
+            />
+          </div>
         </div>
 
         <div className="h-[3px] rounded-full" style={{ background: T.line }}>

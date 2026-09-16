@@ -14,6 +14,7 @@ export interface TaskWithSubtasks extends Task {
 export interface SubtaskWithTask extends Subtask {
   taskTitle: string;
   taskRawInput: string | null;
+  taskTags?: string | null;      // 大任务标签（JSON 字符串）
   taskStartDate: string | null;  // ISO string from JSON，大任务开始日期
   taskStatus: string;
   taskCreatedAt: string;   // ISO string from JSON
@@ -43,11 +44,11 @@ export async function getTask(id: string): Promise<TaskWithSubtasks> {
   return res.json();
 }
 
-export async function createTask(title: string): Promise<Task> {
+export async function createTask(title: string, tags?: string[]): Promise<Task> {
   const res = await request("/api/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, tags: tags || [] }),
   });
   if (!res.ok) {
     const raw = await res.text();
@@ -61,6 +62,20 @@ export async function createTask(title: string): Promise<Task> {
     throw new Error(msg || "创建任务失败");
   }
   return res.json();
+}
+
+export async function updateTaskTagsApi(
+  taskId: string,
+  tags: string[]
+): Promise<string[]> {
+  const res = await request(`/api/tasks/${taskId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tags }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json().catch(() => ({}));
+  return Array.isArray(data.tags) ? data.tags : tags;
 }
 
 export async function updateTaskStatusApi(

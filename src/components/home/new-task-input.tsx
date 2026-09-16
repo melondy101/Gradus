@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { T } from "@/lib/design-tokens";
+import { TagEditor } from "@/components/task/tag-badges";
 
 // 客户端轻量 URL 检测（不引入 url-fetcher，避免服务端依赖）
 function extractUrlClient(input: string): string | null {
@@ -95,12 +96,13 @@ function detectUrlHint(url: string): UrlHint {
 
 interface Props {
   onClose: () => void;
-  onSubmit: (goal: string) => void;
+  onSubmit: (goal: string, tags?: string[]) => void;
 }
 
 export function NewTaskInput({ onClose, onSubmit }: Props) {
   const { t } = useTranslation();
   const [goal, setGoal] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { ref.current?.focus(); }, []);
@@ -110,7 +112,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
 
   const handleSubmit = () => {
     if (!goal.trim()) return;
-    onSubmit(goal.trim());
+    onSubmit(goal.trim(), selectedTags);
     onClose();
   };
 
@@ -250,6 +252,15 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
             {t("newTask.enterHint")}
           </p>
         )}
+
+        {/* 任务标签选择 */}
+        <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+          <TagEditor
+            tags={selectedTags}
+            onChange={setSelectedTags}
+            label="为任务设置标签 (可选)"
+          />
+        </div>
 
         {/* 操作按钮 */}
         <div style={{ display: "flex", gap: 8 }}>

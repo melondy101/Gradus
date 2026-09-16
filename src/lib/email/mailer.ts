@@ -129,6 +129,28 @@ async function sendViaSmtp(options: SendEmailOptions): Promise<SendEmailResult> 
         error: "发件人地址与 QQ 邮箱认证账户不匹配，请检查发件人配置。",
       };
     }
+    if (
+      msg.includes("550") ||
+      msg.includes("553") ||
+      msg.includes("Invalid recipient") ||
+      msg.includes("Mailbox not found") ||
+      msg.includes("Domain name not found") ||
+      msg.includes("Recipient address rejected") ||
+      msg.includes("user not found") ||
+      msg.includes("does not exist") ||
+      msg.includes("Non-existent domain")
+    ) {
+      return {
+        ok: false,
+        error: "目标邮箱地址或域名不存在/不可用，无法投递验证码。请输入真实可收信的邮箱（如 QQ、163、Gmail 等）。",
+      };
+    }
+    if (msg.includes("421") || msg.includes("450") || msg.includes("451")) {
+      return {
+        ok: false,
+        error: "邮件服务暂时繁忙或触发限流，请稍后 1 分钟后再试。",
+      };
+    }
     return { ok: false, error: `SMTP 邮件发送失败: ${msg}` };
   }
 }

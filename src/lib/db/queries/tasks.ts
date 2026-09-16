@@ -15,6 +15,7 @@ export type TaskWithProgress = Task & {
 export type SubtaskWithTask = Subtask & {
   taskTitle: string;
   taskRawInput: string | null;
+  taskTags: string | null;     // 大任务标签（JSON 数组）
   taskStartDate: Date | null;  // 大任务开始日期
   taskStatus: string;
   taskCreatedAt: Date;
@@ -49,6 +50,7 @@ export async function getTasksByUser(userId: string): Promise<TaskWithProgress[]
         userId: tasks.userId,
         title: tasks.title,
         rawInput: tasks.rawInput,
+        tags: tasks.tags,
         startDate: tasks.startDate,
         status: tasks.status,
         totalDays: tasks.totalDays,
@@ -111,6 +113,7 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
         createdAt: subtasks.createdAt,
         taskTitle: tasks.title,
         taskRawInput: tasks.rawInput,
+        taskTags: tasks.tags,
         taskStartDate: tasks.startDate,
         taskStatus: tasks.status,
         taskCreatedAt: tasks.createdAt,
@@ -136,6 +139,7 @@ export async function getSubtasksWithTaskByUser(userId: string): Promise<Subtask
         ...s,
         taskTitle: parent.title,
         taskRawInput: parent.rawInput,
+        taskTags: parent.tags ?? "[]",
         taskStartDate: parent.startDate,
         taskStatus: parent.status,
         taskCreatedAt: parent.createdAt,
@@ -167,7 +171,8 @@ export async function getTaskById(id: string): Promise<Task | null> {
 
 export async function createTask(
   userId: string,
-  title: string
+  title: string,
+  tags: string[] = []
 ): Promise<Task> {
   await ensureSchema().catch((err) => {
     console.warn("[tasks] ensureSchema check returned error:", err);
@@ -178,6 +183,7 @@ export async function createTask(
     userId,
     title,
     rawInput: null,
+    tags: JSON.stringify(tags || []),
     startDate: null,
     status: "active",
     totalDays: 0,
@@ -294,6 +300,29 @@ export async function updateTaskStatus(
     }
   } catch (err) {
     console.error("[tasks] updateTaskStatus FATAL DB ERROR:", { id, status, error: err });
+    throw err;
+  }
+}
+
+export async function updateTaskTags(
+  id: string,
+  tagsList: string[]
+): Promise<void> {
+  const serialized = JSON.stringify(tagsList || []);
+  try {
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ tags: serialized, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.tags = serialized;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskTags FATAL DB ERROR:", { id, tagsList, error: err });
     throw err;
   }
 }
