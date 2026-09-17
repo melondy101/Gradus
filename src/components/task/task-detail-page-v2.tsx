@@ -10,6 +10,7 @@ import { GanttChart } from "@/components/task/gantt-chart";
 import { T } from "@/lib/design-tokens";
 import { parseTaskTags } from "@/lib/task-tags";
 import { TagEditor } from "@/components/task/tag-badges";
+import { GradusLogo } from "@/components/ui/gradus-logo";
 
 interface TaskDetailPageProps { taskId: string; }
 
@@ -287,10 +288,11 @@ function PageShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/history"
-            className="font-[650] tracking-[-0.03em] hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 font-[650] tracking-[-0.03em] hover:opacity-70 transition-opacity"
             style={{ color: T.ink }}
           >
-            {t("taskDetail.historyTasks", "← 历史任务")}
+            <GradusLogo size={24} />
+            <span>{t("taskDetail.historyTasks", "← 历史任务")}</span>
           </Link>
           <span
             className="text-[12px] uppercase tracking-[0.06em]"

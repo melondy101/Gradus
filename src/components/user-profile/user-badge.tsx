@@ -138,15 +138,15 @@ function BadgeTrigger({ user, isAdmin, onClick }: { user: User; isAdmin?: boolea
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 rounded-full border border-border bg-background px-2.5 py-1.5 text-sm shadow-xs transition-all hover:shadow-sm"
+      className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border bg-background p-1 sm:px-2.5 sm:py-1.5 text-sm shadow-xs transition-all hover:shadow-sm"
     >
       <Avatar user={user} size={24} />
-      <span className="max-w-[100px] truncate font-medium text-foreground text-xs">
+      <span className="hidden sm:inline max-w-[100px] truncate font-medium text-foreground text-xs">
         {user.name ?? user.email ?? user.id}
       </span>
       {isAdmin ? (
         <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 text-[9px] font-bold font-mono">
-          👑 管理员
+          👑<span className="hidden sm:inline ml-0.5">管理员</span>
         </span>
       ) : (
         <span

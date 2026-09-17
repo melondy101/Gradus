@@ -100,7 +100,6 @@ export function AiGenerationRitualModal({
   if (!isOpen) return null;
 
   // 计算当前处于第几步 (0 ~ 4)
-  const stepKeys = ["intent", "search", "plan", "validate", "saving"];
   let activeStepIndex = 0;
   if (phase === "search") activeStepIndex = 1;
   else if (phase === "plan") activeStepIndex = 2;

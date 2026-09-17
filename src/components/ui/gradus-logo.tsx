@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useId } from "react";
 
 interface GradusLogoProps {
   size?: number;
@@ -22,6 +22,17 @@ export function GradusLogo({
   showText = false,
   textClassName = "",
 }: GradusLogoProps) {
+  const rawId = useId();
+  // 清理 ID 中的非法字符，确保在 SVG URL 引用中合法稳定
+  const idPrefix = `gradus-${rawId.replace(/[^a-zA-Z0-9-_]/g, "")}`;
+
+  const bgId = `${idPrefix}-bg`;
+  const step1Id = `${idPrefix}-s1`;
+  const step2Id = `${idPrefix}-s2`;
+  const step3Id = `${idPrefix}-s3`;
+  const sparkId = `${idPrefix}-spark`;
+  const glowId = `${idPrefix}-glow`;
+
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       <svg
@@ -32,42 +43,43 @@ export function GradusLogo({
         xmlns="http://www.w3.org/2000/svg"
         className="flex-shrink-0"
         aria-label="拾级 Gradus Logo"
+        style={{ shapeRendering: "geometricPrecision" }}
       >
         <defs>
           {/* 背景微渐变 */}
-          <linearGradient id="gradus-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={bgId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#4F46E5" />
             <stop offset="50%" stopColor="#4338CA" />
             <stop offset="100%" stopColor="#312E81" />
           </linearGradient>
 
           {/* 第一层阶梯 (Foundation - 基础/理解) */}
-          <linearGradient id="step-1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={step1Id} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#818CF8" />
             <stop offset="100%" stopColor="#6366F1" />
           </linearGradient>
 
           {/* 第二层阶梯 (Application - 应用/分析) */}
-          <linearGradient id="step-2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={step2Id} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#38BDF8" />
             <stop offset="100%" stopColor="#0284C7" />
           </linearGradient>
 
           {/* 第三层阶梯 (Mastery - 评价/创造) */}
-          <linearGradient id="step-3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={step3Id} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#34D399" />
             <stop offset="100%" stopColor="#059669" />
           </linearGradient>
 
           {/* 顶端光芒 (Apex Spark) */}
-          <linearGradient id="spark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={sparkId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FDE047" />
             <stop offset="100%" stopColor="#F59E0B" />
           </linearGradient>
 
-          {/* 阴影效果 */}
-          <filter id="gradus-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.25" />
+          {/* 阴影效果：优化模糊半径与清晰度 */}
+          <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.32" />
           </filter>
         </defs>
 
@@ -76,33 +88,33 @@ export function GradusLogo({
           width="48"
           height="48"
           rx="12"
-          fill="url(#gradus-bg)"
+          fill={`url(#${bgId})`}
           className="transition-colors duration-200"
         />
 
         {/* 阶梯投影 */}
-        <g filter="url(#gradus-glow)">
+        <g filter={`url(#${glowId})`}>
           {/* Step 1: 底部阶梯 (左侧起始) */}
           <path
             d="M8 36L18 36L18 30L8 30Z"
-            fill="url(#step-1)"
+            fill={`url(#${step1Id})`}
             opacity="0.95"
           />
           <path
             d="M8 30L14 26L24 26L18 30Z"
             fill="#A5B4FC"
-            opacity="0.9"
+            opacity="0.92"
           />
           <path
             d="M18 36L24 32L24 26L18 30Z"
             fill="#4338CA"
-            opacity="0.8"
+            opacity="0.85"
           />
 
           {/* Step 2: 中间阶梯 */}
           <path
             d="M17 30L27 30L27 22L17 22Z"
-            fill="url(#step-2)"
+            fill={`url(#${step2Id})`}
           />
           <path
             d="M17 22L23 18L33 18L27 22Z"
@@ -112,13 +124,13 @@ export function GradusLogo({
           <path
             d="M27 30L33 26L33 18L27 22Z"
             fill="#0369A1"
-            opacity="0.8"
+            opacity="0.85"
           />
 
           {/* Step 3: 顶峰阶梯 */}
           <path
             d="M26 22L36 22L36 14L26 14Z"
-            fill="url(#step-3)"
+            fill={`url(#${step3Id})`}
           />
           <path
             d="M26 14L32 10L42 10L36 14Z"
@@ -128,15 +140,15 @@ export function GradusLogo({
           <path
             d="M36 22L42 18L42 10L36 14Z"
             fill="#047857"
-            opacity="0.8"
+            opacity="0.85"
           />
 
           {/* 顶端智慧星芒 / 突破点 (Apex Beacon) */}
-          <circle cx="37" cy="9" r="2.5" fill="url(#spark-grad)" />
+          <circle cx="37" cy="9" r="2.5" fill={`url(#${sparkId})`} />
           <path
             d="M37 4.5L38 8L41.5 9L38 10L37 13.5L36 10L32.5 9L36 8Z"
             fill="#FEF08A"
-            opacity="0.9"
+            opacity="0.95"
           />
         </g>
       </svg>

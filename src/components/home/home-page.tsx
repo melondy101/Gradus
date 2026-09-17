@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { getResolvedLocale } from "@/i18n";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { CheckCircle2, ListFilter, Tag as TagIcon, X, Search, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEazo } from "@/lib/eazo-shim";
@@ -38,6 +39,7 @@ import { ShareCardModal, type ShareData } from "@/components/share/share-card-mo
 import { AiGenerationRitualModal } from "@/components/task/ai-generation-ritual-modal";
 import { OnboardingTour, TourHelpButton } from "./onboarding-tour";
 import { DeletePlanModal } from "./delete-plan-modal";
+import { GradusLogo } from "@/components/ui/gradus-logo";
 import { UserBadge } from "@/components/user-profile/user-badge";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -655,14 +657,44 @@ export function HomePage() {
             gap: 8,
           }}
         >
-          {/* 面包屑与视图切换指示 */}
+          {/* 移动端/桌面端 品牌标识与面包屑视图指示 */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
+            {/* 移动端品牌徽标与名称，强化移动端左上角视觉辨识度 */}
+            <Link
+              href="/"
+              className="flex sm:hidden items-center gap-1.5 flex-shrink-0 hover:opacity-85 transition-opacity"
+              aria-label="拾级 Gradus 首页"
+            >
+              <GradusLogo size={28} />
+              <span
+                style={{
+                  fontFamily: "var(--font-outfit), Outfit, sans-serif",
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "var(--foreground)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1,
+                }}
+              >
+                拾级
+              </span>
+            </Link>
+
+            {/* 移动端视图分隔符 */}
+            <span
+              className="inline-block sm:hidden text-muted-foreground/50 text-xs font-light select-none flex-shrink-0"
+              aria-hidden="true"
+            >
+              /
+            </span>
+
+            {/* 当前视图指示 */}
             <span
               className="truncate"
               style={{
                 fontFamily: "var(--font-outfit), Outfit, sans-serif",
-                fontSize: 15,
-                fontWeight: 700,
+                fontSize: 14,
+                fontWeight: 600,
                 color: "var(--foreground)",
                 letterSpacing: "-0.01em",
               }}
@@ -692,7 +724,7 @@ export function HomePage() {
                 }}
               >
                 <TagIcon size={11} />
-                <span className="truncate max-w-[70px] sm:max-w-[120px]">{selectedTag}</span>
+                <span className="truncate max-w-[60px] sm:max-w-[120px]">{selectedTag}</span>
                 <button
                   type="button"
                   onClick={() => setSelectedTag(null)}
@@ -712,7 +744,11 @@ export function HomePage() {
               </div>
             )}
 
-            {user && subtaskRows.length > 0 && <LevelBadge refreshTick={streakTick} />}
+            {user && subtaskRows.length > 0 && (
+              <div className="hidden md:block">
+                <LevelBadge refreshTick={streakTick} />
+              </div>
+            )}
           </div>
 
           {/* 桌面端：快捷搜索与新建 */}

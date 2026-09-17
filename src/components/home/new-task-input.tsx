@@ -150,6 +150,8 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
       />
       {/* Dialog */}
       <div
+        id="new-task-dialog"
+        className="new-task-dialog"
         style={{
           position: "fixed",
           top: "50%",
@@ -170,7 +172,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
         }}
       >
         {/* 标题栏 */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="new-task-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
               style={{
@@ -212,11 +214,12 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
 
         {/* 示例快捷标签（输入为空时展示，紧凑单行/微卡片） */}
         {!goal.trim() && (
-          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          <div className="new-task-examples" style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
             {EXAMPLES.map((ex) => (
               <button
                 key={ex.key}
                 type="button"
+                className="new-task-example-chip"
                 onClick={() => handleExample(t(`newTask.exampleValues.${ex.key}`))}
                 style={{
                   display: "inline-flex",
@@ -254,6 +257,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
           }}
           placeholder={placeholder}
           rows={3}
+          className="new-task-textarea"
           style={{
             width: "100%",
             background: T.soft,
@@ -277,6 +281,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
         {/* URL 检测提示卡 */}
         {urlHint && (
           <div
+            className="new-task-url-hint"
             style={{
               display: "flex",
               alignItems: "flex-start",
@@ -315,7 +320,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
         )}
 
         {/* 折叠式标签选择器：手机上默认紧凑，不占主输入视线 */}
-        <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+        <div className="new-task-tag-section" style={{ borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
           <div
             style={{
               display: "flex",
@@ -372,9 +377,10 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
         </div>
 
         {/* 操作按钮 */}
-        <div style={{ display: "flex", gap: 8, paddingTop: 2 }}>
+        <div className="new-task-actions" style={{ display: "flex", gap: 8, paddingTop: 2 }}>
           <button
             type="button"
+            className="new-task-btn-submit"
             onClick={handleSubmit}
             disabled={!goal.trim()}
             style={{
@@ -399,6 +405,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
           </button>
           <button
             type="button"
+            className="new-task-btn-cancel"
             onClick={onClose}
             style={{
               background: T.soft,

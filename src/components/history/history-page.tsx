@@ -8,6 +8,7 @@ import { auth } from "@/lib/eazo-shim";
 import { getTasks, deleteTask } from "@/lib/api/tasks";
 import type { TaskWithProgress } from "@/lib/api/tasks";
 import { DeletePlanModal } from "@/components/home/delete-plan-modal";
+import { GradusLogo } from "@/components/ui/gradus-logo";
 import { T } from "@/lib/design-tokens";
 
 export function HistoryPage() {
@@ -192,10 +193,11 @@ function PageShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/"
-            className="font-[650] tracking-[-0.03em] hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 font-[650] tracking-[-0.03em] hover:opacity-70 transition-opacity"
             style={{ color: T.ink }}
           >
-            {brandTitle}
+            <GradusLogo size={24} />
+            <span>{brandTitle}</span>
           </Link>
           <span
             className="text-[12px] tracking-[0.06em] uppercase"
