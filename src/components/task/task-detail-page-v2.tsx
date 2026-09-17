@@ -280,7 +280,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
       }}
     >
-      <div className="mx-auto px-4" style={{ width: "min(100% - 32px, 760px)" }}>
+      <div className="mx-auto px-4" style={{ width: "min(100% - 32px, 1024px)" }}>
         <nav
           className="flex items-center justify-between"
           style={{ height: 64, fontSize: 14, color: T.muted }}

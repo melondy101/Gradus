@@ -13,10 +13,14 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "db:migrate-demo": "tsx scripts/migrate-demo-data.ts"
+    "db:migrate-demo": "tsx scripts/migrate-demo-data.ts",
+    "cap:add:android": "cap add android",
+    "cap:sync": "cap sync android",
+    "cap:open:android": "cap open android"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
+    "@capacitor/core": "^8.5.2",
     "@google/genai": "^2.20.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@vercel/analytics": "^2.0.1",
@@ -47,6 +51,8 @@
     "qs": "^6.15.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",

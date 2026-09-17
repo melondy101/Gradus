@@ -1,0 +1,112 @@
+name: Build Android APK & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: 'Online Server URL for the app (e.g. https://your-domain.vercel.app)'
+        required: false
+        default: 'https://talktask.vercel.app'
+      release_title:
+        description: 'Release Title'
+        required: false
+        default: 'Gradus Android Release'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Configure Capacitor Server URL
+        run: |
+          SERVER_URL="${{ github.event.inputs.server_url || 'https://talktask.vercel.app' }}"
+          echo "Building APK pointing to online server: $SERVER_URL"
+          export CAPACITOR_SERVER_URL="$SERVER_URL"
+          node -e "
+            const fs = require('fs');
+            const cfg = \`import type { CapacitorConfig } from '@capacitor/cli';
+            const config: CapacitorConfig = {
+              appId: 'com.gradus.app',
+              appName: '拾级',
+              webDir: 'public',
+              server: {
+                url: '\${process.env.CAPACITOR_SERVER_URL || '$SERVER_URL'}',
+                cleartext: true,
+                androidScheme: 'https'
+              },
+              android: {
+                allowMixedContent: true,
+                backgroundColor: '#FAFAF8'
+              }
+            };
+            export default config;\`;
+            fs.writeFileSync('capacitor.config.ts', cfg);
+          "
+
+      - name: Initialize Android platform if needed
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Prepare APK Artifact
+        run: |
+          mkdir -p release-artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-artifacts/gradus-android.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradus-android-apk
+          path: release-artifacts/gradus-android.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.event.inputs.release_title || github.ref_name }}
+          files: release-artifacts/gradus-android.apk
+          draft: false
+          prerelease: false
+          body: |
+            ## 📱 拾级（Gradus）移动端安装包发布
+
+            此安装包为 Android 客户端，支持与网页端实时数据联网同步：
+            - **无缝数据互通**：登录账号后，与 Web 端任务、排期、成就、AI 规划完全同步
+            - **沉浸式体验**：适配全面屏手势、安全区沉浸状态栏与触觉反馈
+            - **离线与弱网支持**：搭载 Service Worker 与 PWA 本地缓存加速
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -110,9 +110,9 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
         background: T.surface, border: `1px solid ${T.line}`, borderRadius: 18,
-        padding: "22px 22px 18px", width: "min(460px, 92vw)", maxHeight: "88vh",
+        padding: "18px 18px 16px", width: "min(480px, 94vw)", maxHeight: "86vh",
         overflowY: "auto", zIndex: 201, boxShadow: "0 20px 60px rgba(17,17,17,0.12)",
-        display: "flex", flexDirection: "column", gap: 14,
+        display: "flex", flexDirection: "column", gap: 13,
       }}>
 
         {/* Header */}

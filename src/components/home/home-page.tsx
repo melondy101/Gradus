@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { getResolvedLocale } from "@/i18n";
 import { motion } from "framer-motion";
-import { CheckCircle2, ListFilter, Tag as TagIcon, X } from "lucide-react";
+import { CheckCircle2, ListFilter, Tag as TagIcon, X, Search, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEazo } from "@/lib/eazo-shim";
 import {
@@ -38,6 +38,10 @@ import { ShareCardModal, type ShareData } from "@/components/share/share-card-mo
 import { AiGenerationRitualModal } from "@/components/task/ai-generation-ritual-modal";
 import { OnboardingTour, TourHelpButton } from "./onboarding-tour";
 import { DeletePlanModal } from "./delete-plan-modal";
+import { UserBadge } from "@/components/user-profile/user-badge";
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { T } from "@/lib/design-tokens";
 
 // 骨架屏组件
@@ -641,31 +645,32 @@ export function HomePage() {
           style={{
             background: "var(--card)",
             borderBottom: "1px solid var(--border)",
-            padding: "0 20px",
-            height: 54,
+            padding: "0 14px",
+            height: 52,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             flexShrink: 0,
             boxShadow: "var(--shadow-sm)",
-            gap: 12,
+            gap: 8,
           }}
         >
           {/* 面包屑与视图切换指示 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
             <span
+              className="truncate"
               style={{
                 fontFamily: "var(--font-outfit), Outfit, sans-serif",
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: 700,
                 color: "var(--foreground)",
                 letterSpacing: "-0.01em",
               }}
             >
-              {currentView === "today" && "今日聚焦 · Today"}
-              {currentView === "plans" && "全部计划 · All Plans"}
-              {currentView === "steps" && "拾级天梯 · Ascending Steps"}
-              {currentView === "timeline" && "时间甘特图 · Timeline"}
+              {currentView === "today" && "今日聚焦"}
+              {currentView === "plans" && "全部计划"}
+              {currentView === "steps" && "拾级天梯"}
+              {currentView === "timeline" && "时间甘特图"}
             </span>
 
             {/* 标签过滤生效状态指示条 */}
@@ -675,18 +680,19 @@ export function HomePage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 5,
-                  padding: "2px 8px",
+                  gap: 4,
+                  padding: "2px 7px",
                   borderRadius: 999,
                   background: "var(--accent-soft)",
                   border: "1px solid var(--accent)",
                   color: "var(--accent)",
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 600,
+                  flexShrink: 0,
                 }}
               >
-                <TagIcon size={12} />
-                <span>{selectedTag}</span>
+                <TagIcon size={11} />
+                <span className="truncate max-w-[70px] sm:max-w-[120px]">{selectedTag}</span>
                 <button
                   type="button"
                   onClick={() => setSelectedTag(null)}
@@ -701,7 +707,7 @@ export function HomePage() {
                     alignItems: "center",
                   }}
                 >
-                  <X size={12} />
+                  <X size={11} />
                 </button>
               </div>
             )}
@@ -709,8 +715,8 @@ export function HomePage() {
             {user && subtaskRows.length > 0 && <LevelBadge refreshTick={streakTick} />}
           </div>
 
-          {/* 顶栏右侧快捷搜索与新建 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* 桌面端：快捷搜索与新建 */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => setCommandPaletteOpen(true)}
               style={{
@@ -764,6 +770,29 @@ export function HomePage() {
               <span style={{ fontSize: 14, lineHeight: 1 }}>+</span> 新学习目标
             </button>
           </div>
+
+          {/* 移动端顶栏右侧快捷操作（搜索、通知、主题、会员、用户身份） */}
+          <div className="flex sm:hidden items-center gap-1 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setCommandPaletteOpen(true)}
+              aria-label="搜索"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Search size={18} />
+            </button>
+            <NotificationCenter />
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => openMembershipModal("overview")}
+              aria-label="会员中心"
+              className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-colors"
+            >
+              <Crown size={18} />
+            </button>
+            <UserBadge />
+          </div>
         </header>
 
         {/* 核心工作区 */}
@@ -782,7 +811,7 @@ export function HomePage() {
                   />
                 )}
 
-                <div className="canvas-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+                <div className="canvas-scroll pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-5 px-3 sm:px-5 pt-4" style={{ flex: 1, overflowY: "auto" }}>
                   {authLoading || fetching ? (
                     <ListSkeleton />
                   ) : loadError ? (
@@ -1172,13 +1201,13 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* 底部快捷键提示 */}
+        {/* 底部快捷键提示 (移动端隐藏以节省屏幕空间) */}
         <footer
+          className="hidden sm:flex"
           style={{
             background: T.surface,
             borderTop: `1px solid ${T.line}`,
             padding: "8px 24px",
-            display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             flexShrink: 0,

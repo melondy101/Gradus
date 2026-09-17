@@ -599,15 +599,16 @@ export function IconRail({
       </aside>
 
       {/* ── Mobile Bottom Tab Bar (≤640px) ── */}
-      <div
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-1"
         style={{
-          height: 56,
+          height: "calc(56px + env(safe-area-inset-bottom, 0px))",
           background: "var(--card)",
           borderTop: "1px solid var(--border)",
-          boxShadow: "0 -2px 10px rgba(0,0,0,0.05)",
+          boxShadow: "0 -4px 16px rgba(0,0,0,0.06)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
+        aria-label="移动端底部主导航"
       >
         {navItems.map((item) => {
           const active = currentView === item.id;
@@ -616,28 +617,42 @@ export function IconRail({
             <button
               key={item.id}
               onClick={() => onSelectView(item.id)}
+              className="touch-manipulation active:scale-95 transition-transform"
               style={{
                 flex: 1,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                height: "100%",
+                height: 52,
+                minHeight: 48,
                 background: "transparent",
                 border: "none",
                 color: active ? "var(--accent)" : "var(--muted-foreground)",
-                gap: 2,
+                gap: 3,
                 cursor: "pointer",
+                padding: "4px 0",
               }}
             >
-              <div style={{ position: "relative" }}>
-                <Icon size={18} />
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "3px 12px",
+                  borderRadius: 12,
+                  background: active ? "var(--accent-soft)" : "transparent",
+                  transition: "background-color 0.18s ease",
+                }}
+              >
+                <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
                 {item.badge !== undefined && (
                   <span
                     style={{
                       position: "absolute",
-                      top: -4,
-                      right: -8,
+                      top: 0,
+                      right: 4,
                       background: "var(--accent)",
                       color: "var(--accent-foreground)",
                       fontSize: 9,
@@ -650,29 +665,44 @@ export function IconRail({
                   </span>
                 )}
               </div>
-              <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{item.label}</span>
+              <span style={{ fontSize: 10.5, fontWeight: active ? 650 : 500 }}>{item.label}</span>
             </button>
           );
         })}
         <button
           onClick={onNewPlan}
+          className="touch-manipulation active:scale-95 transition-transform"
           style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            height: "100%",
+            height: 52,
+            minHeight: 48,
             background: "transparent",
             border: "none",
             color: "var(--accent)",
-            gap: 2,
+            gap: 3,
+            padding: "4px 0",
+            cursor: "pointer",
           }}
         >
-          <Plus size={20} />
-          <span style={{ fontSize: 10, fontWeight: 600 }}>新建</span>
+          <div
+            style={{
+              padding: "3px 12px",
+              borderRadius: 12,
+              background: "var(--accent-soft)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Plus size={19} strokeWidth={2.3} />
+          </div>
+          <span style={{ fontSize: 10.5, fontWeight: 650 }}>新建</span>
         </button>
-      </div>
+      </nav>
     </>
   );
 }

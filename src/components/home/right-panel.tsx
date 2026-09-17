@@ -10,17 +10,27 @@ import type { TrustableResource } from "@/lib/tavily";
 import { memory, auth } from "@/lib/eazo-shim";
 import { openExternalUrl } from "@/lib/safe-url";
 
-// ── 响应式：窄屏（<=640px）判定 ─────────────────────────────────────
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+// ── 响应式：屏幕尺寸响应式判定（Mobile <=640px, Tablet <=1024px） ─────────────────
+function useResponsive() {
+  const [state, setState] = useState({ isMobile: false, isTablet: false });
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 640px)");
-    const update = () => setIsMobile(mq.matches);
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const tabletQuery = window.matchMedia("(max-width: 1024px)");
+    const update = () => {
+      setState({
+        isMobile: mobileQuery.matches,
+        isTablet: tabletQuery.matches,
+      });
+    };
     update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    mobileQuery.addEventListener("change", update);
+    tabletQuery.addEventListener("change", update);
+    return () => {
+      mobileQuery.removeEventListener("change", update);
+      tabletQuery.removeEventListener("change", update);
+    };
   }, []);
-  return isMobile;
+  return state;
 }
 
 import { T } from "@/lib/design-tokens";
@@ -363,9 +373,12 @@ export interface RightPanelProps {
 export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, removeEntry, onRequestDelete, onToggleSubtask, onJumpToSubtask }: RightPanelProps) {
   const focused = entries.find((e) => e.taskId === focusedId) ?? entries[0] ?? null;
   const [collapsed, setCollapsed] = useState(false);
-  const isMobile = useIsMobile();
+  const { isMobile, isTablet } = useResponsive();
   // 移动端底部抽屉展开态（默认收起）
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // 响应式右侧栏宽度：折叠时 36px，平板时 300px，大屏电脑时 350px
+  const desktopWidth = collapsed ? 36 : (isTablet ? 300 : 350);
 
   // 有正在运行的 entry 时自动展开
   const hasActive = entries.some(e => e.stream.phase !== "idle" && e.stream.phase !== "done" && e.stream.phase !== "error");
@@ -423,24 +436,37 @@ export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, re
   if (isMobile) {
     return (
       <>
-        {/* 底部触发条（始终可见） */}
+        {/* 底部浮动触发条（置于底部导航栏上方，不遮挡导航） */}
         <button
           onClick={() => setSheetOpen(true)}
+          aria-label="打开 AI 分析面板"
           style={{
-            position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 140,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            height: 46, border: "none", borderTop: `1px solid ${T.line}`,
-            background: T.surface, color: T.ink, fontSize: 13, fontWeight: 600,
-            cursor: "pointer", boxShadow: "0 -2px 10px rgba(0,0,0,0.15)",
+            position: "fixed",
+            right: 14,
+            bottom: "calc(66px + env(safe-area-inset-bottom, 0px))",
+            zIndex: 45,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 999,
+            border: `1px solid ${T.line}`,
+            background: T.surface,
+            color: T.ink,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+            backdropFilter: "blur(6px)",
           }}
         >
-          <span style={{ fontSize: 15 }}>🤖</span> AI 分析面板
+          <span style={{ fontSize: 14 }}>🤖</span>
+          <span>AI 规划面板</span>
           {runningCount > 0 && (
             <span style={{ background: T.accent, color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 999, padding: "1px 7px", display: "inline-flex", alignItems: "center", gap: 3 }}>
               <span style={{ animation: "blink 1s steps(2) infinite" }}>●</span>{runningCount}
             </span>
           )}
-          <span style={{ color: T.muted, fontSize: 12 }}>▲</span>
         </button>
 
         {/* 遮罩 */}
@@ -452,12 +478,13 @@ export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, re
         {/* 抽屉本体：从底部滑出 */}
         <div style={{
           position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 160,
-          height: "80vh", maxHeight: "80vh",
+          height: "82vh", maxHeight: "82vh",
           display: "flex", flexDirection: "column", overflow: "hidden",
           background: T.surface, borderTop: `1px solid ${T.line}`,
           borderRadius: "16px 16px 0 0", boxShadow: "0 -8px 30px rgba(0,0,0,0.3)",
           transform: sheetOpen ? "translateY(0)" : "translateY(100%)",
           transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}>
           {/* 抓手 + 标题栏 */}
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${T.line}` }}>
@@ -482,7 +509,7 @@ export function RightPanel({ entries, focusedId, setFocusedId, regenAnalysis, re
   // ── 桌面端：固定右侧栏（可折叠） ──────────────────────────────────
   return (
     <div style={{
-      width: collapsed ? 36 : 340,
+      width: desktopWidth,
       flexShrink: 0,
       display: "flex",
       flexDirection: "column",

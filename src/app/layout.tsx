@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { EazoProvider } from "@/lib/eazo-shim";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
 import { GlobalMembershipModal } from "@/components/membership/global-membership-modal";
+import { GlobalUpdateModal } from "@/components/update/global-update-modal";
 import { cn } from "@/utils/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
@@ -69,6 +70,15 @@ export const metadata: Metadata = {
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "拾级",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     type: "website",
     siteName: "Gradus",
@@ -82,12 +92,21 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFAF8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F0F14" },
+  ],
 };
 
 export default async function RootLayout({
@@ -113,6 +132,7 @@ export default async function RootLayout({
                 {children}
                 <GlobalAuthModal />
                 <GlobalMembershipModal />
+                <GlobalUpdateModal />
                 <ThemePreviewModal />
                 <Toaster />
                 <Analytics />

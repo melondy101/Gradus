@@ -2,11 +2,13 @@
 
 import { useRef, useState, useEffect, type ReactNode } from "react";
 import Image from "next/image";
-import { LogOut, UserRound, X, Crown, Ticket, KeyRound } from "lucide-react";
+import { LogOut, UserRound, X, Crown, Ticket, KeyRound, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { auth, useEazo } from "@/lib/eazo-shim";
 import type { User } from "@/lib/eazo-shim";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { openAppUpdateModal } from "@/components/update/global-update-modal";
+import { CURRENT_APP_VERSION } from "@/lib/version";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 
@@ -95,6 +97,22 @@ export function UserBadge() {
                 </span>
               </button>
             )}
+
+            <button
+              onClick={() => {
+                setOpen(false);
+                openAppUpdateModal({ manual: true });
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 text-primary" />
+                <span>检查移动端 / 客户端更新</span>
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                v{CURRENT_APP_VERSION}
+              </span>
+            </button>
 
             <button
               onClick={async () => {

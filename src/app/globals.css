@@ -246,10 +246,14 @@ body {
   background: rgba(150, 150, 150, 0.35);
 }
 
-/* ── iOS zoom & mobile layout ─────────────────────────────────────── */
+/* ── iOS & Android mobile layout optimizations ───────────────────── */
+html, body {
+  -webkit-tap-highlight-color: transparent;
+}
+
 @media (max-width: 640px) {
   input, textarea, select { font-size: 16px !important; }
-  .canvas-scroll { padding-bottom: 72px !important; }
+  .canvas-scroll { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
   .kbd-footer { display: none !important; }
 }
 

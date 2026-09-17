@@ -22,7 +22,10 @@ export function TimelineView({
   const daysArray = Array.from({ length: Math.min(maxDay, 30) }, (_, i) => i + 1);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "16px 20px 32px" }}>
+    <div
+      className="pb-[calc(84px+env(safe-area-inset-bottom,0px))] sm:pb-8 px-3.5 sm:px-5 pt-4"
+      style={{ display: "flex", flexDirection: "column", gap: 20 }}
+    >
       {/* 头部说明 */}
       <div
         style={{

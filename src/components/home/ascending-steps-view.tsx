@@ -43,7 +43,10 @@ export function AscendingStepsView({
     : levelGroups.find((g) => g.level === selectedBloomLevel);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "16px 20px 32px" }}>
+    <div
+      className="pb-[calc(84px+env(safe-area-inset-bottom,0px))] sm:pb-8 px-3.5 sm:px-5 pt-4"
+      style={{ display: "flex", flexDirection: "column", gap: 20 }}
+    >
       {/* 顶部概览：拾级天梯叙事与总步阶进度 */}
       <div
         style={{
