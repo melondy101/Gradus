@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, X, UserPlus, LogIn, Send } from "lucide-react";
@@ -24,6 +24,7 @@ export function AuthModal({
   const [code, setCode] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [watchaRedirecting, setWatchaRedirecting] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [authConfig, setAuthConfig] = useState<{
@@ -58,23 +59,23 @@ export function AuthModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !submitting) onClose();
+      if (e.key === "Escape" && !submitting && !watchaRedirecting) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose, submitting]);
+  }, [open, onClose, submitting, watchaRedirecting]);
 
   // 点 modal 外部关闭
   useEffect(() => {
     if (!open) return;
     function handle(e: MouseEvent) {
       if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
-        if (!submitting) onClose();
+        if (!submitting && !watchaRedirecting) onClose();
       }
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
-  }, [open, onClose, submitting]);
+  }, [open, onClose, submitting, watchaRedirecting]);
 
   if (!open) return null;
 
@@ -214,6 +215,14 @@ export function AuthModal({
     }
   }
 
+  function startWatchaLogin(event: ReactMouseEvent<HTMLAnchorElement>) {
+    if (submitting || watchaRedirecting) {
+      event.preventDefault();
+      return;
+    }
+    setWatchaRedirecting(true);
+  }
+
   const isRegister = mode === "register";
 
   return (
@@ -231,7 +240,7 @@ export function AuthModal({
           type="button"
           aria-label="关闭"
           onClick={onClose}
-          disabled={submitting}
+          disabled={submitting || watchaRedirecting}
           className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
         >
           <X className="h-4 w-4" />
@@ -375,15 +384,21 @@ export function AuthModal({
 
               <a
                 href="/api/auth/oauth/watcha"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors"
+                onClick={startWatchaLogin}
+                aria-disabled={submitting || watchaRedirecting}
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
               >
-                <Image
-                  src="/watcha-logo.svg"
-                  alt="观猹"
-                  width={20}
-                  height={20}
-                />
-                使用观猹账号快捷登录
+                {watchaRedirecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Image
+                    src="/watcha-logo.svg"
+                    alt="观猹"
+                    width={20}
+                    height={20}
+                  />
+                )}
+                {watchaRedirecting ? "正在前往观猹授权…" : "使用观猹账号快捷登录"}
               </a>
             </div>
           )}

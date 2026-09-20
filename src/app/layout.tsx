@@ -13,6 +13,7 @@ import { LocaleSyncEffect } from "@/components/i18n/locale-sync-effect";
 import { getServerLocale } from "@/lib/i18n/server-preference";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { UserProvider } from "@/lib/auth/user-provider";
+import { UserSyncEffect } from "@/components/user-profile/user-sync-effect";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemePreviewModal } from "@/components/theme/theme-preview-modal";
@@ -129,6 +130,7 @@ export default async function RootLayout({
             <UserProvider user={user}>
               <EazoProvider>
                 <LocaleSyncEffect />
+                <UserSyncEffect />
                 {children}
                 <GlobalAuthModal />
                 <GlobalMembershipModal />
