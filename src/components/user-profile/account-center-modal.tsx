@@ -1,15 +1,13 @@
 "use client";
 
 import React from "react";
-import { Crown, KeyRound, LogOut, RefreshCw } from "lucide-react";
+import { Crown, KeyRound, LogOut } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
-import { openAppUpdateModal } from "@/components/update/global-update-modal";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { THEMES, type ThemeId } from "@/lib/theme-config";
 import type { User } from "@/lib/eazo-shim";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
-import { CURRENT_APP_VERSION } from "@/lib/version";
 
 interface AccountCenterModalProps {
   open: boolean;
@@ -83,11 +81,6 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
               <span className="flex-1">激活码管理</span><span className="text-xs font-medium text-text-2">管理员</span>
             </button>
           ) : null}
-          <button type="button" onClick={() => openAppUpdateModal({ manual: true })}
-            className="flex min-h-11 w-full items-center gap-3 px-4 text-left text-sm font-semibold text-ink transition-colors hover:bg-cream-light focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent">
-            <RefreshCw size={16} className="shrink-0 text-text-2" aria-hidden="true" />
-            <span className="flex-1">检查客户端更新</span><span className="font-mono text-xs font-medium text-text-2">v{CURRENT_APP_VERSION}</span>
-          </button>
         </section>
 
         <button type="button" onClick={onLogout}

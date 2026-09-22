@@ -8,7 +8,7 @@ import {
   updateTaskStatus,
   updateTaskTags,
 } from "@/lib/db/queries";
-import { checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
+import { checkTaskOpQuota, incrementTaskOpUsage } from "@/lib/membership/quota";
 import { parseTaskTags } from "@/lib/task-tags";
 
 export async function GET(
@@ -86,7 +86,7 @@ export async function DELETE(
   }
 
   // 每日「新建+删除」任务操作次数上限校验（普通用户每日限 5 次）
-  const taskOpQuota = await checkAndIncrementTaskOpQuota(auth.user.id, "delete");
+  const taskOpQuota = await checkTaskOpQuota(auth.user.id, "delete");
   if (!taskOpQuota.allowed) {
     return NextResponse.json(
       {
@@ -101,5 +101,6 @@ export async function DELETE(
   }
 
   await deleteTask(id);
+  await incrementTaskOpUsage(auth.user.id);
   return NextResponse.json({ ok: true });
 }

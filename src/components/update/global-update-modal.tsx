@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
 import { UpdateModal } from "./update-modal";
 import type { UpdateResponseData } from "@/app/api/app/check-update/route";
@@ -25,6 +26,7 @@ export function openAppUpdateModal(options?: { manual?: boolean }): void {
 }
 
 export function GlobalUpdateModal() {
+  const isNativeApp = Capacitor.isNativePlatform();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [updateData, setUpdateData] = useState<UpdateResponseData | null>(null);
@@ -59,6 +61,8 @@ export function GlobalUpdateModal() {
   }, []);
 
   useEffect(() => {
+    if (!isNativeApp) return;
+
     registerOpenUpdate((options) => {
       const manual = options?.manual ?? true;
       if (manual) {
@@ -88,7 +92,9 @@ export function GlobalUpdateModal() {
       clearTimeout(timer);
       registerOpenUpdate(null);
     };
-  }, [fetchUpdate]);
+  }, [fetchUpdate, isNativeApp]);
+
+  if (!isNativeApp) return null;
 
   return (
     <UpdateModal

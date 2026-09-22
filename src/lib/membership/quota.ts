@@ -113,9 +113,10 @@ export interface TaskOpCheckResult {
 }
 
 /**
- * 校验并记录每日「新建 + 删除」任务操作次数（普通用户每日限 5 次）
+ * 校验每日「新建 + 删除」任务操作次数，不在校验阶段写入计数。
+ * 由调用方在任务确实落库或删除成功后再调用 `incrementTaskOpUsage`。
  */
-export async function checkAndIncrementTaskOpQuota(
+export async function checkTaskOpQuota(
   userId: string,
   opType: "create" | "delete"
 ): Promise<TaskOpCheckResult> {
@@ -154,21 +155,51 @@ export async function checkAndIncrementTaskOpQuota(
     };
   }
 
-  const nextOpsCount = opsCount + 1;
+  return {
+    allowed: true,
+    current: opsCount,
+    limit,
+    remaining: Math.max(0, limit - opsCount),
+    tier,
+    tierConfig,
+  };
+}
+
+/** 任务创建或删除已成功后，正式记录一次当日操作。 */
+export async function incrementTaskOpUsage(userId: string): Promise<void> {
+  const user = await getUserById(userId);
+  const todayStr = getBeijingDateString();
+  let opsCount = user?.taskOpsCount ?? 0;
+  let genCount = user?.aiGenerateCount ?? 0;
+  let adjCount = user?.aiAdjustCount ?? 0;
+
+  if (!user?.lastUsageDate || user.lastUsageDate !== todayStr) {
+    opsCount = 0;
+    genCount = 0;
+    adjCount = 0;
+  }
+
   await updateUser(userId, {
-    taskOpsCount: nextOpsCount,
+    taskOpsCount: opsCount + 1,
     aiGenerateCount: genCount,
     aiAdjustCount: adjCount,
     lastUsageDate: todayStr,
   });
+}
 
+/** @deprecated 新调用请先检查、在成功后再递增，避免失败操作消耗配额。 */
+export async function checkAndIncrementTaskOpQuota(
+  userId: string,
+  opType: "create" | "delete"
+): Promise<TaskOpCheckResult> {
+  const check = await checkTaskOpQuota(userId, opType);
+  if (!check.allowed) return check;
+
+  await incrementTaskOpUsage(userId);
   return {
-    allowed: true,
-    current: nextOpsCount,
-    limit,
-    remaining: Math.max(0, limit - nextOpsCount),
-    tier,
-    tierConfig,
+    ...check,
+    current: check.current + 1,
+    remaining: Math.max(0, check.remaining - 1),
   };
 }
 

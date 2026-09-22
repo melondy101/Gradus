@@ -6,7 +6,7 @@ import {
   createTask,
   getTasksWithSubtasksByUser,
 } from "@/lib/db/queries";
-import { checkTaskCreationQuota, checkAndIncrementTaskOpQuota } from "@/lib/membership/quota";
+import { checkTaskCreationQuota, checkTaskOpQuota, incrementTaskOpUsage } from "@/lib/membership/quota";
 import { parseTaskTags } from "@/lib/task-tags";
 
 export async function GET(request: NextRequest) {
@@ -46,21 +46,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 2. 每日「新建+删除」任务操作次数上限校验（普通用户每日限 5 次）
-  const taskOpQuota = await checkAndIncrementTaskOpQuota(auth.user.id, "create");
-  if (!taskOpQuota.allowed) {
-    return NextResponse.json(
-      {
-        error: taskOpQuota.reason || "今日新建与删除任务操作已达上限",
-        code: "TASK_OP_LIMIT_REACHED",
-        current: taskOpQuota.current,
-        limit: taskOpQuota.limit,
-        tier: taskOpQuota.tier,
-      },
-      { status: 403 }
-    );
-  }
-
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
@@ -80,8 +65,24 @@ export async function POST(request: NextRequest) {
 
   const tags = parseTaskTags((body as { tags?: unknown }).tags);
 
+  // 2. 只读校验；创建真正成功后才会递增操作记录。
+  const taskOpQuota = await checkTaskOpQuota(auth.user.id, "create");
+  if (!taskOpQuota.allowed) {
+    return NextResponse.json(
+      {
+        error: taskOpQuota.reason || "今日新建与删除任务操作已达上限",
+        code: "TASK_OP_LIMIT_REACHED",
+        current: taskOpQuota.current,
+        limit: taskOpQuota.limit,
+        tier: taskOpQuota.tier,
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const task = await createTask(auth.user.id, title, tags);
+    await incrementTaskOpUsage(auth.user.id);
     return NextResponse.json(task, { status: 201 });
   } catch (err) {
     console.error("[api/tasks] createTask failed with DB error:", err);
