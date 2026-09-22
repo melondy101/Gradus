@@ -47,7 +47,7 @@ src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ mcp/ + scheduler.ts tavil
                     eazo-shim.ts eazo-ai-billing.ts（平台解耦兼容层，见 §2）
 src/app/globals.css 品牌令牌（@theme）+ keyframes + iOS 输入字号兜底。**不放组件样式**
 src/middleware.ts   兜底建临时账号 + 滑动续期（matcher 见 §11.1）
-output/             设计真源（见 §14）。⚠ 未被 git 跟踪，别清理
+output/             设计真源（见 §14），已随 test(design) commit 入库；改界面前先读它，别凭记忆
 scripts/            四道设计闸门脚本（见 §14）
 docs/               PRD.md · ANDROID_PACKAGING.md · plans/
 ```
