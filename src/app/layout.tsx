@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Outfit, DM_Sans, JetBrains_Mono, Lora } from "next/font/google";
+import { Noto_Sans_SC, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { EazoProvider } from "@/lib/eazo-shim";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
@@ -18,17 +18,10 @@ import { UserSyncEffect } from "@/components/user-profile/user-sync-effect";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemePreviewModal } from "@/components/theme/theme-preview-modal";
 
-const outfit = Outfit({
+const notoSansSC = Noto_Sans_SC({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-outfit",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-noto-sc",
   display: "swap",
 });
 
@@ -36,14 +29,6 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-jetbrains",
-  display: "swap",
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
   display: "swap",
 });
 
@@ -105,8 +90,8 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFAF8" },
-    { media: "(prefers-color-scheme: dark)", color: "#0F0F14" },
+    { media: "(prefers-color-scheme: light)", color: "#F5F2EA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0E0D0B" },
   ],
 };
 
@@ -122,7 +107,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={cn("h-full antialiased", outfit.variable, dmSans.variable, jetbrainsMono.variable, lora.variable)}
+      className={cn("h-full antialiased", notoSansSC.variable, jetbrainsMono.variable)}
     >
       <body className="h-full flex flex-col overflow-hidden">
         <I18nProvider>

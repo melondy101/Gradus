@@ -222,7 +222,7 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
             }`}
           >
             <Plus size={14} />
-            <span>{showGenerator ? "收起生成器" : "⚡ 快速生成激活码"}</span>
+            <span>{showGenerator ? "收起生成器" : "快速生成激活码"}</span>
           </button>
 
           <button
@@ -555,7 +555,7 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
         ) : filteredCodes.length === 0 ? (
           <div className="py-12 text-center text-xs text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">没有找到匹配的激活码</p>
-            <p>可点击上方「⚡ 快速生成激活码」立即创建新的激活码</p>
+            <p>可点击上方「快速生成激活码」立即创建新的激活码</p>
           </div>
         ) : (
           <div className="divide-y divide-border overflow-x-auto">

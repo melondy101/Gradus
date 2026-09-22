@@ -346,7 +346,7 @@ export function ShareCardModal({ isOpen = true, onClose, data }: ShareCardModalP
                 : "0 20px 50px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.8)",
               position: "relative",
               overflow: "hidden",
-              fontFamily: "var(--font-dm-sans), sans-serif",
+              fontFamily: "var(--sans)",
             }}
           >
             {/* 装饰水印底纹 */}
@@ -395,7 +395,7 @@ export function ShareCardModal({ isOpen = true, onClose, data }: ShareCardModalP
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-outfit), Outfit, sans-serif",
+                    fontFamily: "var(--sans)",
                     fontWeight: 800,
                     fontSize: 13,
                     letterSpacing: "0.05em",

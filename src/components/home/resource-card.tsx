@@ -54,20 +54,20 @@ export function ResourceCard({ resource, onClick }: ResourceCardProps) {
         gap: 8,
         transition: "all 0.15s ease",
         cursor: url ? "pointer" : "default",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+        boxShadow: "0 1px 3px var(--cream)",
       }}
       onMouseEnter={(e) => {
         if (url) {
           e.currentTarget.style.borderColor = T.accent;
           e.currentTarget.style.transform = "translateY(-1px)";
-          e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.05)";
+          e.currentTarget.style.boxShadow = "0 3px 8px var(--cream)";
         }
       }}
       onMouseLeave={(e) => {
         if (url) {
           e.currentTarget.style.borderColor = T.line;
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.02)";
+          e.currentTarget.style.boxShadow = "0 1px 3px var(--cream)";
         }
       }}
     >
@@ -82,7 +82,7 @@ export function ResourceCard({ resource, onClick }: ResourceCardProps) {
               borderRadius: 4,
               background: T.soft,
               color: T.muted,
-              fontFamily: "var(--font-geist-mono), monospace",
+              fontFamily: "var(--mono)",
               textTransform: "uppercase",
               letterSpacing: "0.04em",
             }}
@@ -110,9 +110,9 @@ export function ResourceCard({ resource, onClick }: ResourceCardProps) {
               style={{
                 fontSize: 10,
                 fontWeight: 600,
-                color: "#2D8B56",
-                background: "rgba(45,139,86,0.1)",
-                border: "1px solid rgba(45,139,86,0.25)",
+                color: "var(--success)",
+                background: "var(--success-soft)",
+                border: "1px solid var(--success-soft)",
                 borderRadius: 4,
                 padding: "1px 5px",
                 display: "inline-flex",
@@ -120,7 +120,7 @@ export function ResourceCard({ resource, onClick }: ResourceCardProps) {
                 gap: 2,
               }}
             >
-              ✓ Verified
+              已核验
             </span>
           )}
           {/* 权威度点阵 */}
@@ -199,13 +199,13 @@ export function ResourceCard({ resource, onClick }: ResourceCardProps) {
       >
         {intent ? (
           <span style={{ fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            🎯 {intent}
+            {intent}
           </span>
         ) : (
           <span />
         )}
         {freshness && (
-          <span style={{ flexShrink: 0, fontFamily: "var(--font-geist-mono), monospace" }}>
+          <span style={{ flexShrink: 0, fontFamily: "var(--mono)" }}>
             {freshness}
           </span>
         )}

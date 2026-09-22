@@ -23,14 +23,15 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
 
   // 依赖 user?.id（稳定字符串）而非 user 对象：useEazo 每次渲染重建 user 引用，
   // 直接依赖 user 会让 effect 在每次渲染后重跑，形成无限拉取循环（频闪 + 误报网络异常）。
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
     getTask(taskId)
       .then((data) => { if (!cancelled) { setFetching(false); setTask(data); } })
       .catch((e) => { if (!cancelled) { setFetching(false); setError(e.message); } });
     return () => { cancelled = true; };
-  }, [taskId, user?.id]);
+  }, [taskId, userId]);
 
   const handleToggle = useCallback(
     async (subtaskId: string, current: boolean) => {
@@ -100,7 +101,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
           </Link>
           <span
             className="text-[12px] uppercase tracking-[0.06em]"
-            style={{ color: "#777B75", fontFamily: "var(--font-geist-mono), monospace" }}
+            style={{ color: "#777B75", fontFamily: "var(--mono)" }}
           >
             Task Detail
           </span>

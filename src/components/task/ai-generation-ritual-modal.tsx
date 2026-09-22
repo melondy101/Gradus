@@ -1,399 +1,116 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  Sparkles,
-  Brain,
-  Search,
-  Layers,
-  CheckCircle2,
-  Minimize2,
-  Clock,
-  ShieldCheck,
-} from "lucide-react";
-
-export interface RitualStep {
-  key: string;
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  estDurationSec: number;
-}
-
-const SCIENTIFIC_TIPS = [
-  "💡 布鲁姆认知分类法（Bloom's Taxonomy）：从识记 (L1) 到创造 (L6)，学习留存率由 10% 跃升至 90%。",
-  "💡 维果茨基最近发展区（ZPD）：AI 正在先锚定你的先备知识边界，避免目标难度过大引发挫败感。",
-  "💡 真实白名单检索：拾级严格执行两阶段检索，绝不凭空编造虚假 URL，所有资源均经过权威性打分。",
-  "💡 每日交错槽位调度：算法将自动交错不同认知难度的子任务，防止高负荷认知连续扎堆。",
-  "💡 艾宾浩斯间隔复习：系统会在关键节点自动为你生成 +2天、+7天 的复习提醒，固化长时记忆。",
-  "💡 费曼学习法：在高阶创造与评价阶段，我们将引导你产出公开笔记与可执行项目，实现认知闭环。",
-];
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Eyebrow, Mono } from "@/components/ui/eyebrow";
+import { GradusLogo } from "@/components/ui/gradus-logo";
+import { Modal } from "@/components/ui/modal";
+import { RITUAL_TIPS } from "./ritual-phases";
+import { RitualDoneState } from "./ritual-done-state";
+import { RitualPipeline } from "./ritual-pipeline";
+import { RitualStageCard } from "./ritual-stage-card";
+import { RitualStageList } from "./ritual-stage-list";
+import { RitualToast } from "./ritual-toast";
 
 interface AiGenerationRitualModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   goal: string;
+  /** 流水线阶段：idle/intent/search/plan/validate/revise/saving/done/error */
   phase: string;
+  /** 宿主传入的进度增量（沿用原有估算模型归一化为百分比） */
   elapsedSec: number;
   onMinimize?: () => void;
   onClose?: () => void;
+  /** 规划完成后的收尾动作（宿主页可选注入，未提供时成功态给出回面板入口） */
+  onDone?: () => void;
+  /** 宿主支持「就地应用计划」时注入；缺省则不渲染该按钮，避免假动作 */
+  onApply?: () => void;
 }
 
+/**
+ * 屏三 · AI 规划弹层：遮罩 + 居中 720×640 白弹层（页头 / 可滚动主体 / 底栏），
+ * 由 <Modal layer="ritual">（z-index 350）承载，压在首页所有浮层之上。
+ * 纯展示组件：所有状态由 `phase` / `elapsedSec` 推导，自身不发请求；
+ * 完成态整块换成 <RitualDoneState />，不再靠 CSS 隐藏流水线三件套。
+ */
 export function AiGenerationRitualModal({
-  isOpen,
+  isOpen = true,
   goal,
   phase,
   elapsedSec,
   onMinimize,
+  onClose,
+  onDone,
+  onApply,
 }: AiGenerationRitualModalProps) {
   const [tipIndex, setTipIndex] = useState(0);
 
-  // 定时轮播科学学习小贴士
+  // 定时轮播认知科学小贴士（沿用改造前的等待期提示行为）
   useEffect(() => {
     if (!isOpen) return;
     const timer = setInterval(() => {
-      setTipIndex((prev) => (prev + 1) % SCIENTIFIC_TIPS.length);
+      setTipIndex((prev) => (prev + 1) % RITUAL_TIPS.length);
     }, 4500);
     return () => clearInterval(timer);
   }, [isOpen]);
 
-  const steps: RitualStep[] = useMemo(
-    () => [
-      {
-        key: "intent",
-        title: "1. 意图洞察与布鲁姆认知目标锚定",
-        subtitle: "基于 Vygotsky ZPD 评估先备知识，反向设计认知终点 (L1~L6)",
-        icon: <Brain size={16} />,
-        estDurationSec: 8,
-      },
-      {
-        key: "search",
-        title: "2. 真实权威学习资源检索与三维校验",
-        subtitle: "Tavily 白名单检索真实文档与视频，校验 URL 存活与权威分",
-        icon: <Search size={16} />,
-        estDurationSec: 14,
-      },
-      {
-        key: "plan",
-        title: "3. 渐进式认知阶梯排期与槽位编排",
-        subtitle: "拆解为 4~8 个严密可执行子阶段，匹配每日精力容量",
-        icon: <Layers size={16} />,
-        estDurationSec: 23,
-      },
-      {
-        key: "validate",
-        title: "4. 认知阶梯合理性与抗编造核查",
-        subtitle: "核查认知跳跃与可行性，生成艾宾浩斯间隔复习节点",
-        icon: <ShieldCheck size={16} />,
-        estDurationSec: 15,
-      },
-      {
-        key: "saving",
-        title: "5. 全局接续排期落库与日历准备",
-        subtitle: "注册时间轴槽位，生成 WebCal / iCal 实时订阅",
-        icon: <CheckCircle2 size={16} />,
-        estDurationSec: 5,
-      },
-    ],
-    []
-  );
-
   if (!isOpen) return null;
 
-  // 计算当前处于第几步 (0 ~ 4)
-  let activeStepIndex = 0;
-  if (phase === "search") activeStepIndex = 1;
-  else if (phase === "plan") activeStepIndex = 2;
-  else if (phase === "validate" || phase === "revise") activeStepIndex = 3;
-  else if (phase === "saving") activeStepIndex = 4;
-  else if (phase === "done") activeStepIndex = 5;
-
-  // 平滑计算模拟进度百分比 (0% ~ 96%)
-  const totalEst = 65;
-  const progressPct =
-    phase === "done"
-      ? 100
-      : Math.min(96, Math.max(8, Math.round((elapsedSec / totalEst) * 90) + 6));
+  const dismiss = onMinimize ?? onClose;
+  const done = phase === "done";
 
   return (
     <>
-      {/* 遮罩 */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(10, 15, 29, 0.7)",
-          backdropFilter: "blur(8px)",
-          zIndex: 350,
-        }}
-      />
-
-      {/* 弹窗主体 */}
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "min(560px, 94vw)",
-          background: "var(--card)",
-          borderRadius: 24,
-          border: "1px solid var(--border)",
-          boxShadow: "0 30px 90px rgba(0,0,0,0.35)",
-          zIndex: 351,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* 顶部状态条 */}
-        <div
-          style={{
-            padding: "20px 22px 16px",
-            background: "linear-gradient(180deg, var(--secondary) 0%, var(--card) 100%)",
-            borderBottom: "1px solid var(--border)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "var(--accent)",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 4px 14px rgba(79,70,229,0.3)",
-                }}
-              >
-                <Sparkles size={18} />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "var(--foreground)" }}>
-                    AI 认知阶梯深度规划中
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      background: "var(--accent-soft)",
-                      color: "var(--accent)",
-                      borderRadius: 99,
-                      padding: "2px 8px",
-                      fontFamily: "var(--font-jetbrains), monospace",
-                    }}
-                  >
-                    {progressPct}%
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "var(--muted-foreground)",
-                    marginTop: 2,
-                    maxWidth: 380,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  目标：<strong style={{ color: "var(--foreground)" }}>「{goal}」</strong>
-                </div>
-              </div>
+      <Modal
+        open
+        onClose={dismiss ?? (() => {})}
+        layer="ritual"
+        width={720}
+        height="min(640px, 88vh)"
+        bodyClassName={
+          done
+            ? "grid place-items-center px-10 py-10"
+            : "px-6 pb-3 pt-3.5"
+        }
+        icon={<GradusLogo size={15} />}
+        title="AI 规划流水线"
+        eyebrow="INTENT → RESOURCE → PLAN → VALIDATE"
+        aria-label="AI 规划流水线"
+        footer={
+          <>
+            <Mono className="text-text-3">规划期间可继续操作，取消不会删除已有任务</Mono>
+            <div className="flex gap-2.5">
+              {dismiss && (
+                <Button variant="outline" size="sm" onClick={dismiss}>
+                  {done ? "关闭" : "后台运行"}
+                </Button>
+              )}
+              {onApply && !done && (
+                <Button size="sm" onClick={onApply}>
+                  应用计划
+                </Button>
+              )}
             </div>
+          </>
+        }
+      >
+        {done ? (
+          <RitualDoneState goal={goal} onAction={onDone} />
+        ) : (
+          <>
+            <RitualPipeline phase={phase} />
+            <RitualStageCard phase={phase} elapsedSec={elapsedSec} />
+            <RitualStageList phase={phase} />
 
-            {onMinimize && (
-              <button
-                onClick={onMinimize}
-                title="后台最小化，继续浏览其他任务"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "4px 8px",
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                  background: "var(--secondary)",
-                  color: "var(--muted-foreground)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                <Minimize2 size={12} />
-                <span>后台运行</span>
-              </button>
-            )}
-          </div>
+            <Eyebrow kind="label" className="mt-3.5">
+              认知科学视角
+            </Eyebrow>
+            <p className="text-[13px] leading-[20px] text-text-2">{RITUAL_TIPS[tipIndex]}</p>
+          </>
+        )}
+      </Modal>
 
-          {/* 进度条 */}
-          <div
-            style={{
-              width: "100%",
-              height: 6,
-              borderRadius: 3,
-              background: "var(--border)",
-              marginTop: 14,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: `${progressPct}%`,
-                height: "100%",
-                background: "linear-gradient(90deg, #4F46E5, #34D399)",
-                borderRadius: 3,
-                transition: "width 0.4s ease-out",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* 5 个核心执行阶段 */}
-        <div style={{ padding: "16px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
-          {steps.map((step, idx) => {
-            const isDone = activeStepIndex > idx || phase === "done";
-            const isActive = activeStepIndex === idx && phase !== "done";
-
-            return (
-              <div
-                key={step.key}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  background: isActive
-                    ? "var(--accent-soft)"
-                    : isDone
-                    ? "var(--secondary)"
-                    : "transparent",
-                  border: `1px solid ${
-                    isActive ? "var(--accent)" : isDone ? "var(--border)" : "transparent"
-                  }`,
-                  transition: "all 0.25s ease",
-                  opacity: isActive ? 1 : isDone ? 0.9 : 0.45,
-                }}
-              >
-                {/* 阶段圆圈图标 */}
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    flexShrink: 0,
-                    background: isDone
-                      ? "var(--success)"
-                      : isActive
-                      ? "var(--accent)"
-                      : "var(--border)",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    boxShadow: isActive ? "0 0 12px var(--accent)" : "none",
-                  }}
-                >
-                  {isDone ? "✓" : isActive ? step.icon : idx + 1}
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: isActive ? 700 : 600,
-                      color: isActive
-                        ? "var(--foreground)"
-                        : isDone
-                        ? "var(--foreground)"
-                        : "var(--muted-foreground)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <span>{step.title}</span>
-                    {isActive && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: "var(--accent)",
-                          background: "var(--card)",
-                          border: "1px solid var(--accent)",
-                          borderRadius: 4,
-                          padding: "0 5px",
-                          animation: "pulse 1.5s infinite",
-                        }}
-                      >
-                        处理中...
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--muted-foreground)",
-                      marginTop: 2,
-                    }}
-                  >
-                    {step.subtitle}
-                  </div>
-                </div>
-
-                {isActive && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--accent)",
-                      fontFamily: "var(--font-jetbrains), monospace",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Clock size={12} />
-                    <span>{elapsedSec}s</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 底部轮播科学学习理念 */}
-        <div
-          style={{
-            padding: "12px 20px",
-            background: "var(--secondary)",
-            borderTop: "1px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-          <div
-            style={{
-              flex: 1,
-              fontSize: 11.5,
-              color: "var(--muted-foreground)",
-              lineHeight: 1.4,
-              fontFamily: "var(--font-dm-sans), sans-serif",
-            }}
-          >
-            {SCIENTIFIC_TIPS[tipIndex]}
-          </div>
-        </div>
-      </div>
+      {done && <RitualToast text="规划流水线已完成 · 回到今日面板查看排期" />}
     </>
   );
 }

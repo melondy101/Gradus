@@ -22,7 +22,7 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
     id: "free",
     name: "免费版",
     badge: "FREE",
-    color: "#6B7280",
+    color: "var(--text-3)",
     tagline: "基础学习起步体验",
     priceDesc: "永久免费",
     limits: {
@@ -43,7 +43,7 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
     id: "pro",
     name: "专业版 Pro",
     badge: "PRO",
-    color: "#4A7C6F", // warm teal/forest accent
+    color: "var(--success)",
     tagline: "深度自主学习者首选",
     priceDesc: "兑换码 / 季度进阶",
     highlight: true,
@@ -66,7 +66,7 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
     id: "premium",
     name: "尊享版 Premium",
     badge: "PREMIUM",
-    color: "#C4841D", // golden amber
+    color: "var(--accent)",
     tagline: "极致无拘全功能体验",
     priceDesc: "兑换码 / 年度尊享",
     limits: {

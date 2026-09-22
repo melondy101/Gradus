@@ -1,31 +1,35 @@
 "use client";
 
-import React from "react";
-import {
-  CalendarDays,
-  ListTodo,
-  TrendingUp,
-  Clock,
-  Plus,
-  Command,
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  Tag as TagIcon,
-  X,
-} from "lucide-react";
-import { UserBadge } from "@/components/user-profile/user-badge";
-import { ThemeToggle } from "./theme-toggle";
+import React, { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { GradusLogo } from "@/components/ui/gradus-logo";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
-import { NotificationCenter } from "@/components/notifications/notification-center";
-import { getTagStyle } from "@/lib/task-tags";
+import { MobileTabBar } from "./mobile-tab-bar";
+import type { NavView } from "./nav-items";
+import { SideFooter } from "./side-footer";
+import { SideNav } from "./side-nav";
+import { SideTagFilter } from "./side-tag-filter";
+import { SideUserCard } from "./side-user-card";
+import { WeekProgressWidget } from "./week-progress-widget";
+import {
+  computeWeekProgress,
+  type WeekProgressModel,
+  type WeekSubtaskLike,
+} from "./week-progress";
 
-export type NavView = "today" | "plans" | "steps" | "timeline";
+export type { NavView };
+
+/** 《品牌与产品设计说明》§3：232px 侧边栏，跨屏整体复制，仅切换导航激活态 */
+const SIDE_WIDTH = 232;
 
 interface IconRailProps {
   currentView: NavView;
   onSelectView: (view: NavView) => void;
+  /**
+   * 侧栏「部件收展」信号（隐藏本周进度与标签列表）。
+   * 新设计为固定 232px，不再有折叠窄栏，宽度不随之变化。
+   */
   collapsed: boolean;
   onToggleCollapsed: () => void;
   todayPendingCount: number;
@@ -35,6 +39,12 @@ interface IconRailProps {
   availableTags?: Array<{ tag: string; count: number }>;
   selectedTag?: string | null;
   onSelectTag?: (tag: string | null) => void;
+  /**
+   * 可选：本周进度所需的子任务明细。home-page 传已有的 `subtaskRows`
+   * （SubtaskWithTask[] 结构兼容）即可；未传时部件退化为「今日待完成」口径，
+   * 不显示任何编造数值。
+   */
+  weekSubtasks?: WeekSubtaskLike[];
 }
 
 export function IconRail({
@@ -49,660 +59,98 @@ export function IconRail({
   availableTags = [],
   selectedTag = null,
   onSelectTag,
+  weekSubtasks,
 }: IconRailProps) {
-  const navItems = [
-    {
-      id: "today" as NavView,
-      label: "今日聚焦",
-      icon: CalendarDays,
-      badge: todayPendingCount > 0 ? todayPendingCount : undefined,
-    },
-    {
-      id: "plans" as NavView,
-      label: "计划清单",
-      icon: ListTodo,
-      badge: totalPlansCount > 0 ? totalPlansCount : undefined,
-    },
-    {
-      id: "steps" as NavView,
-      label: "拾级天梯",
-      icon: TrendingUp,
-    },
-    {
-      id: "timeline" as NavView,
-      label: "甘特时间轴",
-      icon: Clock,
-    },
-  ];
+  const [weekModel, setWeekModel] = useState<WeekProgressModel | null>(null);
+
+  // 本周窗口依赖当前时间，只在挂载后计算，避免 SSR 与客户端日期不一致（同 home-page 的 todayStr 手法）
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setWeekModel(
+      computeWeekProgress(weekSubtasks, {
+        todayPending: todayPendingCount,
+        totalPlans: totalPlansCount,
+      })
+    );
+  }, [weekSubtasks, todayPendingCount, totalPlansCount]);
+
+  const progressModel =
+    weekModel ??
+    computeWeekProgress(undefined, {
+      todayPending: todayPendingCount,
+      totalPlans: totalPlansCount,
+    });
 
   return (
     <>
-      {/* ── Desktop / Tablet Sidebar (Icon Rail) ── */}
-      <aside
-        className="hidden sm:flex flex-col justify-between"
-        style={{
-          width: collapsed ? 56 : 220,
-          height: "100%",
-          background: "var(--sidebar)",
-          borderRight: "1px solid var(--border)",
-          transition: "width 220ms var(--ease-out)",
-          flexShrink: 0,
-          overflow: "hidden",
-          userSelect: "none",
-          zIndex: 30,
-        }}
-      >
-        {/* Top: Logo & New Task Button */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "12px 10px 8px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "space-between",
-              height: 38,
-              padding: collapsed ? "0" : "0 6px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-              <GradusLogo size={32} />
-              {!collapsed && (
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 700,
-                      color: "var(--foreground)",
-                      fontFamily: "var(--font-outfit), Outfit, sans-serif",
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    拾级 · Gradus
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--muted-foreground)",
-                      fontFamily: "var(--font-jetbrains), monospace",
-                    }}
-                  >
-                    Warm Precision
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {!collapsed && (
-              <button
-                onClick={onToggleCollapsed}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--muted-foreground)",
-                  cursor: "pointer",
-                  padding: 4,
-                  borderRadius: 6,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                title="折叠侧边栏"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
+      {/* ── Desktop / Tablet 侧边栏（§3 共用外壳：232px 白底 + 1px 右描边） ── */}
+      <div className="hidden h-full shrink-0 sm:flex" style={{ zIndex: 30 }}>
+        <aside
+          style={{ width: SIDE_WIDTH, flex: `0 0 ${SIDE_WIDTH}px` }}
+          className="h-full select-none overflow-x-hidden overflow-y-auto border-r border-bd-card bg-card px-3.5 pb-4 pt-[18px] [scrollbar-width:thin]"
+        >
+          {/* 品牌行：三级台阶标识 + 拾级 / GRADUS + 部件收展 */}
+          <div className="flex items-center gap-[9px] px-1.5 pb-[18px]">
+            <GradusLogo size={12} showText />
+            <IconButton
+              id="nav-btn-toggle-widgets"
+              onClick={onToggleCollapsed}
+              title={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
+              aria-label={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
+              className="ml-auto size-7 rounded-[8px] bg-card"
+            >
+              {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            </IconButton>
           </div>
 
-          {/* New Plan Quick Action */}
-          <button
+          {/* 新建计划（快速入口，同时是新手引导的兜底锚点 #nav-btn-new-plan） */}
+          <Button
             id="nav-btn-new-plan"
+            variant="app"
             onClick={onNewPlan}
             title="新建学习任务 (N)"
-            style={{
-              width: "100%",
-              height: 36,
-              borderRadius: 8,
-              background: "var(--accent)",
-              color: "var(--accent-foreground)",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "flex-start",
-              gap: 8,
-              padding: collapsed ? "0" : "0 12px",
-              fontWeight: 600,
-              fontSize: 13,
-              fontFamily: "var(--font-dm-sans), sans-serif",
-              transition: "transform 120ms, opacity 120ms",
-              boxShadow: "var(--shadow-sm)",
-            }}
+            className="mb-4 h-[38px] w-full gap-2 px-3 text-[13.5px] font-bold"
           >
-            <Plus size={16} />
-            {!collapsed && <span>新建计划</span>}
-          </button>
+            <Plus size={16} strokeWidth={2.2} />
+            <span>新建计划</span>
+          </Button>
 
-          {/* Navigation Items */}
-          <nav id="nav-rail-group" style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
-            {navItems.map((item) => {
-              const active = currentView === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  id={`nav-item-${item.id}`}
-                  onClick={() => onSelectView(item.id)}
-                  title={item.label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: collapsed ? "center" : "space-between",
-                    height: 38,
-                    padding: collapsed ? "0" : "0 10px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: active ? "var(--accent-soft)" : "transparent",
-                    color: active ? "var(--accent)" : "var(--foreground)",
-                    cursor: "pointer",
-                    transition: "all 0.14s ease",
-                    position: "relative",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                    {active && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 8,
-                          bottom: 8,
-                          width: 3,
-                          borderRadius: "0 2px 2px 0",
-                          background: "var(--accent)",
-                        }}
-                      />
-                    )}
-                    <Icon size={18} style={{ color: active ? "var(--accent)" : "var(--muted-foreground)" }} />
-                    {!collapsed && (
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: active ? 600 : 500,
-                          fontFamily: "var(--font-dm-sans), sans-serif",
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                    )}
-                  </div>
+          {/* MENU 导航组（#nav-rail-group / #nav-item-<view> 为新手引导锚点） */}
+          <SideNav
+            currentView={currentView}
+            onSelectView={onSelectView}
+            todayPendingCount={todayPendingCount}
+            totalPlansCount={totalPlansCount}
+          />
 
-                  {!collapsed && item.badge !== undefined && (
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        fontFamily: "var(--font-jetbrains), monospace",
-                        color: active ? "var(--accent)" : "var(--muted-foreground)",
-                        background: active ? "var(--card)" : "var(--secondary)",
-                        padding: "1px 6px",
-                        borderRadius: 99,
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+          {/* 本周进度 */}
+          {collapsed ? null : <WeekProgressWidget model={progressModel} />}
 
-          {/* ── 标签筛选分类 (Tag Filters) ── */}
-          {!collapsed ? (
-            <div
-              style={{
-                marginTop: 8,
-                paddingTop: 8,
-                borderTop: "1px solid var(--border)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                maxHeight: "calc(100vh - 430px)",
-                overflowY: "auto",
-              }}
-              className="canvas-scroll"
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "2px 6px 4px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <TagIcon size={12} style={{ color: "var(--muted-foreground)" }} />
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "var(--muted-foreground)",
-                      letterSpacing: "0.02em",
-                    }}
-                  >
-                    标签筛选
-                  </span>
-                </div>
-                {selectedTag && (
-                  <button
-                    type="button"
-                    onClick={() => onSelectTag?.(null)}
-                    title="清除标签过滤"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      fontSize: 10.5,
-                      color: "var(--accent)",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "1px 4px",
-                      borderRadius: 4,
-                    }}
-                  >
-                    <X size={11} />
-                    <span>全部</span>
-                  </button>
-                )}
-              </div>
+          {/* 标签筛选（收起部件时只保留标题行与已选标签摘要） */}
+          <SideTagFilter
+            availableTags={availableTags}
+            selectedTag={selectedTag}
+            onSelectTag={onSelectTag}
+            totalPlansCount={totalPlansCount}
+            compact={collapsed}
+          />
 
-              {/* 全部计划选项 */}
-              <button
-                type="button"
-                id="tag-filter-all"
-                onClick={() => onSelectTag?.(null)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  height: 30,
-                  padding: "0 8px",
-                  borderRadius: 6,
-                  border: "none",
-                  background: selectedTag === null ? "var(--accent-soft)" : "transparent",
-                  color: selectedTag === null ? "var(--accent)" : "var(--foreground)",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: selectedTag === null ? 600 : 500,
-                  transition: "all 0.12s ease",
-                }}
-              >
-                <span>全部任务</span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "var(--font-jetbrains), monospace",
-                    color: "var(--muted-foreground)",
-                  }}
-                >
-                  {totalPlansCount}
-                </span>
-              </button>
-
-              {/* 用户各标签 */}
-              {availableTags && availableTags.length > 0 ? (
-                availableTags.map(({ tag, count }) => {
-                  const isSelected = selectedTag === tag;
-                  const style = getTagStyle(tag);
-                  return (
-                    <button
-                      key={tag}
-                      id={`tag-filter-${tag}`}
-                      type="button"
-                      onClick={() => onSelectTag?.(isSelected ? null : tag)}
-                      title={`按标签「${tag}」筛选`}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        height: 30,
-                        padding: "0 8px",
-                        borderRadius: 6,
-                        border: isSelected ? `1px solid ${style.border}` : "1px solid transparent",
-                        background: isSelected ? style.bg : "transparent",
-                        color: isSelected ? style.text : "var(--foreground)",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: isSelected ? 600 : 500,
-                        transition: "all 0.12s ease",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                        <span
-                          style={{
-                            width: 7,
-                            height: 7,
-                            borderRadius: "50%",
-                            background: style.dot,
-                            flexShrink: 0,
-                          }}
-                        />
-                        <span
-                          style={{
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontFamily: "var(--font-jetbrains), monospace",
-                          color: isSelected ? style.text : "var(--muted-foreground)",
-                          background: isSelected ? "rgba(255,255,255,0.7)" : "var(--secondary)",
-                          padding: "1px 5px",
-                          borderRadius: 99,
-                          marginLeft: 4,
-                        }}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })
-              ) : (
-                <div
-                  style={{
-                    padding: "6px 8px",
-                    fontSize: 11,
-                    color: "var(--muted-foreground)",
-                    lineHeight: 1.4,
-                    opacity: 0.8,
-                  }}
-                >
-                  新建任务时打上『编程』『文学』『理科』等标签，即可在此分类过滤
-                </div>
-              )}
-            </div>
-          ) : (
-            /* 折叠侧边栏状态下的标签按钮 */
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: 6,
-                paddingTop: 6,
-                borderTop: "1px solid var(--border)",
-              }}
-            >
-              <button
-                type="button"
-                id="collapsed-tag-filter-btn"
-                onClick={onToggleCollapsed}
-                title={
-                  selectedTag
-                    ? `当前筛选标签：${selectedTag}（点击展开）`
-                    : "按标签筛选（点击展开）"
-                }
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 8,
-                  border: "none",
-                  background: selectedTag ? "var(--accent-soft)" : "transparent",
-                  color: selectedTag ? "var(--accent)" : "var(--muted-foreground)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                }}
-              >
-                <TagIcon size={18} />
-                {selectedTag && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 7,
-                      right: 7,
-                      width: 7,
-                      height: 7,
-                      borderRadius: "50%",
-                      background: "var(--accent)",
-                    }}
-                  />
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom: Membership, Command Palette, Theme, Profile */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            padding: "10px",
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          {/* Notification Center */}
-          <NotificationCenter collapsed={collapsed} />
-
-          {/* Membership / Quota Trigger */}
-          <button
-            onClick={() => openMembershipModal("overview")}
-            title="会员中心与配额"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "space-between",
-              height: 32,
-              padding: collapsed ? "0" : "0 8px",
-              borderRadius: 6,
-              border: "1px solid var(--border)",
-              background: "var(--accent)",
-              color: "var(--accent-foreground)",
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Crown size={14} style={{ color: "#F59E0B" }} />
-              {!collapsed && <span>会员权益 / 兑换</span>}
-            </div>
-            {!collapsed && (
-              <span
-                style={{
-                  fontSize: 10,
-                  padding: "1px 5px",
-                  borderRadius: 4,
-                  background: "rgba(245, 158, 11, 0.15)",
-                  color: "#D97706",
-                  fontWeight: 700,
-                }}
-              >
-                PRO
-              </span>
-            )}
-          </button>
-
-          {/* Command Palette Trigger */}
-          <button
-            onClick={onOpenCommandPalette}
-            title="命令菜单 (⌘K)"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "space-between",
-              height: 32,
-              padding: collapsed ? "0" : "0 8px",
-              borderRadius: 6,
-              border: "1px solid var(--border)",
-              background: "var(--secondary)",
-              color: "var(--muted-foreground)",
-              cursor: "pointer",
-              fontSize: 12,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Command size={14} />
-              {!collapsed && <span>搜索 / 命令</span>}
-            </div>
-            {!collapsed && (
-              <kbd style={{ fontSize: 10, fontFamily: "var(--font-jetbrains), monospace" }}>⌘K</kbd>
-            )}
-          </button>
-
-          {/* Theme toggle & expand button */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "space-between",
-              gap: 6,
-            }}
-          >
-            <ThemeToggle />
-            {collapsed && (
-              <button
-                onClick={onToggleCollapsed}
-                style={{
-                  width: 36,
-                  height: 36,
-                  background: "var(--secondary)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 10,
-                  color: "var(--muted-foreground)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                title="展开侧边栏"
-              >
-                <ChevronRight size={16} />
-              </button>
-            )}
+          {/* 沉底区：功能簇 + 用户卡（margin-top:auto 把整组推到侧边栏底部） */}
+          <div className="mt-auto flex flex-col gap-2 pt-3.5">
+            <SideFooter onOpenCommandPalette={onOpenCommandPalette} />
+            <SideUserCard />
           </div>
+        </aside>
+      </div>
 
-          {/* User profile */}
-          <div style={{ overflow: "hidden", display: "flex", justifyContent: collapsed ? "center" : "flex-start" }}>
-            <UserBadge />
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Mobile Bottom Tab Bar (≤640px) ── */}
-      <nav
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-1"
-        style={{
-          height: "calc(56px + env(safe-area-inset-bottom, 0px))",
-          background: "var(--card)",
-          borderTop: "1px solid var(--border)",
-          boxShadow: "0 -4px 16px rgba(0,0,0,0.06)",
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        }}
-        aria-label="移动端底部主导航"
-      >
-        {navItems.map((item) => {
-          const active = currentView === item.id;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectView(item.id)}
-              className="touch-manipulation active:scale-95 transition-transform"
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 52,
-                minHeight: 48,
-                background: "transparent",
-                border: "none",
-                color: active ? "var(--accent)" : "var(--muted-foreground)",
-                gap: 3,
-                cursor: "pointer",
-                padding: "4px 0",
-              }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "3px 12px",
-                  borderRadius: 12,
-                  background: active ? "var(--accent-soft)" : "transparent",
-                  transition: "background-color 0.18s ease",
-                }}
-              >
-                <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
-                {item.badge !== undefined && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 4,
-                      background: "var(--accent)",
-                      color: "var(--accent-foreground)",
-                      fontSize: 9,
-                      borderRadius: 99,
-                      padding: "0 4px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <span style={{ fontSize: 10.5, fontWeight: active ? 650 : 500 }}>{item.label}</span>
-            </button>
-          );
-        })}
-        <button
-          onClick={onNewPlan}
-          className="touch-manipulation active:scale-95 transition-transform"
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 52,
-            minHeight: 48,
-            background: "transparent",
-            border: "none",
-            color: "var(--accent)",
-            gap: 3,
-            padding: "4px 0",
-            cursor: "pointer",
-          }}
-        >
-          <div
-            style={{
-              padding: "3px 12px",
-              borderRadius: 12,
-              background: "var(--accent-soft)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Plus size={19} strokeWidth={2.3} />
-          </div>
-          <span style={{ fontSize: 10.5, fontWeight: 650 }}>新建</span>
-        </button>
-      </nav>
+      {/* ── Mobile 底部 Tab（≤640px） ── */}
+      <MobileTabBar
+        currentView={currentView}
+        onSelectView={onSelectView}
+        todayPendingCount={todayPendingCount}
+        totalPlansCount={totalPlansCount}
+        onNewPlan={onNewPlan}
+      />
     </>
   );
 }

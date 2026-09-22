@@ -67,7 +67,7 @@ export function ContextPanel({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                fontFamily: "var(--font-outfit), Outfit, sans-serif",
+                fontFamily: "var(--sans)",
                 fontWeight: 700,
                 fontSize: 14,
                 color: "var(--foreground)",

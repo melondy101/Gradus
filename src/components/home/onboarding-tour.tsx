@@ -276,7 +276,7 @@ export function OnboardingTour({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(10, 15, 20, 0.65)",
+          background: "rgba(14, 13, 11, 0.45)",
           backdropFilter: "blur(3px)",
           zIndex: 10000,
           pointerEvents: "auto",
@@ -301,8 +301,8 @@ export function OnboardingTour({
           style={{
             position: "fixed",
             borderRadius: 12,
-            boxShadow: `0 0 0 4px ${T.accent}, 0 0 24px rgba(74, 124, 111, 0.4), inset 0 0 12px rgba(74, 124, 111, 0.2)`,
-            border: `2px solid #fff`,
+            boxShadow: `0 0 0 4px ${T.accent}, 0 0 24px var(--accent-soft), inset 0 0 12px var(--accent-soft)`,
+            border: `2px solid var(--card)`,
             zIndex: 10001,
             pointerEvents: "none",
           }}
@@ -321,7 +321,7 @@ export function OnboardingTour({
         >
           <div
             style={{
-              background: "var(--card, #ffffff)",
+              background: "var(--card)",
               border: `1px solid ${T.line}`,
               borderRadius: 16,
               boxShadow: "0 16px 40px -8px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0,0,0,0.06)",
@@ -342,7 +342,7 @@ export function OnboardingTour({
                 left: 0,
                 right: 0,
                 height: 3,
-                background: `linear-gradient(90deg, ${T.accent}, #E07A5F)`,
+                background: `linear-gradient(90deg, ${T.accent}, var(--accent-deep))`,
               }}
             />
 
@@ -354,8 +354,8 @@ export function OnboardingTour({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    background: "rgba(74, 124, 111, 0.12)",
-                    color: T.accent,
+                    background: "var(--accent-soft)",
+                    color: "var(--accent-ink)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -371,7 +371,7 @@ export function OnboardingTour({
                       fontWeight: 700,
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
-                      color: T.accent,
+                      color: "var(--accent-ink)",
                       fontFamily: "var(--font-jetbrains), monospace",
                     }}
                   >
@@ -428,8 +428,8 @@ export function OnboardingTour({
               {step.exampleGoal && (
                 <div
                   style={{
-                    background: "rgba(74, 124, 111, 0.07)",
-                    border: `1px dashed rgba(74, 124, 111, 0.3)`,
+                    background: "var(--cream-light)",
+                    border: `1px dashed var(--bd-check)`,
                     borderRadius: 10,
                     padding: "10px 12px",
                     display: "flex",
@@ -438,7 +438,7 @@ export function OnboardingTour({
                     marginTop: 2,
                   }}
                 >
-                  <div style={{ fontSize: 11, color: T.accent, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{ fontSize: 11, color: "var(--accent-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
                     <Zap size={13} />
                     <span>即刻尝鲜（无需手动构思）：</span>
                   </div>
@@ -448,7 +448,7 @@ export function OnboardingTour({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      background: "#ffffff",
+                      background: "var(--card)",
                       border: `1px solid ${T.line}`,
                       borderRadius: 8,
                       padding: "7px 10px",
@@ -462,15 +462,15 @@ export function OnboardingTour({
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = T.accent;
-                      e.currentTarget.style.color = T.accent;
+                      e.currentTarget.style.color = "var(--accent-ink)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = T.line;
                       e.currentTarget.style.color = T.ink;
                     }}
                   >
-                    <span>🐍 {step.exampleGoal}</span>
-                    <span style={{ color: T.accent, fontWeight: 700 }}>一键拆解 →</span>
+                    <span>{step.exampleGoal}</span>
+                    <span style={{ color: "var(--accent-ink)", fontWeight: 700 }}>一键拆解 →</span>
                   </button>
                 </div>
               )}
@@ -537,7 +537,7 @@ export function OnboardingTour({
                   onClick={handleNext}
                   style={{
                     background: T.accent,
-                    color: "#ffffff",
+                    color: "var(--accent-foreground)",
                     border: "none",
                     borderRadius: 8,
                     padding: "6px 14px",
@@ -547,11 +547,11 @@ export function OnboardingTour({
                     display: "flex",
                     alignItems: "center",
                     gap: 4,
-                    boxShadow: "0 2px 8px rgba(74, 124, 111, 0.3)",
+                    boxShadow: "0 2px 8px var(--accent-soft)",
                     transition: "opacity 0.15s",
                   }}
                 >
-                  <span>{isLastStep ? "开始探索 🚀" : "下一步"}</span>
+                  <span>{isLastStep ? "开始探索 " : "下一步"}</span>
                   {!isLastStep && <ChevronRight size={14} />}
                 </button>
               </div>
@@ -585,7 +585,7 @@ export function TourHelpButton() {
         transition: "color 0.15s",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.color = T.accent;
+        e.currentTarget.style.color = "var(--accent-ink)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.color = T.muted;

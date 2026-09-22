@@ -57,7 +57,7 @@ export function AscendingStepsView({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+          boxShadow: "0 2px 8px var(--cream)",
           flexWrap: "wrap",
           gap: 16,
         }}
@@ -69,8 +69,8 @@ export function AscendingStepsView({
                 width: 24,
                 height: 24,
                 borderRadius: 6,
-                background: "rgba(74,124,111,0.12)",
-                color: T.accent,
+                background: "var(--accent-soft)",
+                color: "var(--accent-ink)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -78,7 +78,7 @@ export function AscendingStepsView({
                 fontWeight: 700,
               }}
             >
-              🪜
+              阶
             </span>
             <span className="font-editorial" style={{ fontSize: 18, fontWeight: 700, color: T.ink }}>
               拾级天梯 · 认知进阶图谱
@@ -92,7 +92,7 @@ export function AscendingStepsView({
         {/* 攀登进度指示器 */}
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: T.accent, fontFamily: "var(--font-geist-mono), monospace", lineHeight: 1.1 }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--accent-ink)", fontFamily: "var(--mono)", lineHeight: 1.1 }}>
               {completedTotal} <span style={{ fontSize: 14, color: T.muted, fontWeight: 400 }}>/ {totalSubtasks} 阶</span>
             </div>
             <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>
@@ -134,7 +134,7 @@ export function AscendingStepsView({
                 fontSize: 11,
                 fontWeight: 700,
                 color: T.ink,
-                fontFamily: "var(--font-geist-mono), monospace",
+                fontFamily: "var(--mono)",
               }}
             >
               {overallPct}%
@@ -156,7 +156,7 @@ export function AscendingStepsView({
                 background: "transparent",
                 border: "none",
                 fontSize: 12,
-                color: T.accent,
+                color: "var(--accent-ink)",
                 fontWeight: 600,
                 cursor: "pointer",
                 padding: "2px 6px",
@@ -193,7 +193,7 @@ export function AscendingStepsView({
                   transition: "all 0.15s ease",
                   boxShadow: isSelected
                     ? `0 4px 12px ${group.config.color}25`
-                    : "0 1px 3px rgba(0,0,0,0.02)",
+                    : "0 1px 3px var(--cream)",
                   display: "flex",
                   flexDirection: "column",
                   gap: 8,
@@ -206,14 +206,15 @@ export function AscendingStepsView({
                       fontWeight: 700,
                       padding: "2px 6px",
                       borderRadius: 4,
-                      background: `${group.config.color}18`,
-                      color: group.config.color,
-                      fontFamily: "var(--font-geist-mono), monospace",
+                      background: group.config.bg,
+                      border: `1px solid ${group.config.border}`,
+                      color: "var(--bloom-5)",
+                      fontFamily: "var(--mono)",
                     }}
                   >
                     阶 {group.level}
                   </span>
-                  <span style={{ fontSize: 11, color: T.muted, fontFamily: "var(--font-geist-mono), monospace" }}>
+                  <span style={{ fontSize: 11, color: T.muted, fontFamily: "var(--mono)" }}>
                     {group.completedCount}/{group.totalCount}
                   </span>
                 </div>
@@ -241,7 +242,7 @@ export function AscendingStepsView({
                 </div>
 
                 {isFinished && (
-                  <div style={{ fontSize: 10, color: "#2D8B56", fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}>
+                  <div style={{ fontSize: 10, color: "var(--success)", fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}>
                     ✓ 阶梯通关
                   </div>
                 )}
@@ -286,10 +287,10 @@ export function AscendingStepsView({
                   gap: 12,
                   cursor: "pointer",
                   opacity: item.completed ? 0.75 : 1,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+                  boxShadow: "0 1px 3px var(--cream)",
                   transition: "all 0.15s ease",
                 }}
-                whileHover={{ y: -1, boxShadow: "0 3px 8px rgba(0,0,0,0.04)" }}
+                whileHover={{ y: -1, boxShadow: "0 3px 8px var(--cream)" }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
                   {/* 复选框 */}
@@ -303,8 +304,8 @@ export function AscendingStepsView({
                       height: 20,
                       borderRadius: 5,
                       border: `1.5px solid ${item.completed ? bloom.color : T.line}`,
-                      background: item.completed ? bloom.color : "transparent",
-                      color: "#fff",
+                      background: item.completed ? "var(--ink)" : "transparent",
+                      color: "var(--cream)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -333,10 +334,10 @@ export function AscendingStepsView({
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                       <span style={{ fontSize: 11, color: T.muted }}>
-                        📌 {item.taskTitle}
+                        标 {item.taskTitle}
                       </span>
                       {item.deepWorkHours && (
-                        <span style={{ fontSize: 10.5, color: T.muted, fontFamily: "var(--font-geist-mono), monospace" }}>
+                        <span style={{ fontSize: 10.5, color: T.muted, fontFamily: "var(--mono)" }}>
                           ⏱ {item.deepWorkHours}h 深度专注
                         </span>
                       )}
@@ -359,7 +360,7 @@ export function AscendingStepsView({
                   >
                     {bloom.name}
                   </span>
-                  <span style={{ fontSize: 11.5, color: T.muted, fontFamily: "var(--font-geist-mono), monospace" }}>
+                  <span style={{ fontSize: 11.5, color: T.muted, fontFamily: "var(--mono)" }}>
                     {item.durationDays} 天
                   </span>
                 </div>

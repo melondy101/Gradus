@@ -20,7 +20,7 @@ export function MainLayout({
         height: "100%",
         width: "100%",
         background: "var(--background)",
-        fontFamily: "var(--font-dm-sans), DM Sans, system-ui, sans-serif",
+        fontFamily: "var(--sans)",
         overflow: "hidden",
         position: "relative",
       }}

@@ -175,8 +175,8 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  backgroundColor: "#EF4444",
-                  boxShadow: "0 0 0 1.5px var(--sidebar)",
+                  backgroundColor: "var(--accent)",
+                  boxShadow: "0 0 0 1.5px var(--card)",
                 }}
               />
             )}
@@ -190,8 +190,8 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
               fontWeight: 700,
               padding: "1px 5px",
               borderRadius: 99,
-              background: "#EF4444",
-              color: "#FFFFFF",
+              background: "var(--accent)",
+              color: "var(--ink)",
               lineHeight: 1,
             }}
           >
@@ -242,8 +242,8 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
                   style={{
                     fontSize: 10,
                     fontWeight: 600,
-                    background: "rgba(239, 68, 68, 0.12)",
-                    color: "#EF4444",
+                    background: "var(--accent-soft)",
+                    color: "var(--accent-ink)",
                     padding: "1px 6px",
                     borderRadius: 99,
                   }}

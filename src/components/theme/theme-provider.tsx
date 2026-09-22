@@ -1,7 +1,27 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { THEMES, type ThemeId, type ThemeConfig } from "@/lib/theme-config";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  THEMES,
+  normalizeThemeId,
+  type ThemeId,
+  type ThemeConfig,
+} from "@/lib/theme-config";
+
+// 早期版本用 applyCssTheme 往 <html> 写内联变量，会与 globals.css 打架。
+// 这里在挂载时一次性清掉，之后令牌只由样式表决定。
+const LEGACY_INLINE_VARS = [
+  "--background", "--foreground", "--card", "--card-foreground", "--popover",
+  "--popover-foreground", "--primary", "--primary-foreground", "--secondary",
+  "--secondary-foreground", "--muted", "--muted-foreground", "--accent",
+  "--border", "--input", "--ring", "--color-bg", "--color-surface",
+  "--color-soft", "--color-line", "--color-ink", "--color-muted",
+  "--color-subtle", "--color-accent", "--color-accent-hover",
+  "--color-secondary-accent", "--color-paper", "--color-sage",
+];
+
+const STORAGE_KEY = "gradus_theme_id";
+const LEGACY_STORAGE_KEY = "talktask_theme_id";
 
 interface ThemeContextType {
   themeId: ThemeId;
@@ -10,89 +30,49 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  themeId: "sage",
-  theme: THEMES.sage,
+  themeId: "cream",
+  theme: THEMES.cream,
   setThemeId: () => {},
 });
 
+function readStoredTheme(): ThemeId {
+  if (typeof window === "undefined") return "cream";
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy && !current) localStorage.setItem(LEGACY_STORAGE_KEY, "");
+    return normalizeThemeId(current ?? legacy);
+  } catch {
+    return "cream";
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeId, setThemeIdState] = useState<ThemeId>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("talktask_theme_id") as ThemeId;
-        if (saved && THEMES[saved]) return saved;
-      } catch {}
-    }
-    return "sage";
-  });
+  const [themeId, setThemeIdState] = useState<ThemeId>(readStoredTheme);
 
   useEffect(() => {
-    const currentTheme = THEMES[themeId] || THEMES.sage;
-    applyCssTheme(currentTheme);
+    const root = document.documentElement;
+    for (const v of LEGACY_INLINE_VARS) root.style.removeProperty(v);
+    root.classList.toggle("dark", themeId === "ink");
+    root.style.colorScheme = themeId === "ink" ? "dark" : "light";
+    root.style.removeProperty("background-color");
   }, [themeId]);
 
-  const setThemeId = (id: ThemeId) => {
+  const setThemeId = useCallback((id: ThemeId) => {
     if (!THEMES[id]) return;
     setThemeIdState(id);
     try {
-      localStorage.setItem("talktask_theme_id", id);
+      localStorage.setItem(STORAGE_KEY, id);
     } catch {}
-  };
+  }, []);
 
-  const theme = THEMES[themeId] || THEMES.sage;
+  const theme = THEMES[themeId] ?? THEMES.cream;
 
   return (
     <ThemeContext.Provider value={{ themeId, theme, setThemeId }}>
       {children}
     </ThemeContext.Provider>
   );
-}
-
-function applyCssTheme(t: ThemeConfig) {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  
-  // Shadcn & Standard tokens
-  root.style.setProperty("--background", t.bg);
-  root.style.setProperty("--foreground", t.ink);
-  root.style.setProperty("--card", t.cardBg);
-  root.style.setProperty("--card-foreground", t.ink);
-  root.style.setProperty("--popover", t.surface);
-  root.style.setProperty("--popover-foreground", t.ink);
-  root.style.setProperty("--primary", t.ink);
-  root.style.setProperty("--primary-foreground", t.bg);
-  root.style.setProperty("--secondary", t.soft);
-  root.style.setProperty("--secondary-foreground", t.ink);
-  root.style.setProperty("--muted", t.soft);
-  root.style.setProperty("--muted-foreground", t.muted);
-  root.style.setProperty("--accent", t.accent);
-  root.style.setProperty("--border", t.border);
-  root.style.setProperty("--input", t.border);
-  root.style.setProperty("--ring", t.accent);
-
-  // Gradus Custom Theme tokens
-  root.style.setProperty("--color-bg", t.bg);
-  root.style.setProperty("--color-surface", t.surface);
-  root.style.setProperty("--color-soft", t.soft);
-  root.style.setProperty("--color-line", t.line);
-  root.style.setProperty("--color-ink", t.ink);
-  root.style.setProperty("--color-muted", t.muted);
-  root.style.setProperty("--color-subtle", t.subtle || (t.id === "linear" ? "#5C6070" : "#9CA3AF"));
-  root.style.setProperty("--color-accent", t.accent);
-  root.style.setProperty("--color-accent-hover", t.id === "linear" ? "#9AA4F7" : "#3D6B5F");
-  root.style.setProperty("--color-secondary-accent", t.secondaryAccent);
-  root.style.setProperty("--color-paper", t.soft);
-  root.style.setProperty("--color-sage", t.accent);
-
-  if (t.id === "linear") {
-    root.classList.add("dark");
-    document.body.style.backgroundColor = t.bg;
-    document.body.style.color = t.ink;
-  } else {
-    root.classList.remove("dark");
-    document.body.style.backgroundColor = t.bg;
-    document.body.style.color = t.ink;
-  }
 }
 
 export function useAppTheme() {

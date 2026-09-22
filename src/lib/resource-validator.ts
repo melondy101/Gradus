@@ -322,26 +322,26 @@ export interface StatusBadgeConfig {
 }
 
 export const URL_STATUS_CONFIG: Record<UrlStatus, StatusBadgeConfig> = {
-  ok:             { icon: "✓", label: "可访问",  color: "#2F5D50", bg: "rgba(47,93,80,0.08)",  border: "rgba(47,93,80,0.2)",  warn: false },
-  redirect:       { icon: "↪", label: "跳转",    color: "#3B7AFF", bg: "rgba(59,122,255,0.07)", border: "rgba(59,122,255,0.2)", warn: false },
-  login_required: { icon: "🔒", label: "需登录",  color: "#8B6A2E", bg: "rgba(224,123,42,0.08)", border: "rgba(224,123,42,0.2)", warn: false },
-  not_found:      { icon: "✕", label: "404",     color: "#C0392B", bg: "rgba(192,57,43,0.07)",  border: "rgba(192,57,43,0.2)", warn: true  },
-  dead:           { icon: "✕", label: "无法访问", color: "#C0392B", bg: "rgba(192,57,43,0.07)",  border: "rgba(192,57,43,0.2)", warn: true  },
-  timeout:        { icon: "⏱", label: "超时",    color: "#777B75", bg: "rgba(119,123,117,0.07)", border: "rgba(119,123,117,0.2)", warn: false },
-  unchecked:      { icon: "◯", label: "搜索词",  color: "#E07B2A", bg: "rgba(224,123,42,0.07)", border: "rgba(224,123,42,0.2)", warn: false },
+  ok:             { icon: "✓", label: "可访问",  color: "var(--success)", bg: "var(--success-soft)",  border: "var(--success)",  warn: false },
+  redirect:       { icon: "↪", label: "跳转",    color: "var(--text-2)", bg: "var(--cream-light)", border: "var(--bd-field)", warn: false },
+  login_required: { icon: "需", label: "需登录",  color: "var(--warning)", bg: "var(--warning-soft)", border: "var(--accent-deep)", warn: false },
+  not_found:      { icon: "✕", label: "404",     color: "var(--error)", bg: "var(--error-soft)",  border: "var(--error)", warn: true  },
+  dead:           { icon: "✕", label: "无法访问", color: "var(--error)", bg: "var(--error-soft)",  border: "var(--error)", warn: true  },
+  timeout:        { icon: "迟", label: "超时",    color: "var(--text-3)", bg: "var(--cream-light)", border: "var(--bd-check)", warn: false },
+  unchecked:      { icon: "◯", label: "搜索词",  color: "var(--text-2)", bg: "var(--cream)", border: "var(--accent-deep)", warn: false },
 };
 
 export const FRESHNESS_CONFIG: Record<FreshnessLevel, { icon: string; label: string; color: string }> = {
-  high:    { icon: "🟢", label: "近期更新",  color: "#2F5D50" },
-  medium:  { icon: "🟡", label: "1-3年前",   color: "#8B6A2E" },
-  low:     { icon: "🔴", label: "3年以上",   color: "#C0392B" },
-  unknown: { icon: "⚪", label: "时间未知",  color: "#777B75" },
+  high:    { icon: "新", label: "近期更新",  color: "var(--success)" },
+  medium:  { icon: "中", label: "1-3年前",   color: "var(--warning)" },
+  low:     { icon: "旧", label: "3年以上",   color: "var(--error)" },
+  unknown: { icon: "⚪", label: "时间未知",  color: "var(--text-3)" },
 };
 
 export const AUTHORITY_LABEL_CONFIG: Record<ResourceValidation["authority_label"], { icon: string; label: string }> = {
-  official:  { icon: "🏛", label: "官方" },
-  platform:  { icon: "📚", label: "平台" },
-  community: { icon: "👥", label: "社区" },
+  official:  { icon: "官", label: "官方" },
+  platform:  { icon: "平", label: "平台" },
+  community: { icon: "社", label: "社区" },
   blog:      { icon: "✍", label: "博客" },
   unknown:   { icon: "❓", label: "未知" },
 };

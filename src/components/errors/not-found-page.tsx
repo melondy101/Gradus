@@ -30,7 +30,7 @@ export function NotFoundPage() {
         </p>
 
         <Link
-          href="/"
+          href="/app"
           className={cn(
             buttonVariants({ size: "lg" }),
             "mt-8 min-w-[10rem] gap-2",

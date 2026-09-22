@@ -141,25 +141,25 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-3 backdrop-blur-[2px] sm:p-4"
     >
       <div
         ref={dialogRef}
-        className="relative w-full max-w-2xl max-h-[92vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col"
+        className="relative flex max-h-[92vh] w-full max-w-[720px] flex-col overflow-hidden rounded-[20px] border border-bd-card bg-card shadow-[0_60px_120px_-30px_rgba(14,13,11,.6)]"
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-muted/30">
+        <div className="flex items-center justify-between border-b border-bd-card px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div
               className="flex h-9 w-9 items-center justify-center rounded-xl shadow-xs"
               style={{
                 background:
                   currentTier === "premium"
-                    ? "linear-gradient(135deg, #F59E0B, #D97706)"
+                    ? "linear-gradient(135deg, var(--accent), var(--accent-deep))"
                     : currentTier === "pro"
-                    ? "linear-gradient(135deg, #10B981, #059669)"
-                    : "linear-gradient(135deg, #6B7280, #4B5563)",
-                color: "#fff",
+                    ? "linear-gradient(135deg, var(--ink), var(--bloom-5))"
+                    : "linear-gradient(135deg, var(--bd-check), var(--text-3))",
+                color: currentTier === "premium" ? "var(--ink)" : "var(--cream)",
               }}
             >
               <Crown className="h-5 w-5" />
@@ -247,7 +247,7 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
               }`}
             >
               <KeyRound className="h-4 w-4" />
-              <span>⚡ 管理员 · 激活码管理</span>
+              <span>管理员 · 激活码管理</span>
             </button>
           )}
         </div>

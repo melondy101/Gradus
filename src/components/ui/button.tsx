@@ -3,34 +3,56 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/utils/utils"
 
+/**
+ * 按钮 —— 设计说明 §1.4：
+ * 主按钮墨色药丸（radius 999 / padding 26×13 / 白字）；次按钮 1px 墨色描边药丸；
+ * App 内主按钮用方圆角 radius 12、与 56 高输入框同高；强调黄只留给 accent 变体。
+ */
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,scale] duration-150 ease-out outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center border bg-clip-padding whitespace-nowrap transition-[color,background-color,border-color,box-shadow,scale] duration-150 ease-out outline-none select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
-        ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
+      /**
+       * size 必须先声明、variant 后声明：cva 按声明顺序拼类名（实测），
+       * 而 cn() 的 tailwind-merge 现在是「后写的圆角赢」，所以排在后面的
+       * variant 才能用自己声明的圆角盖掉 size 的默认药丸角（app → 12px 方圆）。
+       */
       size: {
         default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-8",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+          "h-11 gap-2 rounded-pill px-[26px] text-[15px] font-bold has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
+        xs: "h-[30px] gap-1 rounded-pill px-[15px] text-xs font-bold has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-[38px] gap-1.5 rounded-pill px-5 text-sm font-bold has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-14 gap-2.5 rounded-field px-[30px] text-base font-bold",
+        icon: "size-10 rounded-field",
+        "icon-xs": "size-6 rounded-[8px] [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded-[10px] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-lg": "size-11 rounded-field",
+        full: "w-full h-11 gap-2 rounded-pill px-[26px] text-[15px] font-bold",
+      },
+      variant: {
+        /** 墨色药丸 —— 全站主操作 */
+        default:
+          "border-ink bg-ink text-cream hover:bg-black hover:shadow-[0_10px_24px_-10px_rgba(17,17,17,.6)]",
+        /** 1px 墨色描边药丸 —— 次操作，悬停反白 */
+        outline:
+          "border-ink bg-transparent text-ink hover:bg-ink hover:text-cream",
+        secondary:
+          "bg-cream-light text-ink border-bd-card hover:border-ink hover:bg-white",
+        /** 无底、悬停浅奶油 —— 用于图标按钮与关闭按钮 */
+        ghost:
+          "border-transparent bg-transparent text-text-2 hover:bg-cream-light hover:text-ink",
+        destructive:
+          "border-error/20 bg-error/10 text-error hover:bg-error/20 focus-visible:outline-error",
+        link: "border-transparent text-ink underline-offset-4 hover:underline",
+        /** 点缀黄 —— 一个界面里最多出现一次 */
+        accent: "bg-accent text-ink border-accent-deep hover:bg-[#ffd740]",
+        /** App 内主按钮：radius 12、与 56 高输入框同高（靠 size 先声明才盖得住药丸角） */
+        app: "border-ink bg-ink text-cream rounded-field hover:bg-black",
+        /** 深底上的奶油按钮 */
+        cream: "border-cream bg-cream text-ink hover:bg-white",
+        /** 深底描边按钮 */
+        onDark:
+          "border-bd-dark bg-transparent text-on-dark-2 hover:border-on-dark-3 hover:bg-white/5 hover:text-on-dark",
       },
     },
     defaultVariants: {

@@ -65,7 +65,7 @@ export function AllPlansView({
               transition: "all 0.15s ease",
             }}
           >
-            <Crown size={14} style={{ color: "#F59E0B" }} />
+            <Crown size={14} style={{ color: "var(--warning)" }} />
             <span>会员与容量</span>
           </button>
 
@@ -73,7 +73,7 @@ export function AllPlansView({
             onClick={onNewPlan}
             style={{
               background: T.accent,
-              color: "#fff",
+              color: "var(--accent-foreground)",
               border: "none",
               borderRadius: 8,
               padding: "8px 16px",
@@ -83,7 +83,7 @@ export function AllPlansView({
               display: "flex",
               alignItems: "center",
               gap: 6,
-              boxShadow: "0 2px 8px rgba(74,124,111,0.25)",
+              boxShadow: "0 2px 8px var(--accent-soft)",
               transition: "all 0.15s ease",
             }}
             onMouseDown={(e) => {
@@ -133,7 +133,7 @@ export function AllPlansView({
                 flexDirection: "column",
                 gap: 14,
                 cursor: "pointer",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
+                boxShadow: "0 1px 4px var(--cream)",
                 transition: "all 0.15s ease",
                 position: "relative",
               }}
@@ -167,7 +167,7 @@ export function AllPlansView({
                         whiteSpace: "nowrap",
                       }}
                     >
-                      💡 {task.rawInput}
+                      {task.rawInput}
                     </div>
                   )}
                   {(() => {
@@ -191,16 +191,16 @@ export function AllPlansView({
                     padding: "3px 8px",
                     borderRadius: 999,
                     background: isDone
-                      ? "rgba(45,139,86,0.12)"
+                      ? "var(--success-soft)"
                       : completed > 0
-                      ? "rgba(74,124,111,0.12)"
+                      ? "var(--accent-soft)"
                       : T.soft,
-                    color: isDone ? "#2D8B56" : completed > 0 ? T.accent : T.muted,
+                    color: isDone ? "var(--success)" : completed > 0 ? "var(--accent-ink)" : T.muted,
                     border: `1px solid ${
                       isDone
-                        ? "rgba(45,139,86,0.25)"
+                        ? "var(--success-soft)"
                         : completed > 0
-                        ? "rgba(74,124,111,0.25)"
+                        ? "var(--accent-soft)"
                         : T.line
                     }`,
                     flexShrink: 0,
@@ -229,7 +229,7 @@ export function AllPlansView({
                         cy="22"
                         r="18"
                         fill="none"
-                        stroke={isDone ? "#2D8B56" : T.accent}
+                        stroke={isDone ? "var(--success)" : T.accent}
                         strokeWidth="3.5"
                         strokeDasharray={`${2 * Math.PI * 18}`}
                         strokeDashoffset={`${2 * Math.PI * 18 * (1 - (total > 0 ? completed / total : 0))}`}
@@ -247,7 +247,7 @@ export function AllPlansView({
                         fontSize: 10,
                         fontWeight: 700,
                         color: T.ink,
-                        fontFamily: "var(--font-geist-mono), monospace",
+                        fontFamily: "var(--mono)",
                       }}
                     >
                       {pct}%
@@ -255,7 +255,7 @@ export function AllPlansView({
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, fontFamily: "var(--font-geist-mono), monospace" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, fontFamily: "var(--mono)" }}>
                       {completed} / {total} <span style={{ fontSize: 11, fontWeight: 400, color: T.muted }}>个子任务</span>
                     </div>
                     <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>
@@ -273,7 +273,7 @@ export function AllPlansView({
                       padding: "4px 8px",
                     }}
                   >
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, fontFamily: "var(--font-geist-mono), monospace" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, fontFamily: "var(--mono)" }}>
                       {totalHours.toFixed(1)}h
                     </div>
                     <div style={{ fontSize: 9.5, color: T.muted }}>深度专注</div>
@@ -319,8 +319,8 @@ export function AllPlansView({
                         transition: "all 0.15s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#EF4444";
-                        e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
+                        e.currentTarget.style.color = "var(--error)";
+                        e.currentTarget.style.background = "var(--error-soft)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.color = T.muted;
@@ -332,7 +332,7 @@ export function AllPlansView({
                       ✕
                     </button>
                   )}
-                  <span style={{ color: T.accent, fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}>
+                  <span style={{ color: "var(--accent-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}>
                     进入详情 →
                   </span>
                 </div>
@@ -356,7 +356,7 @@ export function AllPlansView({
               gap: 12,
             }}
           >
-            <div style={{ fontSize: 32 }}>📚</div>
+            <Plus size={30} style={{ color: T.muted }} />
             <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>暂无学习计划</div>
             <div style={{ fontSize: 13, color: T.muted, maxWidth: 320 }}>
               输入你感兴趣的学习主题或技能，AI 将为你规划科学的认知阶梯与权威资源
@@ -365,7 +365,7 @@ export function AllPlansView({
               onClick={onNewPlan}
               style={{
                 background: T.accent,
-                color: "#fff",
+                color: "var(--accent-foreground)",
                 border: "none",
                 borderRadius: 8,
                 padding: "8px 18px",

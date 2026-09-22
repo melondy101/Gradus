@@ -1,76 +1,68 @@
 "use client";
 
+/**
+ * 里程碑等级解锁弹窗 —— 屏三弹层语言（§3）：走 <Modal layer="milestone"> 的
+ * 45% 墨遮罩 + radius 20 白卡 + 页头/主体/底栏，不再自造渐变彩带与主题色。
+ * growth.ts 的 level.color 是前品牌六色，品牌规范（§1.2）下等级叙事只靠
+ * 点缀黄 + 线性图标表达；图标复用 level-badge 里已有的门槛映射。
+ */
+
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { TrendingUp } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Mono } from "@/components/ui/eyebrow";
+import { Modal } from "@/components/ui/modal";
 import type { Level } from "@/lib/growth";
+import { LEVEL_ICONS } from "./level-badge";
 
-const T = {
-  surface: "#FFFFFF", ink: "#111111", muted: "#777B75",
-} as const;
+const AUTO_CLOSE_MS = 4200;
 
-/** 方向B：里程碑等级解锁弹窗 */
-export function MilestoneUnlockModal({ level, onClose }: { level: Level; onClose: () => void }) {
+export function MilestoneUnlockModal({
+  level,
+  onClose,
+}: {
+  level: Level;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
-  // 自动关闭
+  const Glyph =
+    LEVEL_ICONS.find((x) => level.threshold >= x.threshold)?.Icon ?? TrendingUp;
+
   useEffect(() => {
-    const timer = setTimeout(onClose, 4200);
+    const timer = setTimeout(onClose, AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{ position: "fixed", inset: 0, background: "rgba(17,17,17,0.35)", zIndex: 400, backdropFilter: "blur(3px)" }}
-      />
-      <div
-        role="dialog"
-        aria-label={t("milestone.ariaLabel")}
-        className="milestone-pop"
-        style={{
-          position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          zIndex: 401, width: "min(340px, 90vw)",
-          background: T.surface, borderRadius: 20, overflow: "hidden",
-          border: `1px solid ${level.color}44`,
-          boxShadow: `0 24px 70px ${level.color}33, 0 8px 24px rgba(17,17,17,0.12)`,
-          textAlign: "center",
-        }}
-      >
-        {/* 顶部渐变光带 */}
-        <div style={{
-          background: `linear-gradient(135deg, ${level.color}, ${level.color}CC)`,
-          padding: "26px 20px 22px", color: "#fff",
-        }}>
-          <div className="milestone-badge" style={{
-            width: 72, height: 72, borderRadius: "50%", margin: "0 auto 12px",
-            background: "rgba(255,255,255,0.18)", border: "2px solid rgba(255,255,255,0.5)",
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38,
-          }}>{level.icon}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.9, letterSpacing: "0.08em" }}>{t("milestone.unlockTitle")}</div>
-          <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.03em", marginTop: 3 }}>{t("milestone.level", { name: level.name })}</div>
-        </div>
-
-        {/* 说明 */}
-        <div style={{ padding: "16px 22px 20px" }}>
-          <div style={{ color: T.ink, fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+    <Modal
+      open
+      onClose={onClose}
+      layer="milestone"
+      width={340}
+      aria-label={t("milestone.ariaLabel")}
+      className="text-center"
+      icon={
+        <span className="grid size-[34px] flex-none place-items-center rounded-field border border-accent-deep bg-accent-soft text-accent-ink">
+          <Glyph size={17} />
+        </span>
+      }
+      title={t("milestone.level", { name: level.name })}
+      eyebrow={`LEVEL UP · 累计完成 ${level.threshold}`}
+      bodyClassName="px-6 py-4"
+      footer={
+        <>
+          <Mono className="text-text-3">
             {t("milestone.reached", { threshold: level.threshold })}
-          </div>
-          <div style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.6 }}>
-            {t("milestone.encourage")}
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              marginTop: 16, width: "100%",
-              background: level.color, color: "#fff", border: "none",
-              borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
+          </Mono>
+          <Button size="sm" onClick={onClose}>
             {t("milestone.keepGoing")}
-          </button>
-        </div>
-      </div>
-    </>
+          </Button>
+        </>
+      }
+    >
+      <p className="text-[13.5px] leading-[1.7] text-text-2">{t("milestone.encourage")}</p>
+    </Modal>
   );
 }

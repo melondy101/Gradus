@@ -58,7 +58,7 @@ export function ErrorFallbackPage({ error, reset }: ErrorFallbackPageProps) {
             {t("errors.generic.tryAgain")}
           </Button>
           <Link
-            href="/"
+            href="/app"
             className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2")}
           >
             <Home className="size-4" strokeWidth={1.5} />

@@ -3,14 +3,24 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { useEazo } from "@/lib/eazo-shim";
-import { auth } from "@/lib/eazo-shim";
+import { Sparkles } from "lucide-react";
+import { auth, useEazo } from "@/lib/eazo-shim";
 import { getTasks, deleteTask } from "@/lib/api/tasks";
 import type { TaskWithProgress } from "@/lib/api/tasks";
 import { DeletePlanModal } from "@/components/home/delete-plan-modal";
-import { GradusLogo } from "@/components/ui/gradus-logo";
-import { T } from "@/lib/design-tokens";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
+import { Eyebrow, Mono } from "@/components/ui/eyebrow";
+import { Heading } from "@/components/ui/heading";
+import { BrandBackLink } from "@/components/task/brand-back-link";
+import { BrandPageShell } from "@/components/task/brand-page-shell";
+import { DetailNotice } from "@/components/task/detail-notice";
+import { HistoryRow } from "./history-row";
 
+/**
+ * 历史任务页：品牌外壳 + `.main__head` 页头 + 白卡 `.subs` 列表。
+ * 数据、删除二次确认与 `user?.id` 依赖键均沿用改造前的行为。
+ */
 export function HistoryPage() {
   const { t } = useTranslation();
   const user = useEazo((s) => s.auth.user);
@@ -23,8 +33,9 @@ export function HistoryPage() {
 
   // 依赖 user?.id（稳定字符串）而非 user 对象：useEazo 每次渲染重建 user 引用，
   // 直接依赖 user 会导致 effect 在每次渲染后重跑，形成无限拉取循环（频闪 + 误报网络异常）。
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
 
     async function load() {
@@ -38,7 +49,7 @@ export function HistoryPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [userId]);
 
   const handleDeleteClick = (task: TaskWithProgress, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -51,7 +62,7 @@ export function HistoryPage() {
     setIsDeleting(true);
     try {
       await deleteTask(deleteTarget.id);
-      setTasks((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      setTasks((prev) => prev.filter((task) => task.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch {
       // ignore
@@ -60,107 +71,66 @@ export function HistoryPage() {
     }
   };
 
+  const doneCount = tasks.filter((task) => task.status === "done").length;
+
   return (
-    <PageShell>
-      {loading || fetching ? (
-        <LoadingState />
-      ) : !user ? (
-        <div className="flex flex-col items-center gap-4 py-20">
-          <p className="text-[14px]" style={{ color: T.muted }}>
-            {t("history.signInPrompt", "登录后可查看历史任务")}
-          </p>
-          <button
-            onClick={() => auth.login().catch(() => {})}
-            className="px-6 py-[10px] rounded-full text-[14px] font-medium text-white hover:opacity-90 transition-opacity"
-            style={{ background: T.ink }}
-          >
-            {t("history.signIn", "登录")}
-          </button>
+    <BrandPageShell maxWidth={1024} railLabel="Today" railHref="/app">
+      <BrandBackLink href="/app">返回今日面板</BrandBackLink>
+
+      <header className="mb-3.5 flex items-start justify-between gap-6">
+        <div className="min-w-0">
+          <Eyebrow>History</Eyebrow>
+          <Heading level={2} spec="page" accentDot className="mt-2 [&>span]:ml-[.06em] [&>span]:size-[.28em]">
+            {t("history.recentTasks", "历史任务")}
+          </Heading>
+          <Mono className="mt-1.5 block text-text-3">
+            {tasks.length > 0
+              ? `${tasks.length} 个任务 · ${doneCount} 已完成 · ${tasks.length - doneCount} 进行中或未开始`
+              : "每个访客的任务都按账号隔离存放"}
+          </Mono>
         </div>
+        <div className="flex flex-none items-center gap-2.5">
+          <Link href="/app" className={buttonVariants({ variant: "default", size: "sm" })}>
+            <Sparkles size={14} />
+            新建规划
+          </Link>
+        </div>
+      </header>
+
+      {loading || fetching ? (
+        <DetailNotice title={t("history.loading", "加载中…")} text="正在读取任务列表" />
+      ) : !user ? (
+        <DetailNotice
+          title={t("history.signInPrompt", "登录后可查看历史任务")}
+          ctaLabel={t("history.signIn", "登录")}
+          onCta={() => auth.login().catch(() => {})}
+        />
       ) : tasks.length === 0 ? (
-        <p className="text-[14px]" style={{ color: T.muted }}>
-          {t("history.empty", "还没有任务记录，回首页创建第一个吧 →")}
-        </p>
+        <DetailNotice
+          title={t("history.empty", "还没有任务记录，回首页创建第一个吧 →")}
+          text="回到今日面板输入一个目标，AI 会把它拆成带排期的子任务"
+        />
       ) : (
-        <>
-          <h2
-            className="text-[28px] font-semibold tracking-[-0.05em] mb-5"
-            style={{ color: T.ink }}
-          >
-            {t("history.recentTasks", "最近任务")}
-          </h2>
-
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}
-          >
-            {tasks.map((task) => {
-              const pct =
-                task.subtaskCount > 0
-                  ? Math.round((task.completedCount / task.subtaskCount) * 100)
-                  : 0;
-
-              return (
-                <Link key={task.id} href={`/task/${task.id}`} className="block group">
-                  <article
-                    className="rounded-[18px] p-[18px] border transition-all hover:shadow-md"
-                    style={{ background: T.surface, borderColor: T.line }}
-                  >
-                    <b className="block text-[15px] font-semibold leading-snug truncate" style={{ color: T.ink }}>
-                      {task.title}
-                    </b>
-
-                    {/* 进度条 */}
-                    {task.subtaskCount > 0 && (
-                      <div className="mt-3 mb-1">
-                        <div
-                          className="h-[3px] rounded-full overflow-hidden"
-                          style={{ background: T.soft }}
-                        >
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${pct}%`,
-                              background: pct === 100 ? T.green : T.accent,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between mt-2">
-                      <span
-                        className="text-[12px]"
-                        style={{
-                          fontFamily: "var(--font-geist-mono), monospace",
-                          color: T.muted,
-                        }}
-                      >
-                        {task.subtaskCount > 0
-                          ? t("history.completed", { done: task.completedCount, total: task.subtaskCount })
-                          : task.totalDays > 0
-                          ? t("history.days", { count: task.totalDays })
-                          : "—"}{" "}
-                        · {new Date(task.createdAt).toLocaleDateString()}
-                      </span>
-                      <button
-                        onClick={(e) => handleDeleteClick(task, e)}
-                        className="text-[13px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
-                        style={{ color: T.muted }}
-                        title={t("history.delete", "删除")}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </article>
-                </Link>
-              );
-            })}
-          </div>
-        </>
+        <Card className="gap-0">
+          <CardHeader className="mb-1">
+            <CardTitle>全部任务</CardTitle>
+            <CardAction>
+              <Mono className="text-[10px] text-text-3">点击行进入任务详情</Mono>
+            </CardAction>
+          </CardHeader>
+          <ul className="flex flex-col">
+            {tasks.map((task) => (
+              <HistoryRow
+                key={task.id}
+                task={task}
+                onDelete={(e) => handleDeleteClick(task, e)}
+              />
+            ))}
+          </ul>
+        </Card>
       )}
 
-      {/* 🗑 统一删除计划安全二次确认弹窗 */}
+      {/* 统一删除计划安全二次确认弹窗 */}
       <DeletePlanModal
         isOpen={Boolean(deleteTarget)}
         taskTitle={deleteTarget?.title ?? ""}
@@ -169,57 +139,6 @@ export function HistoryPage() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </PageShell>
-  );
-}
-
-function PageShell({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
-  const brandTitle = `← ${t("brand.name", "拾级")}`;
-
-  return (
-    <div
-      className="relative z-10"
-      style={{
-        paddingTop: "var(--safe-top)",
-        paddingBottom: "var(--safe-bottom)",
-        minHeight: "100vh",
-      }}
-    >
-      <div className="mx-auto px-4" style={{ width: "min(100% - 32px, 1024px)" }}>
-        <nav
-          className="flex items-center justify-between"
-          style={{ height: 64, fontSize: 14, color: T.muted }}
-        >
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-[650] tracking-[-0.03em] hover:opacity-70 transition-opacity"
-            style={{ color: T.ink }}
-          >
-            <GradusLogo size={24} />
-            <span>{brandTitle}</span>
-          </Link>
-          <span
-            className="text-[12px] tracking-[0.06em] uppercase"
-            style={{
-              color: T.muted,
-              fontFamily: "var(--font-geist-mono), monospace",
-            }}
-          >
-            History
-          </span>
-        </nav>
-        <div className="pt-4 pb-14">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function LoadingState() {
-  const { t } = useTranslation();
-  return (
-    <p className="text-[14px] py-10" style={{ color: T.muted }}>
-      {t("history.loading", "加载中…")}
-    </p>
+    </BrandPageShell>
   );
 }

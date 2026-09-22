@@ -1,4 +1,8 @@
-export type ThemeId = "sage" | "linear" | "paper" | "nordic";
+// 拾级 Gradus 主题配置 —— 只有两套：奶油浅色（品牌默认）与深色带反推
+// 色值真源在 src/app/globals.css 的 :root / .dark；这里仅用于风格预览与
+// 文案展示，不再向 <html> 写内联变量（避免与样式表打架）。
+
+export type ThemeId = "cream" | "ink";
 
 export interface ThemeConfig {
   id: ThemeId;
@@ -22,84 +26,50 @@ export interface ThemeConfig {
 }
 
 export const THEMES: Record<ThemeId, ThemeConfig> = {
-  sage: {
-    id: "sage",
-    name: "温润竹青 (Sage Warm)",
-    nameEn: "Calm Sage",
-    tagline: "极简温润 · 竹青素雅 · 专注心流",
-    bg: "#FAFAF8",
+  cream: {
+    id: "cream",
+    name: "拾级奶油 (Cream)",
+    nameEn: "Gradus Cream",
+    tagline: "暖奶油底 · 近黑文字 · 单一点缀黄",
+    bg: "#F5F2EA",
     surface: "#FFFFFF",
-    soft: "#F4F3EF",
-    line: "#EDECEA",
-    ink: "#1A1A1A",
-    muted: "#6B6B6B",
-    subtle: "#9CA3AF",
-    accent: "#4A7C6F", // Sage Green
-    secondaryAccent: "#C4841D", // Warm Amber
+    soft: "#FAF8F3",
+    line: "#E6E1D3",
+    ink: "#111111",
+    muted: "#5E5B53",
+    subtle: "#6E6B62",
+    accent: "#F5C518",
+    secondaryAccent: "#3A3833",
     cardBg: "#FFFFFF",
-    border: "#EDECEA",
-    badgeBg: "#EBF3F0",
-    badgeText: "#3D6B5F",
-    previewGradient: "linear-gradient(135deg, #FAFAF8 0%, #F4F3EF 100%)",
+    border: "#E6E1D3",
+    badgeBg: "rgba(245, 197, 24, 0.16)",
+    badgeText: "#7A5F00",
+    previewGradient: "linear-gradient(135deg, #F5F2EA 0%, #FAF8F3 100%)",
   },
-  linear: {
-    id: "linear",
-    name: "深邃夜幕 (Linear Dark)",
-    nameEn: "Linear Focus",
-    tagline: "极客夜空 · 熏衣草蓝 · 护眼专注",
-    bg: "#0F1114",
-    surface: "#171920",
-    soft: "#1E2028",
-    line: "#2D2F38",
-    ink: "#F1F2F4",
-    muted: "#8B8F9A",
-    subtle: "#5C6070",
-    accent: "#7C8CF5", // Lavender-Blue
-    secondaryAccent: "#FBBF24", // Golden Amber
-    cardBg: "#171920",
-    border: "#2D2F38",
-    badgeBg: "#222738",
-    badgeText: "#9AA4F7",
-    previewGradient: "linear-gradient(135deg, #0F1114 0%, #1E2028 100%)",
-  },
-  paper: {
-    id: "paper",
-    name: "和纸素墨 (Paper Minimal)",
-    nameEn: "Wabi-Sabi Paper",
-    tagline: "质感和纸 · 赭墨相映 · 诗性学习",
-    bg: "#FBF9F4",
-    surface: "#FFFFFF",
-    soft: "#F4F0E6",
-    line: "#E6E2D8",
-    ink: "#1C1B1A",
-    muted: "#7A7771",
-    subtle: "#9C9890",
-    accent: "#2F5D50",
-    secondaryAccent: "#D96B43",
-    cardBg: "#FFFFFF",
-    border: "#E8E4DA",
-    badgeBg: "#F0ECE2",
-    badgeText: "#2F5D50",
-    previewGradient: "linear-gradient(135deg, #FBF9F4 0%, #F4F0E6 100%)",
-  },
-  nordic: {
-    id: "nordic",
-    name: "极简纯白 (Nordic Studio)",
-    nameEn: "Nordic Daylight",
-    tagline: "清爽白调 · 钴蓝点缀 · 明快利落",
-    bg: "#F8F9FA",
-    surface: "#FFFFFF",
-    soft: "#F1F3F5",
-    line: "#E4E7EB",
-    ink: "#09090B",
-    muted: "#64748B",
-    subtle: "#94A3B8",
-    accent: "#2563EB",
-    secondaryAccent: "#059669",
-    cardBg: "#FFFFFF",
-    border: "#E2E8F0",
-    badgeBg: "#EFF6FF",
-    badgeText: "#1D4ED8",
-    previewGradient: "linear-gradient(135deg, #F8F9FA 0%, #E2E8F0 100%)",
+  ink: {
+    id: "ink",
+    name: "墨黑深色带 (Ink)",
+    nameEn: "Gradus Ink",
+    tagline: "深色带语言 · 黄字眉题 · 护眼专注",
+    bg: "#0E0D0B",
+    surface: "#17150F",
+    soft: "#17150F",
+    line: "#2B2924",
+    ink: "#F5F2EA",
+    muted: "rgba(245, 242, 234, 0.72)",
+    subtle: "rgba(245, 242, 234, 0.58)",
+    accent: "#F5C518",
+    secondaryAccent: "#8A867C",
+    cardBg: "#17150F",
+    border: "#2B2924",
+    badgeBg: "rgba(245, 197, 24, 0.16)",
+    badgeText: "#7A5F00",
+    previewGradient: "linear-gradient(135deg, #0E0D0B 0%, #17150F 100%)",
   },
 };
+
+/** 历史 4 主题 → 现 2 主题的迁移映射（含早期 Eazo/AutoTask 时期的键值） */
+export function normalizeThemeId(raw: string | null | undefined): ThemeId {
+  if (raw === "ink" || raw === "linear") return "ink";
+  return "cream";
+}

@@ -61,8 +61,8 @@ export function TimelineView({
                 width: 10,
                 height: 10,
                 borderRadius: 2,
-                border: `1.5px dashed #C4841D`,
-                background: "rgba(196,132,29,0.1)",
+                border: `1.5px dashed var(--accent-deep)`,
+                background: "var(--accent-soft)",
               }}
             />
             <span>复习节点</span>
@@ -77,7 +77,7 @@ export function TimelineView({
           border: `1px solid ${T.line}`,
           borderRadius: 12,
           overflowX: "auto",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
+          boxShadow: "0 1px 4px var(--cream)",
         }}
       >
         {/* 时间刻度表头 */}
@@ -99,7 +99,7 @@ export function TimelineView({
               fontSize: 12,
               fontWeight: 600,
               color: T.muted,
-              fontFamily: "var(--font-geist-mono), monospace",
+              fontFamily: "var(--mono)",
             }}
           >
             任务 / 计划
@@ -113,8 +113,11 @@ export function TimelineView({
                   textAlign: "center",
                   fontSize: 11,
                   fontWeight: isToday ? 700 : 500,
-                  color: isToday ? T.accent : T.muted,
-                  fontFamily: "var(--font-geist-mono), monospace",
+                  // 与 §屏二 甘特表头同一语言：今日 = 点缀黄底 + 墨字
+                  color: isToday ? "var(--ink)" : T.muted,
+                  background: isToday ? "var(--accent)" : "transparent",
+                  borderRadius: 6,
+                  fontFamily: "var(--mono)",
                   borderLeft: `1px solid ${T.line}`,
                 }}
               >
@@ -166,8 +169,8 @@ export function TimelineView({
                       height: 16,
                       borderRadius: 4,
                       border: `1.5px solid ${item.completed ? bloom.color : T.line}`,
-                      background: item.completed ? bloom.color : "transparent",
-                      color: "#fff",
+                      background: item.completed ? "var(--ink)" : "transparent",
+                      color: "var(--cream)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

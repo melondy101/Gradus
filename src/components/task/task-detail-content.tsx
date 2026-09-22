@@ -219,7 +219,7 @@ function SubtaskItem({
       <span style={{
         fontSize: 11, fontWeight: 700, color: T.muted,
         width: 20, textAlign: "center", flexShrink: 0, marginTop: 3,
-        fontFamily: "var(--font-geist-mono), monospace",
+        fontFamily: "var(--mono)",
       }}>
         {String(index + 1).padStart(2, "0")}
       </span>
@@ -296,7 +296,7 @@ function SubtaskItem({
         <div style={{ fontSize: 13, fontWeight: 700, color: T.green, letterSpacing: "-0.02em" }}>
           {t("taskDetail.days", { count: subtask.durationDays })}
         </div>
-        <div style={{ fontSize: 9, color: T.muted, marginTop: 2, fontFamily: "var(--font-geist-mono), monospace" }}>
+        <div style={{ fontSize: 9, color: T.muted, marginTop: 2, fontFamily: "var(--mono)" }}>
           {dateLabel}
         </div>
       </div>
@@ -448,7 +448,7 @@ function ResourcePanel({ subtasks }: { subtasks: Subtask[] }) {
                   <div style={{ fontSize: 10, color: "#C0392B", marginTop: 2 }}>{t("taskDetail.deadLink")}</div>
                 )}
                 {!r.url && r.searchQuery && (
-                  <div style={{ fontSize: 10, color: accentColor, marginTop: 2, fontFamily: "var(--font-geist-mono), monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 10, color: accentColor, marginTop: 2, fontFamily: "var(--mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {t("taskDetail.search", { query: r.searchQuery })}
                   </div>
                 )}
@@ -591,7 +591,7 @@ export function TaskDetailContent({ task, onToggle }: Props) {
             <div style={{ width: 80, height: 4, background: T.soft, borderRadius: 2, overflow: "hidden" }}>
               <div style={{ height: 4, width: `${progressPct * 100}%`, background: progressColor, borderRadius: 2, transition: "width 0.4s" }} />
             </div>
-            <span style={{ fontSize: 10, color: T.muted, fontFamily: "var(--font-geist-mono), monospace" }}>
+            <span style={{ fontSize: 10, color: T.muted, fontFamily: "var(--mono)" }}>
               {Math.round(progressPct * 100)}%
             </span>
           </div>

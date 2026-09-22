@@ -1,12 +1,18 @@
 "use client";
 
 // ─── CongratulationsModal ─────────────────────────────────────────────
-// 弹出时机：某个大任务下所有子任务全部勾选完成
+// 弹出时机：某个大任务下所有子任务全部勾选完成。
+// 视觉走设计稿的完成态（§3 `.modal--done` + `.done-in`）：78px 点缀黄圆环里放
+// 台阶标识，标题 24/900，正文 14/23 居中，主操作收在 <Modal> 底栏。
 
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { useTranslation } from "react-i18next";
 
-import { T } from "@/lib/design-tokens";
+import { Check, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GradusLogo } from "@/components/ui/gradus-logo";
+import { Mono } from "@/components/ui/eyebrow";
+import { Modal } from "@/components/ui/modal";
 
 export interface CongratsData {
   taskTitle: string;
@@ -21,124 +27,89 @@ interface Props {
   onGenerateCertificate?: (data: CongratsData) => void;
 }
 
-export function CongratulationsModal({ data, onClose, onLearnMore, onGenerateCertificate }: Props) {
+export function CongratulationsModal({
+  data,
+  onClose,
+  onLearnMore,
+  onGenerateCertificate,
+}: Props) {
   const { t } = useTranslation();
+  const totalDays = data.subtasks.reduce((sum, s) => sum + s.durationDays, 0);
+
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed", inset: 0, zIndex: 300,
-          background: "rgba(17,17,17,0.35)", backdropFilter: "blur(4px)",
-        }}
-      />
-      {/* Card */}
-      <div style={{
-        position: "fixed", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        background: T.surface, border: `1px solid ${T.line}`,
-        borderRadius: 20, padding: "28px 28px 22px",
-        width: "min(460px, 93vw)", maxHeight: "85vh",
-        overflowY: "auto", zIndex: 301,
-        boxShadow: "0 24px 80px rgba(17,17,17,0.14)",
-        display: "flex", flexDirection: "column", gap: 18,
-      }}>
+    <Modal
+      open
+      onClose={onClose}
+      layer="confirm"
+      width={460}
+      aria-label={t("congrats.title")}
+      className="text-center"
+      bodyClassName="flex flex-col items-center gap-4 px-10 py-10"
+      footer={
+        <>
+          <Mono className="text-text-3">
+            {data.subtasks.length} 个子任务 · 累计 {totalDays} 天
+          </Mono>
+          <div className="flex gap-2.5">
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              {t("congrats.close")}
+            </Button>
+            {onGenerateCertificate && (
+              <Button size="sm" onClick={() => onGenerateCertificate(data)}>
+                <Trophy size={13} />
+                <span>生成结业证书</span>
+              </Button>
+            )}
+          </div>
+        </>
+      }
+    >
+      <span className="grid size-[78px] place-items-center rounded-full border border-accent-deep bg-accent-soft text-ink">
+        <GradusLogo size={44} showText={false} />
+      </span>
 
-        {/* Trophy + Title */}
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 52, lineHeight: 1, marginBottom: 12 }}>🎉</div>
-          <div style={{ color: T.ink, fontWeight: 800, fontSize: 20, letterSpacing: "-0.04em", lineHeight: 1.2 }}>
-            {t("congrats.title")}
-          </div>
-          <div style={{ color: T.accent, fontWeight: 700, fontSize: 16, marginTop: 6, letterSpacing: "-0.03em" }}>
-            「{data.taskTitle}」
-          </div>
-        </div>
-
-        {/* Achievement summary */}
-        <div style={{ background: "linear-gradient(135deg, #f0f9f4, #e8f4fd)", borderRadius: 12, padding: "14px 16px" }}>
-          <div style={{ color: T.green, fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
-            {t("congrats.learned")}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {data.subtasks.map((s) => (
-              <div key={s.id} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <span style={{ color: T.green, fontSize: 13, flexShrink: 0, marginTop: 1 }}>✓</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ color: T.ink, fontSize: 13, fontWeight: 500 }}>{s.title}</span>
-                  {s.description && (
-                    <div style={{ color: T.muted, fontSize: 11, marginTop: 2, lineHeight: 1.4 }}>{s.description}</div>
-                  )}
-                </div>
-                <span style={{ color: T.green, fontSize: 10, fontFamily: "monospace", flexShrink: 0 }}>
-                  {t("congrats.days", { count: s.durationDays })}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Topic badge if available */}
-        {data.subtasks[0]?.topic && (
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <span style={{
-              background: "rgba(59,122,255,0.08)", color: T.accent,
-              border: "1px solid rgba(59,122,255,0.2)",
-              fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 20,
-            }}>
-              {t("congrats.topic", { topic: data.subtasks[0].topic })}
-            </span>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {onGenerateCertificate && (
-            <button
-              onClick={() => onGenerateCertificate(data)}
-              style={{
-                background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                padding: "12px 0",
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                letterSpacing: "-0.02em",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                boxShadow: "0 4px 14px rgba(79,70,229,0.25)",
-              }}
-            >
-              <span>🏆 生成结业证书 & 分享海报</span>
-            </button>
-          )}
-          <button
-            onClick={() => onLearnMore(data.taskId)}
-            style={{
-              background: T.accent, color: "#fff", border: "none",
-              borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 600,
-              cursor: "pointer", letterSpacing: "-0.02em",
-            }}
-          >
-            {t("congrats.learnMore")}
-          </button>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none", color: T.muted, border: "none",
-              fontSize: 12, cursor: "pointer", padding: "4px 0",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {t("congrats.close")}
-          </button>
-        </div>
+      <div>
+        <h3 className="text-[24px] leading-tight font-black tracking-[-.03em]">
+          {t("congrats.title")}
+        </h3>
+        <p className="mt-1.5 text-[16px] font-bold tracking-[-.02em] text-accent-ink">
+          「{data.taskTitle}」
+        </p>
       </div>
-    </>
+
+      <div className="w-full rounded-field bg-cream-light px-4 py-3.5 text-left">
+        <div className="mb-2.5 text-[13px] font-semibold text-success">
+          {t("congrats.learned")}
+        </div>
+        <ul className="flex flex-col gap-1.5">
+          {data.subtasks.map((s) => (
+            <li key={s.id} className="flex items-start gap-2">
+              <Check size={13} className="mt-0.5 shrink-0 text-success" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-medium text-ink">{s.title}</span>
+                {s.description && (
+                  <span className="mt-0.5 block text-[11px] leading-snug text-text-2">
+                    {s.description}
+                  </span>
+                )}
+              </span>
+              <Mono className="shrink-0 text-[10px] text-text-3">
+                {t("congrats.days", { count: s.durationDays })}
+              </Mono>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {data.subtasks[0]?.topic && (
+        <span className="rounded-pill border border-accent-deep bg-accent-soft px-3 py-1 text-[11px] font-semibold text-accent-ink">
+          {t("congrats.topic", { topic: data.subtasks[0].topic })}
+        </span>
+      )}
+
+      <Button variant="link" size="xs" onClick={() => onLearnMore(data.taskId)}>
+        {t("congrats.learnMore")}
+      </Button>
+    </Modal>
   );
 }

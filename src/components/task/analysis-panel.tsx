@@ -57,7 +57,7 @@ export function AnalysisPanel({
         className="text-[12px] font-medium tracking-[0.08em] uppercase"
         style={{
           color: T.accent,
-          fontFamily: "var(--font-geist-mono), monospace",
+          fontFamily: "var(--mono)",
         }}
       >
         AI TASK RITUAL
@@ -104,7 +104,7 @@ export function AnalysisPanel({
               <span
                 className="ml-auto text-[12px] hidden sm:block"
                 style={{
-                  fontFamily: "var(--font-geist-mono), monospace",
+                  fontFamily: "var(--mono)",
                   color: T.muted,
                 }}
               >
@@ -137,7 +137,7 @@ export function AnalysisPanel({
             {errorMsg && (
               <p
                 className="text-[12px] pl-[34px]"
-                style={{ color: T.muted, fontFamily: "var(--font-geist-mono), monospace", wordBreak: "break-all" }}
+                style={{ color: T.muted, fontFamily: "var(--mono)", wordBreak: "break-all" }}
               >
                 {errorMsg}
               </p>
@@ -152,7 +152,7 @@ export function AnalysisPanel({
           className="text-[12px]"
           style={{
             color: T.muted,
-            fontFamily: "var(--font-geist-mono), monospace",
+            fontFamily: "var(--mono)",
           }}
         >
           {t("analysisPanel.waiting")}
@@ -212,7 +212,7 @@ function TaskCards({
             className="text-[12px] font-medium"
             style={{
               color: T.accent,
-              fontFamily: "var(--font-geist-mono), monospace",
+              fontFamily: "var(--mono)",
             }}
           >
             {t("analysisPanel.days", { count: s.durationDays })}

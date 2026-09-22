@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { CalendarDays, Compass, Crown, FolderOpen, Milestone, Moon, Search, Sparkles, Star, Sun, Ticket, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { T } from "@/lib/design-tokens";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
@@ -72,7 +73,7 @@ export function CommandPalette({
       id: "action-new-plan",
       title: "创建新学习目标与计划",
       category: "快捷操作",
-      icon: "✨",
+      icon: Sparkles,
       action: () => {
         onClose();
         onNewPlan();
@@ -82,7 +83,7 @@ export function CommandPalette({
       id: "action-onboarding-tour",
       title: "新手指引 · 体验 3 步气泡指引与功能导览",
       category: "帮助与指引",
-      icon: "🧭",
+      icon: Compass,
       action: () => {
         onClose();
         window.dispatchEvent(new CustomEvent("open-gradus-tour"));
@@ -92,7 +93,7 @@ export function CommandPalette({
       id: "action-membership",
       title: "会员中心 · 查看用量配额与特权",
       category: "会员与特权",
-      icon: "👑",
+      icon: Crown,
       action: () => {
         onClose();
         openMembershipModal("overview");
@@ -102,7 +103,7 @@ export function CommandPalette({
       id: "action-redeem-code",
       title: "兑换码激活 · 升级会员解锁任务容量",
       category: "会员与特权",
-      icon: "🎟️",
+      icon: Ticket,
       action: () => {
         onClose();
         openMembershipModal("redeem");
@@ -114,7 +115,7 @@ export function CommandPalette({
             id: "action-manage-codes",
             title: "激活码生成与管理 · 批量制码与配额发放",
             category: "会员与特权",
-            icon: "⚡",
+            icon: Zap,
             action: () => {
               onClose();
               openMembershipModal("manage");
@@ -126,7 +127,7 @@ export function CommandPalette({
       id: "view-today",
       title: "切换至：今日聚焦 (Today Focus)",
       category: "视图导航",
-      icon: "🌟",
+      icon: Star,
       action: () => {
         onClose();
         onSwitchView("today");
@@ -136,7 +137,7 @@ export function CommandPalette({
       id: "view-plans",
       title: "切换至：所有计划库 (All Plans)",
       category: "视图导航",
-      icon: "📂",
+      icon: FolderOpen,
       action: () => {
         onClose();
         onSwitchView("plans");
@@ -146,7 +147,7 @@ export function CommandPalette({
       id: "view-steps",
       title: "切换至：拾级天梯 (Ascending Steps)",
       category: "视图导航",
-      icon: "🪜",
+      icon: Milestone,
       action: () => {
         onClose();
         onSwitchView("steps");
@@ -156,29 +157,29 @@ export function CommandPalette({
       id: "view-timeline",
       title: "切换至：时间甘特图 (Timeline)",
       category: "视图导航",
-      icon: "📅",
+      icon: CalendarDays,
       action: () => {
         onClose();
         onSwitchView("timeline");
       },
     },
     {
-      id: "theme-sage",
-      title: "切换主题：温润竹青 (Calm Sage)",
+      id: "theme-cream",
+      title: "切换主题：拾级奶油 (Gradus Cream)",
       category: "系统设置",
-      icon: "🍃",
+      icon: Sun,
       action: () => {
-        setThemeId("sage" as ThemeId);
+        setThemeId("cream" as ThemeId);
         onClose();
       },
     },
     {
-      id: "theme-linear",
-      title: "切换主题：深邃夜幕 (Linear Dark)",
+      id: "theme-ink",
+      title: "切换主题：墨黑深色带 (Gradus Ink)",
       category: "系统设置",
-      icon: "🌙",
+      icon: Moon,
       action: () => {
-        setThemeId("linear" as ThemeId);
+        setThemeId("ink" as ThemeId);
         onClose();
       },
     },
@@ -236,8 +237,8 @@ export function CommandPalette({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(4px)",
+          background: "color-mix(in srgb, var(--ink) 45%, transparent)",
+          backdropFilter: "blur(2px)",
           zIndex: 9999,
           display: "flex",
           alignItems: "flex-start",
@@ -257,8 +258,8 @@ export function CommandPalette({
             maxWidth: 580,
             background: T.surface,
             border: `1px solid ${T.line}`,
-            borderRadius: 14,
-            boxShadow: "0 20px 48px rgba(0,0,0,0.18)",
+            borderRadius: 20,
+            boxShadow: "0 60px 120px -30px rgba(14,13,11,.6)",
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
@@ -274,7 +275,7 @@ export function CommandPalette({
               gap: 12,
             }}
           >
-            <span style={{ fontSize: 16, color: T.muted }}>🔍</span>
+            <Search size={16} style={{ color: T.muted }} />
             <input
               ref={inputRef}
               type="text"
@@ -302,7 +303,7 @@ export function CommandPalette({
                 padding: "2px 6px",
                 borderRadius: 4,
                 color: T.muted,
-                fontFamily: "var(--font-geist-mono), monospace",
+                fontFamily: "var(--mono)",
               }}
             >
               ESC
@@ -322,6 +323,7 @@ export function CommandPalette({
           >
             {allItems.map((item, index) => {
               const isSelected = index === selectedIndex;
+              const Glyph = item.icon as React.ComponentType<{ size?: number; style?: React.CSSProperties }> | string;
               return (
                 <div
                   key={item.id}
@@ -339,7 +341,13 @@ export function CommandPalette({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                    <span style={{ fontSize: 14 }}>{item.icon}</span>
+                    {
+                      typeof Glyph === "string" ? (
+                        <span style={{ fontSize: 12, fontFamily: "var(--mono)", color: T.muted, width: 14, textAlign: "center" }}>{Glyph}</span>
+                      ) : (
+                        <Glyph size={14} style={{ color: T.muted }} />
+                      )
+                    }
                     <span
                       style={{
                         fontSize: 13.5,
@@ -357,7 +365,7 @@ export function CommandPalette({
                     style={{
                       fontSize: 11,
                       color: T.muted,
-                      background: isSelected ? "rgba(0,0,0,0.05)" : "transparent",
+                      background: isSelected ? T.soft : "transparent",
                       padding: "2px 6px",
                       borderRadius: 4,
                       flexShrink: 0,

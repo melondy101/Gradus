@@ -434,7 +434,7 @@ export async function POST(
     try {
       await createNotification({
         userId: auth.user.id,
-        title: "🎯 学习任务拆解已就绪",
+        title: "学习任务拆解已就绪",
         content: `《${taskName}》已成功拆解为 ${saved.length} 个递进子任务，预计总周期 ${totalDays} 天，已智能排期并注入学习资源。`,
         type: "task",
         link: `/task/${id}`,

@@ -9,20 +9,20 @@ export interface Level {
   threshold: number;
   /** 等级名 */
   name: string;
-  /** 图标 */
-  icon: string;
-  /** 主题色 */
-  color: string;
 }
 
-/** 等级阶梯（按 threshold 升序） */
+/**
+ * 等级阶梯（按 threshold 升序）。
+ * 品牌规范（§1.2）下等级不再各带一种主题色与表情符号：叙事由点缀黄 +
+ * 线性图标承担，图标见 components/home/level-badge.tsx 的门槛映射。
+ */
 export const LEVELS: Level[] = [
-  { threshold: 0,   name: "起步",   icon: "🌱", color: "#8AA399" },
-  { threshold: 5,   name: "初学",   icon: "📖", color: "#3B7AFF" },
-  { threshold: 10,  name: "进阶",   icon: "🚀", color: "#7C5CFC" },
-  { threshold: 20,  name: "熟练",   icon: "⭐", color: "#E07B2A" },
-  { threshold: 40,  name: "精通",   icon: "🏅", color: "#E0A32A" },
-  { threshold: 80,  name: "大师",   icon: "👑", color: "#C9A227" },
+  { threshold: 0,   name: "起步" },
+  { threshold: 5,   name: "初学" },
+  { threshold: 10,  name: "进阶" },
+  { threshold: 20,  name: "熟练" },
+  { threshold: 40,  name: "精通" },
+  { threshold: 80,  name: "大师" },
 ];
 
 /** 里程碑门槛（用于「解锁」提示，与等级门槛一致但去掉 0） */
@@ -73,8 +73,8 @@ export function crossedMilestone(before: number, after: number): Level | null {
 export function encourageMessage(todayIndex: number, totalAfter: number): string {
   const cheer =
     todayIndex === 1 ? "今天第一步，开了个好头！" :
-    todayIndex <= 3   ? `今天已完成 ${todayIndex} 项，稳步推进 💪` :
-    todayIndex <= 6   ? `今天第 ${todayIndex} 项，状态很棒 🔥` :
-                        `今天第 ${todayIndex} 项，火力全开 🚀`;
+    todayIndex <= 3   ? `今天已完成 ${todayIndex} 项，稳步推进` :
+    todayIndex <= 6   ? `今天第 ${todayIndex} 项，状态很好` :
+                        `今天第 ${todayIndex} 项，火力全开`;
   return `${cheer} · 累计第 ${totalAfter} 个小步骤`;
 }

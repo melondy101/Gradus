@@ -14,55 +14,20 @@ export const PRESET_TAGS = [
 
 export type PresetTag = (typeof PRESET_TAGS)[number];
 
-// 常见标签色彩语义映射
-const TAG_COLOR_MAP: Record<
-  string,
-  { bg: string; text: string; border: string; dot: string }
-> = {
-  编程: {
-    bg: "rgba(59, 130, 246, 0.12)",
-    text: "#2563EB",
-    border: "rgba(59, 130, 246, 0.28)",
-    dot: "#3B82F6",
-  },
-  文学: {
-    bg: "rgba(217, 119, 6, 0.12)",
-    text: "#B45309",
-    border: "rgba(217, 119, 6, 0.28)",
-    dot: "#D97706",
-  },
-  理科: {
-    bg: "rgba(16, 185, 129, 0.12)",
-    text: "#059669",
-    border: "rgba(16, 185, 129, 0.28)",
-    dot: "#10B981",
-  },
-  语言: {
-    bg: "rgba(139, 92, 246, 0.12)",
-    text: "#7C3AED",
-    border: "rgba(139, 92, 246, 0.28)",
-    dot: "#8B5CF6",
-  },
-  社科: {
-    bg: "rgba(234, 88, 12, 0.12)",
-    text: "#C2410C",
-    border: "rgba(234, 88, 12, 0.28)",
-    dot: "#EA580C",
-  },
-  艺术: {
-    bg: "rgba(236, 72, 153, 0.12)",
-    text: "#DB2777",
-    border: "rgba(236, 72, 153, 0.28)",
-    dot: "#EC4899",
-  },
+// 标签取色（《品牌与产品设计说明》§1.4）：标签本身是中性奶油药丸，
+// 唯一的色彩区分交给左侧小圆点，圆点复用 Bloom 暖灰阶梯（越高越深、
+// 顶点为品牌黄），避免为标签另起一套外来色相。
+// 只用 bloom-3 以上的深色阶：bloom-1/2 在 cream 底上几乎看不见。
+const TAG_DOTS: Record<string, string> = {
+  编程: "var(--bloom-5)",
+  文学: "var(--accent-deep)",
+  理科: "var(--bloom-3)",
+  语言: "var(--bloom-4)",
+  社科: "var(--text-3)",
+  艺术: "var(--bloom-6)",
 };
 
-const DEFAULT_COLOR_PALETTES = [
-  { bg: "rgba(99, 102, 241, 0.12)", text: "#4F46E5", border: "rgba(99, 102, 241, 0.28)", dot: "#6366F1" },
-  { bg: "rgba(20, 184, 166, 0.12)", text: "#0D9488", border: "rgba(20, 184, 166, 0.28)", dot: "#14B8A6" },
-  { bg: "rgba(245, 158, 11, 0.12)", text: "#D97706", border: "rgba(245, 158, 11, 0.28)", dot: "#F59E0B" },
-  { bg: "rgba(168, 85, 247, 0.12)", text: "#9333EA", border: "rgba(168, 85, 247, 0.28)", dot: "#A855F7" },
-];
+const FALLBACK_DOTS = ["var(--bloom-3)", "var(--bloom-4)", "var(--bloom-5)", "var(--bloom-6)"];
 
 /**
  * 校验并清理单个标签字符串
@@ -119,24 +84,17 @@ export function serializeTaskTags(tags: string[]): string {
 }
 
 /**
- * 根据标签名称获取一致的颜色样式
+ * 根据标签名称获取稳定的小圆点颜色
  */
-export function getTagStyle(tag: string): {
-  bg: string;
-  text: string;
-  border: string;
-  dot: string;
-} {
+export function getTagColor(tag: string): string {
   const trimmed = tag.trim();
-  if (TAG_COLOR_MAP[trimmed]) {
-    return TAG_COLOR_MAP[trimmed];
+  if (TAG_DOTS[trimmed]) {
+    return TAG_DOTS[trimmed];
   }
-  // 根据 tag 字符串计算哈希，稳定映射调色板
   let hash = 0;
   for (let i = 0; i < trimmed.length; i++) {
     hash = (hash << 5) - hash + trimmed.charCodeAt(i);
     hash |= 0;
   }
-  const idx = Math.abs(hash) % DEFAULT_COLOR_PALETTES.length;
-  return DEFAULT_COLOR_PALETTES[idx];
+  return FALLBACK_DOTS[Math.abs(hash) % FALLBACK_DOTS.length];
 }

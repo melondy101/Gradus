@@ -90,7 +90,7 @@ export function UserBadge() {
               >
                 <div className="flex items-center gap-2">
                   <KeyRound className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span>⚡ 激活码管理后台</span>
+                  <span>激活码管理后台</span>
                 </div>
                 <span className="rounded-sm bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] px-1 font-bold">
                   管理员
@@ -146,7 +146,7 @@ function BadgeTrigger({ user, isAdmin, onClick }: { user: User; isAdmin?: boolea
       </span>
       {isAdmin ? (
         <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 text-[9px] font-bold font-mono">
-          👑<span className="hidden sm:inline ml-0.5">管理员</span>
+          <Crown size={10} /><span className="hidden sm:inline ml-0.5">管理员</span>
         </span>
       ) : (
         <span
@@ -154,10 +154,10 @@ function BadgeTrigger({ user, isAdmin, onClick }: { user: User; isAdmin?: boolea
           style={{
             backgroundColor:
               tier === "premium"
-                ? "rgba(245, 158, 11, 0.15)"
+                ? "var(--warning-soft)"
                 : tier === "pro"
-                ? "rgba(16, 185, 129, 0.15)"
-                : "rgba(107, 114, 128, 0.15)",
+                ? "var(--success-soft)"
+                : "var(--bd-check)",
             color: config.color,
           }}
         >
@@ -194,7 +194,7 @@ function DropdownPanel({
               <p className="truncate text-sm font-semibold">{user.name ?? "—"}</p>
               {isAdmin ? (
                 <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 text-[9px] font-bold font-mono">
-                  👑 管理员
+                  管理员
                 </span>
               ) : (
                 <span
@@ -202,10 +202,10 @@ function DropdownPanel({
                   style={{
                     backgroundColor:
                       tier === "premium"
-                        ? "rgba(245, 158, 11, 0.15)"
+                        ? "var(--warning-soft)"
                         : tier === "pro"
-                        ? "rgba(16, 185, 129, 0.15)"
-                        : "rgba(107, 114, 128, 0.15)",
+                        ? "var(--success-soft)"
+                        : "var(--bd-check)",
                     color: config.color,
                   }}
                 >
@@ -227,7 +227,7 @@ function DropdownPanel({
       </div>
 
       <div className="border-t border-border px-4 py-2.5 text-xs text-muted-foreground space-y-1">
-        <Row label="当前身份" value={isAdmin ? "👑 系统管理员 (dae201459)" : config.name} />
+        <Row label="当前身份" value={isAdmin ? "系统管理员 (dae201459)" : config.name} />
         <Row label={userIdLabel} value={user.id} mono />
       </div>
 

@@ -13,19 +13,21 @@ export function ThemePreviewModal() {
   return (
     <>
       {/* 浮动切换按钮 */}
+      {/* 浮动入口：设计稿把右下角留给悬浮 AI pill（§3 屏二 right 26 / bottom 22），
+          所以这里靠左下角放，并在移动端隐藏以免压住底部标签栏。 */}
       <button
         id="theme-switcher-trigger"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full shadow-lg border backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95"
+        className="fixed bottom-5 left-5 z-40 hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-full border transition-[transform,border-color] duration-200 hover:scale-105 active:scale-95"
         style={{
-          background: "var(--color-surface, #FFFFFF)",
-          borderColor: "var(--color-line, #E7E7E2)",
-          color: "var(--color-ink, #111111)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          background: "var(--card)",
+          borderColor: "var(--bd-card)",
+          color: "var(--ink)",
+          boxShadow: "var(--shadow-md)",
         }}
         title="预览并切换设计风格 (Theme Preview)"
       >
-        <Palette className="w-4 h-4 text-[var(--color-accent)]" />
+        <Palette className="w-4 h-4 text-accent" />
         <span className="text-xs font-semibold tracking-wide">
           风格预览 ({THEMES[themeId]?.nameEn || "Theme"})
         </span>
@@ -52,9 +54,9 @@ export function ThemePreviewModal() {
               transition={{ type: "spring", duration: 0.35, bounce: 0 }}
               className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border shadow-2xl p-6 md:p-8"
               style={{
-                background: "var(--color-surface, #FFFFFF)",
-                borderColor: "var(--color-line, #E7E7E2)",
-                color: "var(--color-ink, #111111)",
+                background: "var(--card)",
+                borderColor: "var(--bd-card)",
+                color: "var(--ink)",
               }}
             >
               {/* Header */}
@@ -246,7 +248,8 @@ export function ThemePreviewModal() {
                         className="mt-3 w-full py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center justify-center gap-1"
                         style={{
                           background: isSelected ? t.accent : t.soft,
-                          color: isSelected ? "#FFFFFF" : t.ink,
+                          // 点缀黄上永远压墨字：--accent-foreground 在两套主题里都是 #111111
+                          color: isSelected ? "var(--accent-foreground)" : t.ink,
                           borderColor: isSelected ? t.accent : t.border,
                         }}
                       >
@@ -261,8 +264,11 @@ export function ThemePreviewModal() {
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="px-5 py-2 rounded-lg text-sm font-semibold text-white shadow transition-all hover:opacity-90"
-                  style={{ background: "var(--color-ink, #111111)" }}
+                  className="px-5 py-2 rounded-lg text-sm font-semibold shadow transition-all hover:opacity-90"
+                  style={{
+                    background: "var(--primary)",
+                    color: "var(--primary-foreground)",
+                  }}
                 >
                   完成体验并关闭
                 </button>
