@@ -1,0 +1,226 @@
+{
+ "fonts": {
+  "sansBlack": true,
+  "sansBold": true,
+  "mono": true,
+  "loaded": 422
+ },
+ "typed": "从零开始学 Python，六个月后能做数据看板",
+ "tristate": {
+  "before": "3",
+  "after": "4"
+ },
+ "pipeline": {
+  "midPct": "18%",
+  "endPct": "100%",
+  "doneState": true,
+  "toast": "visible"
+ },
+ "panel": {
+  "t0": "N4 语法收尾：助词与被动表达",
+  "t1": "N3 真题模考与复盘"
+ },
+ "mobile": [
+  {
+   "view": "brand",
+   "scrollW": 390,
+   "clientW": 390,
+   "scale": 0.2319
+  },
+  {
+   "view": "landing",
+   "scrollW": 390,
+   "clientW": 390,
+   "scale": 0.2319
+  },
+  {
+   "view": "app-today",
+   "scrollW": 390,
+   "clientW": 390,
+   "scale": 0.2319
+  },
+  {
+   "view": "app-detail",
+   "scrollW": 390,
+   "clientW": 390,
+   "scale": 0.2319
+  },
+  {
+   "view": "app-modal",
+   "scrollW": 390,
+   "clientW": 390,
+   "scale": 0.2319
+  }
+ ],
+ "consoleErrors": [],
+ "measures": [
+  {
+   "view": "view-brand",
+   "kind": "page",
+   "docScrollW": 1600,
+   "docClientW": 1600
+  },
+  {
+   "view": "brand",
+   "kind": "shell",
+   "widths": [
+    0,
+    0,
+    0
+   ],
+   "navs": [
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "view": "view-landing",
+   "kind": "page",
+   "docScrollW": 1600,
+   "docClientW": 1600
+  },
+  {
+   "view": "landing",
+   "kind": "shell",
+   "widths": [
+    0,
+    0,
+    0
+   ],
+   "navs": [
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "view": "view-app-today",
+   "kind": "page",
+   "docScrollW": 1600,
+   "docClientW": 1600
+  },
+  {
+   "view": "app-today",
+   "kind": "frame",
+   "i": 0,
+   "scale": 1,
+   "frameH": "900",
+   "mainScrollH": 854,
+   "mainClientH": 854,
+   "mainOverflow": 0
+  },
+  {
+   "view": "app-today",
+   "kind": "shell",
+   "widths": [
+    232,
+    0,
+    0
+   ],
+   "navs": [
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "view": "view-app-detail",
+   "kind": "page",
+   "docScrollW": 1600,
+   "docClientW": 1600
+  },
+  {
+   "view": "app-detail",
+   "kind": "frame",
+   "i": 0,
+   "scale": 1,
+   "frameH": "900",
+   "mainScrollH": 929,
+   "mainClientH": 854,
+   "mainOverflow": 75
+  },
+  {
+   "view": "app-detail",
+   "kind": "gantt",
+   "label": "bar--done",
+   "s": 1,
+   "c": 4,
+   "dLeft": 0,
+   "dRight": 0
+  },
+  {
+   "view": "app-detail",
+   "kind": "gantt",
+   "label": "bar--live",
+   "s": 5,
+   "c": 3,
+   "dLeft": 0,
+   "dRight": 0
+  },
+  {
+   "view": "app-detail",
+   "kind": "gantt",
+   "label": "bar--plan",
+   "s": 8,
+   "c": 1,
+   "dLeft": 0,
+   "dRight": 0
+  },
+  {
+   "view": "app-detail",
+   "kind": "shell",
+   "widths": [
+    0,
+    232,
+    0
+   ],
+   "navs": [
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "view": "view-app-modal",
+   "kind": "page",
+   "docScrollW": 1600,
+   "docClientW": 1600
+  },
+  {
+   "view": "app-modal",
+   "kind": "frame",
+   "i": 0,
+   "scale": 1,
+   "frameH": "900",
+   "mainScrollH": 854,
+   "mainClientH": 854,
+   "mainOverflow": 0
+  },
+  {
+   "view": "app-modal",
+   "kind": "modal",
+   "w": 720,
+   "h": 640,
+   "fitsInVeil": true,
+   "topGap": 129,
+   "botGap": 129,
+   "bodyOverflow": 0,
+   "veilOff": false
+  },
+  {
+   "view": "app-modal",
+   "kind": "shell",
+   "widths": [
+    0,
+    0,
+    232
+   ],
+   "navs": [
+    5,
+    5,
+    5
+   ]
+  }
+ ]
+}

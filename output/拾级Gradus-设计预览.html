@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- 单文件导出件，由 build-single.mjs 生成于 2026-09-21 08:41 UTC。
+     改样式/交互请改 design-preview/ 源目录后重新构建，不要直接编辑本文件。
+     字体走 Google Fonts CDN；离线时回退 PingFang / 雅黑 + 系统等宽，版式不变。 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾级 Gradus · 品牌与产品设计预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+/* ══ css/base.css ══ */
+/* ═══════════════════════════════════════════════════════════
+   拾级 Gradus · base.css
+   令牌 / 排版 / 通用组件 / 预览外壳
+   来源：《拾级 Gradus · 品牌与产品设计说明》§1
+   ═══════════════════════════════════════════════════════════ */
+
+:root{
+  /* §1.2 色彩令牌 */
+  --cream:#F5F2EA;
+  --cream-light:#FAF8F3;
+  --ink:#111111;
+  --accent:#F5C518;
+  --dark:#0E0D0B;
+  --card:#FFFFFF;
+
+  /* ⚠ 与 §1.2 的偏差（实测驱动）：
+     设计稿 眉题 #8A867C 在奶油/浅奶油/白上只有 3.25–3.63:1，小字号不达 WCAG AA 4.5:1；
+     深底副文 #3A3833 在 #0E0D0B 上仅 1.66:1，深底描边 #2B2924 仅 1.34:1，均不可用作文字色。
+     预览里把这两项换成可达标的派生值，原令牌保留在下方供对照。 */
+  --text-2:#5E5B53;          /* 副文 6.0:1（稿：#6E6B62） */
+  --text-3:#6E6B62;          /* 眉题 4.7:1（稿：#8A867C） */
+  --text-3-spec:#8A867C;     /* 仅存档，不参与渲染 */
+  --hairline-dark:#3A3833;   /* 仅用于 hairline/描边，勿作文字色 */
+  --on-dark:#F5F2EA;
+  --on-dark-2:rgba(245,242,234,.72);   /* 深底正文 8.9:1 */
+  --on-dark-3:rgba(245,242,234,.58);   /* 深底元信息 6.4:1（稿：.42 → 3.8:1） */
+
+  --bd-card:#E6E1D3;
+  --bd-field:#E1DCCF;
+  --bd-check:#C9C3B2;
+  --bd-dark:#2B2924;
+
+  /* §1.3 字体 */
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --r-card:16px;
+  --r-field:12px;
+  --r-pill:999px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--cream);
+  padding-bottom:120px;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p,ul,ol,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input{font:inherit;color:inherit}
+code{font-family:var(--mono);font-size:.92em}
+img,svg{display:block}
+
+/* ── 预览外壳（非设计稿内容） ─────────────────────────── */
+.dock{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  z-index:99;display:flex;align-items:center;gap:4px;
+  padding:6px 6px 6px 16px;border-radius:var(--r-pill);
+  background:var(--dark);border:1px solid var(--bd-dark);
+  box-shadow:0 18px 40px -12px rgba(14,13,11,.45);
+  max-width:calc(100vw - 32px);overflow-x:auto;scrollbar-width:none;
+}
+.dock::-webkit-scrollbar{display:none}
+.dock__label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-3);flex:none;padding-right:8px}
+.dock__btn{
+  flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  color:var(--on-dark-2);padding:9px 15px;border-radius:var(--r-pill);
+  transition:background .16s,color .16s;white-space:nowrap;
+}
+.dock__btn:hover{color:var(--on-dark);background:rgba(245,242,234,.07)}
+.dock__btn.is-active{background:var(--accent);color:var(--ink);font-weight:700}
+
+.stage{position:relative}
+.view{display:none}
+.view.is-active{display:block;animation:fade .28s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.frame-wrap{padding:40px 0 48px}
+.frame-slot{position:relative;width:100%;height:calc(900px * var(--s,1))}
+.frame{
+  position:absolute;top:0;left:50%;
+  width:1440px;height:900px;
+  transform:translateX(-50%) scale(var(--s,1));
+  transform-origin:top center;
+  background:var(--cream-light);
+  border:1px solid var(--bd-card);border-radius:18px;overflow:hidden;
+  box-shadow:0 40px 90px -40px rgba(17,17,17,.34);
+}
+
+/* ── §1.3 排版 ─────────────────────────────────────────── */
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.05em;font-weight:500}
+.muted{color:var(--text-3)}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin:0;
+}
+.eyebrow--accent{color:var(--accent)}
+.eyebrow--accent.rev{color:var(--accent)}
+.label-mono{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin:0 0 10px}
+
+.h-hero{font-size:64px;line-height:74px;font-weight:900;letter-spacing:-.01em}
+.h-sec{font-size:44px;line-height:56px;font-weight:700;letter-spacing:-.005em}
+.h-sec.sm{font-size:40px;line-height:50px}
+.h-sub{font-size:28px;line-height:38px;font-weight:700}
+.h-page{font-size:26px;line-height:34px;font-weight:900;letter-spacing:-.01em}
+.lede,.hero-lede,.cta-lede{font-size:16px;line-height:27px;color:var(--text-2)}
+.rev{color:var(--on-dark)}
+
+/* 黄色句号：全站唯一点缀规则之一 */
+.dot-accent{
+  display:inline-block;width:.28em;height:.28em;border-radius:50%;
+  background:var(--accent);margin-left:.06em;vertical-align:-.02em;
+}
+.h-hero .dot-accent,.h-sec .dot-accent{width:18px;height:18px;margin-left:4px}
+h3 .dot-accent{width:11px;height:11px}
+
+/* ── §1.4 按钮 ─────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:44px;padding:0 26px;border-radius:var(--r-pill);
+  font-size:15px;font-weight:700;white-space:nowrap;
+  transition:transform .14s ease,background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--ink);color:var(--cream)}
+.btn--primary:hover{background:#000;box-shadow:0 10px 24px -10px rgba(17,17,17,.6)}
+.btn--ghost{border:1px solid var(--ink);color:var(--ink)}
+.btn--ghost:hover{background:var(--ink);color:var(--cream)}
+.btn--accent{background:var(--accent);color:var(--ink)}
+.btn--accent:hover{background:#ffd740}
+.btn--sm{height:38px;padding:0 20px;font-size:14px}
+.btn--xs{height:30px;padding:0 15px;font-size:12px;border-radius:var(--r-pill)}
+.btn--full{width:100%}
+/* App 内主按钮：方圆角 radius 12，与 56 高输入框同高 */
+.btn--app{background:var(--ink);color:var(--cream);border-radius:var(--r-field);height:56px;padding:0 30px;font-size:16px}
+.btn--app:hover{background:#000}
+.btn--cream{background:var(--cream);color:var(--ink)}
+.btn--cream:hover{background:#fff}
+.btn--on-dark{border:1px solid var(--bd-dark);color:var(--on-dark-2)}
+.btn--on-dark:hover{border-color:var(--on-dark-3);color:var(--on-dark);background:rgba(245,242,234,.05)}
+
+/* ── §1.4 卡片 / 输入 / chips ──────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--bd-card);
+  border-radius:var(--r-card);padding:24px;
+}
+.card--pad{padding:24px}
+.card--dark{
+  background:rgba(245,242,234,.035);border:1px solid var(--bd-dark);color:var(--on-dark);
+}
+.card__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+.card__head h3{font-size:17px;font-weight:700}
+
+.field{
+  width:100%;height:44px;padding:0 16px;border-radius:var(--r-field);
+  background:var(--cream-light);border:1px solid var(--bd-field);
+  font-size:15px;color:var(--ink);outline:none;
+  transition:border-color .16s,box-shadow .16s,background .16s;
+}
+.field::placeholder{color:var(--text-3)}
+.field:focus{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(245,197,24,.28)}
+.field--lg{height:56px;font-size:16px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{
+  padding:7px 14px;border-radius:var(--r-pill);font-size:13px;
+  border:1px solid var(--bd-card);background:var(--cream-light);color:var(--text-2);
+  transition:border-color .16s,color .16s,background .16s,transform .16s;
+}
+.chip:hover{border-color:var(--ink);color:var(--ink);background:#fff;transform:translateY(-1px)}
+
+.icon-btn{
+  position:relative;display:grid;place-items:center;width:40px;height:40px;
+  border-radius:var(--r-field);border:1px solid var(--bd-card);background:#fff;
+  font-size:15px;color:var(--text-2);transition:border-color .16s,color .16s;
+}
+.icon-btn:hover{border-color:var(--ink);color:var(--ink)}
+.icon-btn .pip{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:2px solid #fff}
+.avatar-btn{font-weight:900;font-family:var(--sans)}
+.avatar{
+  display:grid;place-items:center;width:34px;height:34px;border-radius:50%;flex:none;
+  background:var(--ink);color:var(--cream);font-size:14px;font-weight:900;
+}
+
+.tag{
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;
+  color:var(--text-2);background:var(--cream);border:1px solid var(--bd-card);
+  padding:4px 9px;border-radius:6px;white-space:nowrap;
+}
+
+/* 悬浮 AI pill（Landing Hero 与 App 屏二共用同一语言） */
+.ai-pill{
+  position:absolute;display:inline-flex;align-items:center;gap:10px;
+  padding:12px 18px 12px 14px;border-radius:var(--r-pill);
+  background:var(--dark);color:var(--on-dark);
+  border:1px solid var(--bd-dark);
+  box-shadow:0 22px 46px -18px rgba(14,13,11,.55);
+  font-size:13px;font-weight:700;
+}
+.ai-pill .mono{color:var(--accent);margin-left:2px}
+.ai-pill .spin{
+  width:14px;height:14px;border-radius:50%;flex:none;
+  border:2px solid rgba(245,197,24,.28);border-top-color:var(--accent);
+  animation:spin 1.1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── 品牌页 ───────────────────────────────────────────── */
+.brand{max-width:1120px;margin:0 auto;padding:72px 40px 40px}
+.sec-head{margin-bottom:56px}
+.sec-head .h-sec{margin:14px 0 18px}
+.sec-head .lede{max-width:640px}
+
+.band{background:var(--cream);border-top:1px solid var(--bd-card);padding:48px 40px;margin:0 -40px}
+.band--light{background:var(--cream-light)}
+.band .h-sub{margin-bottom:24px}
+.band__row+.band__row{margin-top:36px}
+.band__row--split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.logo-demo{border-radius:var(--r-card);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+.logo-demo--light{background:#fff;border:1px solid var(--bd-card)}
+.logo-demo--dark{background:var(--dark);border:1px solid var(--bd-dark)}
+.logo-demo__word{font-size:30px;font-weight:900;letter-spacing:.02em;display:flex;align-items:baseline;gap:12px}
+.logo-demo__word .mono{font-size:11px;letter-spacing:.24em;color:var(--text-3);font-weight:500}
+.logo-demo__word--rev{color:var(--cream)}
+.logo-demo__word--rev .mono{color:var(--on-dark-3)}
+
+.size-ramp{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
+.size-ramp__item{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.size-ramp__item .mono{color:var(--text-3)}
+.size-ramp__item--on{padding:10px 18px;background:#fff;border:1px dashed var(--bd-check);border-radius:10px}
+
+.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.swatch{background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);padding:16px;transition:transform .18s ease,box-shadow .18s ease}
+.swatch:hover{transform:translateY(-3px);box-shadow:0 14px 30px -16px rgba(17,17,17,.28)}
+.swatch__chip{height:88px;border-radius:10px;background:var(--sw);border:1px solid var(--bd-card)}
+.swatch__name{font-weight:700;font-size:15px;margin:14px 0 3px}
+.swatch .mono{color:var(--text-2)}
+.swatch__use{font-size:12.5px;color:var(--text-3);margin-top:6px;line-height:1.5}
+
+.note{
+  margin-top:28px;padding:18px 22px;border-radius:var(--r-field);
+  background:var(--cream);border:1px solid var(--bd-field);
+  font-size:14.5px;color:var(--text-2);line-height:1.7;
+}
+.note strong{color:var(--ink)}
+.note em{display:block;margin-top:8px;font-style:normal;font-family:var(--mono);font-size:11px;color:var(--text-3);letter-spacing:.02em}
+
+.type-spec{background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);overflow:hidden}
+.type-spec__row{display:grid;grid-template-columns:250px 1fr 150px;gap:24px;align-items:center;padding:22px 24px;border-top:1px solid var(--bd-card)}
+.type-spec__row:first-child{border-top:0}
+.type-spec__row>.mono:first-child{color:var(--text-2)}
+.type-spec__row>.mono:last-child{color:var(--text-3);text-align:right}
+
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.comp{background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);padding:24px;display:flex;flex-direction:column;gap:14px}
+.comp__stack{display:flex;flex-wrap:wrap;gap:12px}
+.comp .card{background:var(--cream-light)}
+.comp .card--dark{background:var(--dark)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+
+/* ── 评审要点页 ───────────────────────────────────────── */
+.band-lead{font-size:14.5px;line-height:25px;color:var(--text-2);max-width:760px;margin-bottom:22px}
+.band-lead code{background:#fff;border:1px solid var(--bd-card);padding:1px 6px;border-radius:5px;font-size:12px}
+
+.cmp{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);overflow:hidden}
+.cmp th,.cmp td{text-align:left;padding:13px 16px;font-size:13.5px;border-top:1px solid var(--bd-card);vertical-align:middle}
+.cmp thead th{
+  background:var(--cream-light);border-top:0;font-family:var(--mono);font-size:10px;
+  font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);
+}
+.cmp tbody tr:first-child td{border-top:0}
+.cmp td:first-child{color:var(--text-2)}
+.cmp td i{display:inline-block;width:15px;height:15px;border-radius:4px;border:1px solid var(--bd-check);vertical-align:-3px;margin-right:8px}
+.cmp td code{font-size:12px}
+.cmp td.ok,.cmp td.bad,.cmp td.warn{font-family:var(--mono);font-weight:700;font-size:12.5px;white-space:nowrap}
+.cmp td.ok{color:#3F6B2F}
+.cmp td.bad{color:#A8331B}
+.cmp td.warn{color:#8A6200}
+
+.amb{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.amb .card{display:flex;flex-direction:column;gap:12px}
+.amb h4{font-size:18px;font-weight:700;line-height:26px}
+.amb p{font-size:14px;line-height:24px;color:var(--text-2)}
+.amb__pick{
+  padding:14px 16px;border-radius:var(--r-field);background:var(--cream-light);
+  border:1px solid var(--bd-field);font-size:13.5px!important;line-height:23px!important;
+}
+.amb__pick b{color:var(--ink);font-weight:700}
+
+.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.metric{background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);padding:18px 16px}
+.metric b{display:block;font-size:30px;line-height:34px;font-weight:900;letter-spacing:-.02em}
+.metric .mono{display:block;margin:10px 0 4px;color:var(--ink);font-weight:700;letter-spacing:.1em}
+.metric span{font-size:12px;color:var(--text-3);line-height:17px}
+
+.ask{counter-reset:q;display:flex;flex-direction:column;gap:14px}
+.ask li{
+  counter-increment:q;position:relative;padding:18px 22px 18px 62px;
+  background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);
+  font-size:14.5px;line-height:25px;color:var(--text-2);
+}
+.ask li::before{
+  content:counter(q,decimal-leading-zero);position:absolute;left:22px;top:18px;
+  font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text-3);
+}
+.ask li b{color:var(--ink);font-weight:700}
+.ask code{background:var(--cream-light);border:1px solid var(--bd-field);padding:1px 6px;border-radius:5px;font-size:12px}
+
+@media (max-width:1180px){
+  .amb{grid-template-columns:1fr}
+  .metrics{grid-template-columns:repeat(3,1fr)}
+  .cmp{display:block;overflow-x:auto}
+}
+@media (max-width:680px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .ask li{padding:16px 16px 16px 52px}
+  .ask li::before{left:16px}
+}
+
+/* ══ css/landing.css ══ */
+/* ═══════════════════════════════════════════════════════════
+   拾级 Gradus · landing.css
+   来源：《品牌与产品设计说明》§2 Landing Page（8 段 · 1440px）
+   ═══════════════════════════════════════════════════════════ */
+
+/* clip 而非 hidden：hidden 会让 .lp 变成滚动容器从而破坏 .lp-nav 的 sticky */
+.lp{background:var(--cream);overflow-x:clip}
+.lp-wrap{width:min(1200px,100% - 80px);margin-inline:auto}
+.lp-wrap--split{display:grid;grid-template-columns:1fr 400px;gap:72px;align-items:start}
+.lp-wrap--foot{display:grid;grid-template-columns:380px 1fr;gap:72px;padding-bottom:56px}
+
+/* ── 1 · 吸顶导航 ─────────────────────────────────────── */
+.lp-nav{
+  position:sticky;top:0;z-index:40;height:72px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;
+  width:min(1200px,100% - 80px);margin-inline:auto;
+}
+.lp-nav__inner,.lp-nav>*{min-width:0}
+.lp-nav{background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-radius:0;
+  width:100%;padding:0 calc((100% - min(1200px,100% - 80px)) / 2);
+  border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
+.lp-nav.is-stuck{border-bottom-color:var(--bd-card);box-shadow:0 10px 26px -22px rgba(17,17,17,.4)}
+.lp-nav__brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:900;letter-spacing:.01em;justify-self:start}
+.lp-nav__links{display:flex;gap:32px;justify-self:center}
+.lp-nav__links a{
+  position:relative;font-size:14.5px;font-weight:500;color:var(--text-2);padding:6px 0;
+  transition:color .16s;
+}
+.lp-nav__links a::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--ink);
+  transform:scaleX(0);transform-origin:left;transition:transform .2s ease;
+}
+.lp-nav__links a:hover{color:var(--ink)}
+.lp-nav__links a:hover::after,.lp-nav__links a.is-here::after{transform:scaleX(1)}
+.lp-nav__actions{display:flex;align-items:center;gap:20px;justify-self:end}
+.lp-nav__login{font-size:14.5px;font-weight:500;color:var(--text-2)}
+.lp-nav__login:hover{color:var(--ink)}
+
+/* ── 2 · Hero ─────────────────────────────────────────── */
+.lp-hero{padding:88px 0 108px;width:min(1200px,100% - 80px);margin-inline:auto}
+.lp-hero__grid{display:grid;grid-template-columns:560px 1fr;gap:64px;align-items:center}
+.badge{
+  display:inline-flex;align-items:center;gap:9px;padding:7px 15px 7px 12px;
+  border-radius:var(--r-pill);background:#fff;border:1px solid var(--bd-card);
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--text-2);
+}
+.hero-tag{display:flex;align-items:center;gap:9px;margin-top:26px;font-size:13px;color:var(--text-2);letter-spacing:.02em}
+.hero-tag span{color:var(--accent);font-size:14px}
+.h-hero{margin:14px 0 0}
+.hero-lede{margin-top:22px;max-width:520px}
+.hero-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:34px}
+.link-arrow{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;color:var(--ink);padding:8px 4px}
+.link-arrow span{transition:transform .18s ease}
+.link-arrow:hover span{transform:translateX(4px)}
+.hero-foot{margin-top:26px;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--text-3)}
+
+.lp-hero__visual{position:relative;padding-bottom:26px}
+.mock{
+  background:var(--card);border:1px solid var(--bd-card);border-radius:var(--r-card);
+  box-shadow:0 44px 88px -34px rgba(17,17,17,.3);overflow:hidden;
+}
+.mock__bar{display:flex;align-items:center;gap:7px;height:38px;padding:0 16px;border-bottom:1px solid var(--bd-card);background:var(--cream-light)}
+.mock__bar i{width:9px;height:9px;border-radius:50%;background:var(--bd-check)}
+.mock__bar span{margin-left:12px;color:var(--text-3);font-size:10px}
+.mock__body{padding:22px}
+.mock__input{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  height:52px;padding:0 6px 0 16px;border-radius:var(--r-field);
+  background:var(--cream-light);border:1px solid var(--bd-field);font-size:15px;
+}
+.mock__input .mock__go{
+  font-style:normal;font-size:13px;font-weight:700;color:var(--cream);background:var(--ink);
+  padding:10px 16px;border-radius:9px;white-space:nowrap;
+}
+.mock__rows{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.mock__row{display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px dashed var(--bd-card)}
+.mock__row:last-child{border-bottom:0}
+.mock__row i{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--bd-check)}
+.mock__row.is-done i{background:var(--ink);border-color:var(--ink);position:relative}
+.mock__row.is-done i::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:var(--cream);font-size:9px;font-weight:900}
+.mock__row.is-live i{border-color:var(--accent);box-shadow:inset 0 0 0 2.5px var(--cream-light),inset 0 0 0 4px var(--accent)}
+.mock__row span{font-size:13.5px;font-weight:500}
+.mock__row.is-done span{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--bd-check)}
+.mock__row em{font-family:var(--mono);font-size:10px;font-style:normal;color:var(--text-3)}
+.mock__gantt{
+  margin-top:18px;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));grid-template-rows:repeat(3,1fr);
+  gap:7px;padding:12px;border-radius:10px;background:var(--cream-light);border:1px solid var(--bd-card);
+}
+.mock .bar{height:100%;border-radius:5px;grid-row:var(--r);grid-column:var(--s) / span var(--c)}
+.mock .bar--done{background:#D8D3C4}
+.mock .bar--live{background:var(--accent)}
+.mock .bar--plan{border:1.5px dashed var(--bd-check);background:transparent}
+
+.lp-hero__visual .ai-pill{left:-34px;bottom:-16px}
+
+/* ── 通用 band ────────────────────────────────────────── */
+.lp-band{padding:100px 0}
+.lp-band--light{background:var(--cream-light)}
+.lp-band--dark{background:var(--dark);color:var(--on-dark)}
+.lp-band .h-sec{margin:12px 0 44px}
+.lp-band--dark .h-sec{max-width:620px}
+
+/* ── 3 · What's New ──────────────────────────────────── */
+.feed{border-top:1px solid var(--bd-card)}
+.feed li{padding:22px 4px 22px 0;border-bottom:1px solid var(--bd-card);position:relative;transition:padding-left .2s ease,background .2s ease}
+.feed li:hover{padding-left:16px;background:linear-gradient(90deg,rgba(245,197,24,.14),transparent 60%)}
+.feed li::before{content:"";position:absolute;left:0;top:50%;width:0;height:2px;background:var(--accent);transform:translateY(-50%);transition:width .2s ease}
+.feed li:hover::before{width:8px}
+.feed .mono{color:var(--text-3);display:block;margin-bottom:7px}
+.feed h4{font-size:17px;font-weight:700;margin-bottom:5px}
+.feed p{font-size:14.5px;line-height:24px;color:var(--text-2);max-width:600px}
+
+.gh-card{
+  background:var(--dark);color:var(--on-dark);border-radius:var(--r-card);padding:32px 28px;
+  display:flex;flex-direction:column;gap:16px;position:sticky;top:100px;
+}
+.gh-card h3{font-size:30px;line-height:40px;font-weight:900;margin-top:2px}
+.gh-card p{font-size:14.5px;line-height:24px;color:var(--on-dark-2)}
+.gh-card code{
+  display:block;font-size:11.5px;letter-spacing:.02em;color:var(--accent);
+  background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.26);
+  padding:10px 12px;border-radius:8px;word-break:break-all;
+}
+.gh-card__star{display:flex;align-items:baseline;gap:8px;padding:6px 0 2px}
+.gh-card__star span{color:var(--accent);font-size:15px}
+.gh-card__star b{font-size:20px;font-weight:900}
+.gh-card__star em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--on-dark-3)}
+.gh-card .btn{width:100%}
+
+/* ── 4 · How it works ────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{
+  background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);padding:26px 24px;
+  position:relative;transition:transform .2s ease,box-shadow .2s ease;
+}
+.step:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(17,17,17,.35)}
+.step .mono{color:var(--text-3);display:block}
+.step h4{font-size:19px;font-weight:700;margin:14px 0 8px}
+.step p{font-size:14.5px;line-height:24px;color:var(--text-2)}
+.step::after{
+  content:"→";position:absolute;right:-16px;top:50%;transform:translateY(-50%);
+  color:var(--bd-check);font-size:18px;z-index:1;
+}
+.step:last-child::after{display:none}
+
+/* ── 5 · 核心能力（显式 2 行 × 3 列） ────────────────── */
+.cap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.cap{min-height:212px;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.cap:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:0 22px 44px -26px rgba(17,17,17,.4)}
+.cap__i{
+  display:grid;place-items:center;width:40px;height:40px;border-radius:10px;
+  background:var(--cream);border:1px solid var(--bd-card);color:var(--ink);font-size:17px;
+}
+.cap h4{font-size:19px;font-weight:700;margin:16px 0 8px}
+.cap p{font-size:14.5px;line-height:24px;color:var(--text-2)}
+
+/* ── 6 · 隐私深色带 ──────────────────────────────────── */
+.priv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+/* §2.6 四张描边暗卡 —— .card 默认白底必须在深带里显式覆盖，否则浅字压白底 */
+.priv{
+  background:rgba(245,242,234,.035);border-color:var(--bd-dark);
+  padding:24px;transition:background .2s ease,border-color .2s ease;
+}
+.priv:hover{background:rgba(245,242,234,.075);border-color:var(--on-dark-3)}
+.priv h4{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--accent);margin-bottom:12px}
+.priv p{font-size:14px;line-height:23px;color:var(--on-dark-2)}
+.priv code{color:var(--on-dark);background:rgba(245,242,234,.09);padding:1px 5px;border-radius:4px;font-size:12px}
+
+/* ── 7 · 最终 CTA ────────────────────────────────────── */
+.lp-cta{padding:128px 0;text-align:center;width:min(1200px,100% - 80px);margin-inline:auto}
+.lp-cta .h-hero{margin:16px auto 0;max-width:800px}
+.lp-cta .cta-lede{max-width:560px;margin:22px auto 0}
+.cta-row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:36px}
+.lp-cta .hero-foot{margin-top:28px}
+.lp-cta code{background:#fff;border:1px solid var(--bd-card);padding:2px 6px;border-radius:5px}
+
+/* ── 8 · Footer ─────────────────────────────────────── */
+.lp-foot{background:var(--dark);color:var(--on-dark);padding:80px 0 0}
+.lp-foot .label-mono{color:var(--on-dark-3)}
+.foot-brand__word{font-size:22px;font-weight:900;margin-top:16px;display:flex;align-items:baseline;gap:10px}
+.foot-brand__word .mono{font-size:10px;letter-spacing:.24em;color:var(--on-dark-3);font-weight:500}
+.foot-brand__tag{font-size:14px;line-height:24px;color:var(--on-dark-2);margin-top:12px;max-width:340px}
+.subscribe{margin-top:30px}
+.subscribe__row{display:flex;gap:8px}
+.subscribe__input{
+  flex:1;min-width:0;height:44px;padding:0 14px;border-radius:var(--r-field);
+  background:rgba(245,242,234,.05);border:1px solid var(--bd-dark);color:var(--on-dark);
+  font-size:14px;outline:none;transition:border-color .16s,background .16s;
+}
+.subscribe__input::placeholder{color:var(--on-dark-3)}
+.subscribe__input:focus{border-color:var(--accent);background:rgba(245,242,234,.09)}
+.subscribe__hint{font-size:12px;color:var(--on-dark-3);margin-top:10px;transition:color .2s}
+.subscribe__hint.is-ok{color:var(--accent)}
+.subscribe.shake .subscribe__input{border-color:#E06C4A;animation:shake .32s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding-top:6px}
+.foot-cols a{
+  display:block;font-size:14px;color:var(--on-dark-2);padding:7px 0;
+  border-bottom:1px solid transparent;transition:color .16s,transform .16s;
+}
+.foot-cols a:hover{color:var(--on-dark);transform:translateX(3px)}
+
+.foot-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  padding:22px 0 30px;border-top:1px solid var(--bd-dark);
+}
+.foot-bar .mono{color:var(--on-dark-3)}
+.foot-bar nav{display:flex;gap:22px}
+.foot-bar nav a{font-size:12.5px;color:var(--on-dark-3)}
+.foot-bar nav a:hover{color:var(--on-dark)}
+.foot-social{display:flex;gap:10px}
+.foot-social a{
+  display:grid;place-items:center;width:34px;height:34px;border-radius:9px;
+  border:1px solid var(--bd-dark);color:var(--on-dark-2);transition:color .16s,border-color .16s,background .16s;
+}
+.foot-social a:hover{color:var(--on-dark);border-color:var(--on-dark-3);background:rgba(245,242,234,.06)}
+.foot-social svg{width:15px;height:15px}
+
+/* ── 预览壳内的自适应（设计稿基准 1440px） ───────────── */
+@media (max-width:1180px){
+  .lp-hero__grid{grid-template-columns:1fr;gap:56px}
+  .lp-hero__visual{max-width:560px}
+  .lp-nav__links{display:none}
+  .lp-wrap--split{grid-template-columns:1fr;gap:40px}
+  .lp-wrap--foot{grid-template-columns:1fr;gap:48px}
+  .gh-card{position:static}
+  .steps,.cap-grid,.priv-grid,.swatches{grid-template-columns:repeat(2,1fr)}
+  .step::after{display:none}
+  .comp-grid,.band__row--split{grid-template-columns:1fr}
+  .type-spec__row{grid-template-columns:1fr;gap:8px}
+  .type-spec__row>.mono:last-child{text-align:left}
+}
+@media (max-width:680px){
+  .lp-wrap,.lp-cta,.lp-hero{width:calc(100% - 44px)}
+  .h-hero{font-size:38px;line-height:46px}
+  .h-hero .dot-accent,.h-sec .dot-accent{width:12px;height:12px}
+  .h-sec,.h-sec.sm{font-size:28px;line-height:38px}
+  .lp-band{padding:64px 0}
+  .lp-cta{padding:80px 0}
+  .steps,.cap-grid,.priv-grid,.swatches{grid-template-columns:1fr}
+  .lp-nav{padding:0 22px;grid-template-columns:auto 1fr}
+  .lp-nav__actions .btn{display:none}
+  .foot-bar{flex-direction:column;align-items:flex-start;gap:14px}
+  .brand{padding:44px 22px 20px}
+  .band{margin:0 -22px;padding:40px 22px}
+}
+
+/* ══ css/app.css ══ */
+/* ═══════════════════════════════════════════════════════════
+   拾级 Gradus · app.css
+   来源：《品牌与产品设计说明》§3 产品操作页（3 屏 · 1440×900）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 共用外壳 ─────────────────────────────────────────── */
+.browser{
+  display:flex;align-items:center;gap:18px;height:44px;padding:0 18px;
+  background:var(--cream);border-bottom:1px solid var(--bd-card);
+}
+.browser__dots{display:flex;gap:7px}
+.browser__dots i{width:10px;height:10px;border-radius:50%;background:var(--bd-check)}
+.browser__url{
+  flex:none;width:340px;height:26px;display:flex;align-items:center;
+  padding:0 14px;border-radius:var(--r-pill);background:#fff;
+  border:1px solid var(--bd-card);color:var(--text-3);font-size:10px;
+}
+
+.app{display:flex;height:calc(100% - 44px)}
+
+/* 侧边栏 232px —— 跨屏整体复制，仅切换导航激活态 */
+.side{
+  flex:none;width:232px;background:#fff;border-right:1px solid var(--bd-card);
+  display:flex;flex-direction:column;padding:18px 14px 16px;
+}
+.side__brand{display:flex;align-items:center;gap:9px;padding:0 6px 18px}
+.side__brand b{font-size:17px;font-weight:900;letter-spacing:.02em}
+.side__menu{padding:0 6px;margin-bottom:6px !important}
+.side__nav{display:flex;flex-direction:column;gap:2px}
+.side__nav a{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
+  font-size:14px;font-weight:500;color:var(--text-2);
+  transition:background .16s,color .16s;
+}
+.side__nav a i{font-style:normal;font-size:13px;width:15px;text-align:center;color:var(--text-3);transition:color .16s}
+.side__nav a:hover{background:var(--cream-light);color:var(--ink)}
+.side__nav a:hover i{color:var(--ink)}
+/* 激活态只改填充与字重（§4.6） */
+.side__nav a.is-active{background:var(--ink);color:var(--cream);font-weight:700}
+.side__nav a.is-active i{color:var(--accent)}
+
+.side__widget{margin-top:22px;padding:16px;border-radius:12px;border:1px solid var(--bd-card);background:var(--cream-light)}
+.side__widget .label-mono{margin-bottom:10px}
+.side__bar{height:6px;border-radius:3px;background:var(--bd-card);overflow:hidden}
+.side__bar span{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.side__meta{font-size:12px;color:var(--text-2);margin-top:9px}
+.side__meta b{font-family:var(--sans);font-size:15px;font-weight:900;color:var(--ink)}
+.side__foot{display:block;color:var(--text-3);font-size:9.5px;margin-top:4px}
+
+.side__user{
+  margin-top:auto;display:flex;align-items:center;gap:10px;
+  padding:11px 10px;border-radius:12px;border:1px solid var(--bd-card);background:#fff;
+  transition:border-color .16s;
+}
+.side__user:hover{border-color:var(--bd-check)}
+.side__user b{font-size:13px;font-weight:700;display:block;line-height:1.3}
+.side__user .mono{font-size:9.5px;color:var(--text-3)}
+
+.main{flex:1;min-width:0;padding:18px 28px 20px;overflow-y:auto;position:relative;scrollbar-width:thin}
+.main::-webkit-scrollbar{width:8px}
+.main::-webkit-scrollbar-thumb{background:var(--bd-card);border-radius:8px}
+.main>.card{padding:20px 22px}
+
+.main__head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:14px}
+.main__head .mono{display:block;margin-top:6px}
+.main__tools{display:flex;align-items:center;gap:10px;flex:none}
+.main__search{
+  display:flex;align-items:center;gap:8px;width:250px;height:40px;padding:0 13px;
+  border-radius:var(--r-field);background:#fff;border:1px solid var(--bd-card);
+  transition:border-color .16s,box-shadow .16s;
+}
+.main__search:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px rgba(245,197,24,.24)}
+.main__search span{color:var(--text-3);font-size:15px}
+.main__search input{flex:1;min-width:0;border:0;outline:none;background:none;font-size:13.5px}
+.main__search input::placeholder{color:var(--text-3)}
+
+/* ── 屏一 · 新目标输入卡 ──────────────────────────────── */
+.goal{margin-bottom:12px}
+.goal .eyebrow{margin-bottom:12px}
+.goal__row{display:flex;gap:10px}
+.goal__row .field{flex:1}
+.goal .chips{margin-top:12px}
+
+/* ── 屏一 · 统计卡行 ─────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:12px}
+.stat{padding:16px 20px}
+.stat .label-mono{margin-bottom:12px}
+.stat b{display:block;font-size:28px;line-height:34px;font-weight:900;letter-spacing:-.01em}
+.stat b em{font-style:normal;font-size:14px;font-weight:500;color:var(--text-2);margin-left:3px}
+.stat__foot{font-size:12px;color:var(--text-3);margin-top:7px}
+.stat--accent{background:var(--accent);border-color:#E3B40F}
+.stat--accent .label-mono{color:rgba(17,17,17,.72)}
+.stat--accent .stat__foot{color:rgba(17,17,17,.72)}
+
+/* ── 屏一 · 底部双列 ─────────────────────────────────── */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+.list .card__head{margin-bottom:4px}
+.list .card__head .mono{font-size:10px}
+
+.subs{display:flex;flex-direction:column}
+.sub{
+  display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;align-items:center;gap:12px;
+  padding:9px 0;border-top:1px solid var(--bd-card);
+  transition:background .16s;
+}
+.sub:first-child{border-top:0}
+.sub:hover{background:var(--cream-light)}
+.sub__c{min-width:0}
+.sub__c b{display:block;font-size:14.5px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub__c p{font-size:12px;color:var(--text-3);margin-top:2px}
+.sub__t{font-size:10px;color:var(--text-3);white-space:nowrap;text-align:right}
+.sub.is-done .sub__c b{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--bd-check)}
+
+/* 复选框三态：已完成深底白勾 / 进行中空框 / 待开始 */
+.box{
+  width:20px;height:20px;border-radius:6px;border:1.5px solid var(--bd-check);
+  display:grid;place-items:center;background:#fff;
+  transition:background .16s,border-color .16s,transform .12s;
+}
+.box:hover{border-color:var(--ink)}
+.box:active{transform:scale(.9)}
+.box i{font-style:normal;font-size:11px;font-weight:900;color:transparent;transition:color .12s}
+.sub.is-done .box{background:var(--ink);border-color:var(--ink)}
+.sub.is-done .box i{color:var(--cream)}
+.sub.is-live .box{border-color:var(--accent);position:relative}
+.sub.is-live .box::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
+
+/* ── AI 修订建议深色卡 ───────────────────────────────── */
+.ai-dark{background:var(--dark);border-color:var(--bd-dark);color:var(--on-dark)}
+.ai-dark .card__head{margin-bottom:10px}
+.ai-dark h3{font-size:17px;font-weight:700;color:var(--cream);margin-bottom:4px}
+.sug{padding:10px 0;border-top:1px solid var(--bd-dark)}
+.sug__t{font-size:14px;font-weight:700;color:var(--cream)}
+.sug__b{font-size:13px;line-height:20px;color:var(--on-dark-2);margin-top:5px;max-width:300px}
+.sug__act{display:flex;gap:8px;margin-top:10px}
+.ai-dark__foot{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--bd-dark);
+  font-size:9.5px;letter-spacing:.04em;color:var(--on-dark-3);
+}
+
+/* ── 屏二 · 任务详情 ─────────────────────────────────── */
+.back{font-size:11px;color:var(--text-3);display:inline-block;margin-bottom:14px;transition:color .16s,transform .16s}
+.back:hover{color:var(--ink);transform:translateX(-3px)}
+.detail-split{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+.detail-main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.main__head .h-page{margin-top:8px}
+.prog__row{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr) auto;align-items:center;gap:20px}
+.prog__id h3{font-size:15px;font-weight:700}
+.prog__id .mono{display:block;font-size:10px;margin-top:4px}
+.prog__pct{font-size:26px;font-weight:900;line-height:1}
+.prog__bar{height:8px;border-radius:4px;background:var(--cream);border:1px solid var(--bd-card);overflow:hidden}
+.prog__bar span{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* 甘特图 */
+.legend{display:flex;gap:16px}
+.legend span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--text-2)}
+.k{width:12px;height:8px;border-radius:3px;display:block}
+.k--done{background:#D8D3C4}
+.k--live{background:var(--accent)}
+.k--plan{background:transparent;border:1.5px dashed var(--bd-check)}
+
+.g{position:relative;margin-top:4px}
+.g__body{position:relative}
+.g__cols{
+  position:absolute;left:204px;right:0;top:0;bottom:0;
+  display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;pointer-events:none;
+}
+.g__cols i{border-radius:4px}
+.g__cols i.today{background:rgba(245,197,24,.13)}
+.g__head{display:grid;grid-template-columns:198px minmax(0,1fr);gap:6px;align-items:center;margin-bottom:8px}
+.g__head>div{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.g__head>div>span{color:var(--text-3);font-size:10px;padding:5px 0;border-radius:6px}
+.g__head .is-today{background:var(--accent);color:var(--ink);font-weight:700}
+.g__head .g__next{color:var(--text-3)}
+.g__lab{display:flex;align-items:center;gap:8px;min-width:0}
+.g__lab b{font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g__lab em{font-style:normal;font-size:9px;color:var(--text-3);flex:none}
+.g__row{display:grid;grid-template-columns:198px minmax(0,1fr);gap:6px;align-items:center;height:30px}
+.g__track{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:center}
+.g .bar{height:21px;border-radius:6px;grid-column:var(--s) / span var(--c);transition:transform .16s,filter .16s}
+.g .bar:hover{transform:scaleY(1.12);filter:brightness(1.04)}
+.g .bar--done{background:#D8D3C4}
+.g .bar--live{background:var(--accent);box-shadow:0 0 0 1px #E3B40F inset}
+.g .bar--plan{border:1.5px dashed var(--bd-check);background:rgba(255,255,255,.5)}
+.g__foot{margin-top:14px;font-size:9.5px;color:var(--text-3)}
+
+.subs--detail .sub{grid-template-columns:20px minmax(0,1fr) auto;cursor:pointer;padding:7px 0}
+.mk{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:900;flex:none}
+.mk--done{background:var(--ink);color:var(--cream)}
+.mk--live{background:#fff;color:var(--ink);border:2px solid var(--accent)}
+.mk--live::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.mk--plan{background:#fff;border:1.5px solid var(--bd-check)}
+.subs--detail .sub.is-sel{background:var(--cream-light);box-shadow:inset 3px 0 0 var(--accent)}
+.subs--detail .sub.is-sel .sub__c b{color:var(--ink)}
+
+/* 子任务详情面板 */
+.panel{position:sticky;top:0}
+.panel__in{
+  background:#fff;border:1px solid var(--bd-card);border-radius:var(--r-card);padding:22px;
+  display:flex;flex-direction:column;gap:0;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;
+  padding:5px 11px;border-radius:var(--r-pill);
+}
+.badge--live{background:rgba(245,197,24,.16);color:#7A5F00;border:1px solid #E3B40F}
+.badge--done{background:var(--ink);color:var(--cream);border:1px solid var(--ink)}
+.badge--plan{background:var(--cream-light);color:var(--text-2);border:1px solid var(--bd-field)}
+.panel__title{font-size:19px;line-height:28px;font-weight:900;margin:12px 0 16px}
+.meta2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd-card);border:1px solid var(--bd-card);border-radius:12px;overflow:hidden}
+.meta2>div{background:var(--cream-light);padding:12px 14px}
+.meta2 .label-mono{margin-bottom:6px}
+.meta2 b{font-size:13.5px;font-weight:700}
+.panel__p{font-size:13.5px;line-height:23px;color:var(--text-2);margin:16px 0 18px}
+.panel__in>.label-mono{margin:18px 0 10px}
+.panel__in>.label-mono:first-of-type{margin-top:0}
+.res{
+  display:flex;flex-direction:column;gap:6px;padding:12px 14px;margin-bottom:8px;
+  border:1px solid var(--bd-card);border-radius:12px;background:var(--cream-light);
+  transition:border-color .16s,transform .16s;
+}
+.res:hover{border-color:var(--ink);transform:translateX(3px)}
+.res__t{font-size:13.5px;font-weight:700;line-height:20px}
+.res__m{display:flex;align-items:center;gap:8px;color:var(--text-3);font-size:9.5px}
+.res__m i{font-style:normal;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:.05em}
+.res__m .ok{background:rgba(245,197,24,.2);color:#7A5F00}
+.res__m .search{background:var(--cream);border:1px solid var(--bd-field);color:var(--text-2)}
+.acts{counter-reset:a;display:flex;flex-direction:column;gap:9px}
+.acts li{counter-increment:a;display:flex;gap:10px;font-size:13.5px;line-height:21px;color:var(--text-2)}
+.acts li::before{
+  content:counter(a,decimal-leading-zero);font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--text-3);flex:none;padding-top:3px;
+}
+.panel__foot{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--bd-card)}
+.panel__foot .btn--app{flex:1;height:42px;font-size:14px;padding:0 16px}
+.panel__foot .btn--ghost{flex:none;height:42px;font-size:14px;padding:0 20px}
+
+/* 详情列底部留白：让悬浮 AI pill 不压住面板主按钮 */
+.detail-split{padding-bottom:58px}
+.ai-pill--app{right:26px;bottom:22px}
+
+/* ── 屏三 · AI 规划弹层 ──────────────────────────────── */
+.veil{
+  position:absolute;inset:0;z-index:20;display:grid;place-items:center;
+  background:rgba(17,17,17,.45);backdrop-filter:blur(2px);
+  transition:opacity .24s ease,visibility .24s;
+}
+.veil.is-off{opacity:0;visibility:hidden;pointer-events:none}
+.modal{
+  width:720px;height:640px;background:#fff;border-radius:20px;
+  box-shadow:0 60px 120px -30px rgba(14,13,11,.6);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform-origin:center;
+}
+.veil.is-off .modal{transform:scale(.97)}
+.modal__head{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--bd-card);flex:none}
+.modal__head h3{font-size:17px;font-weight:900}
+.modal__head .mono{display:block;font-size:9.5px;color:var(--text-3);margin-top:2px}
+.modal__head>div{flex:1}
+.modal__x{width:34px;height:34px;font-size:13px;flex:none}
+.modal__body{flex:1;min-height:0;overflow-y:auto;padding:14px 24px 12px;scrollbar-width:thin}
+.modal__body::-webkit-scrollbar{width:8px}
+.modal__body::-webkit-scrollbar-thumb{background:var(--bd-card);border-radius:8px}
+.modal__foot{
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:12px 24px;border-top:1px solid var(--bd-card);background:var(--cream-light);
+}
+.modal__foot>div{display:flex;gap:10px}
+
+.pipe{display:flex;align-items:flex-start;gap:0;margin-bottom:12px}
+.pnode{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;width:96px;text-align:center}
+.pnode i{
+  font-style:normal;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--mono);font-size:13px;font-weight:700;
+  background:#fff;border:1.5px solid var(--bd-check);color:var(--text-3);
+  transition:background .3s,border-color .3s,color .3s,box-shadow .3s;
+}
+.pnode b{font-size:12.5px;font-weight:700;color:var(--text-3);transition:color .3s}
+.pnode .mono{font-size:9px;color:var(--text-3)}
+.pnode.is-done i{background:var(--ink);border-color:var(--ink);color:var(--cream)}
+.pnode.is-done b{color:var(--ink)}
+.pnode.is-live i{background:var(--accent);border-color:var(--accent);color:var(--ink);box-shadow:0 0 0 5px rgba(245,197,24,.2)}
+.pnode.is-live b{color:var(--ink)}
+.pline{flex:1;height:1.5px;background:var(--bd-card);margin-top:17px;position:relative;overflow:hidden}
+.pline.is-done{background:var(--ink)}
+.pline.is-live::after{content:"";position:absolute;inset:0;background:var(--accent);transform:translateX(-100%);animation:fill 1.6s ease-in-out infinite}
+@keyframes fill{0%{transform:translateX(-100%)}60%,100%{transform:translateX(0)}}
+
+.stage-card{background:var(--cream-light);border-color:var(--bd-field);padding:14px 18px}
+.stage-card__head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.stage-card__pct{font-size:20px;font-weight:900}
+.stage-card__desc{font-size:13px;line-height:20px;color:var(--text-2);margin-top:9px}
+.stage-card__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:11px;background:var(--bd-field);border:1px solid var(--bd-field);border-radius:10px;overflow:hidden}
+.stage-card__stats>div{background:#fff;padding:7px;text-align:center}
+.stage-card__stats b{display:block;font-size:19px;font-weight:900}
+.stage-card__stats .mono{font-size:9.5px;color:var(--text-3);margin-top:3px;display:block}
+
+.preview{display:flex;flex-direction:column;gap:4px}
+.preview li{
+  display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:12px;
+  padding:6px 12px;border:1px solid var(--bd-card);border-radius:11px;background:var(--cream-light);
+  opacity:0;transform:translateY(6px);animation:rise .34s ease forwards;
+}
+.preview li>div{display:flex;align-items:baseline;gap:10px;min-width:0}
+.preview li:nth-child(2){animation-delay:.07s}
+.preview li:nth-child(3){animation-delay:.14s}
+.preview li:nth-child(4){animation-delay:.21s}
+@keyframes rise{to{opacity:1;transform:none}}
+.preview .idx{
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text-2);
+  display:grid;place-items:center;width:27px;height:27px;border-radius:8px;
+  background:#fff;border:1px solid var(--bd-card);
+}
+.preview b{font-size:13.5px;font-weight:700;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .mono{font-size:9.5px;color:var(--text-3);flex:none;margin-top:0}
+
+.toast{
+  position:absolute;left:50%;bottom:34px;transform:translate(-50%,14px);
+  display:flex;align-items:center;gap:9px;
+  padding:12px 20px;border-radius:var(--r-pill);background:var(--dark);color:var(--on-dark);
+  font-size:13px;font-weight:700;border:1px solid var(--bd-dark);
+  box-shadow:0 22px 46px -18px rgba(14,13,11,.6);
+  opacity:0;visibility:hidden;transition:opacity .24s,transform .24s,visibility .24s;z-index:5;
+}
+.toast::before{content:"✓";color:var(--accent);font-weight:900}
+.toast.is-on{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+/* 弹层完成态 */
+.modal--done .modal__body{display:grid;place-items:center;text-align:center;padding:40px 40px}
+.done-in{display:none;flex-direction:column;align-items:center;gap:14px}
+.modal--done .done-in{display:flex;animation:fade .3s ease both}
+.modal--done .pipe,.modal--done .stage-card,.modal--done .label-mono,.modal--done .preview{display:none}
+.done-in__mark{display:grid;place-items:center;width:78px;height:78px;border-radius:50%;background:rgba(245,197,24,.16);border:1px solid #E3B40F}
+.done-in h4{font-size:24px;font-weight:900}
+.done-in p{font-size:14px;line-height:23px;color:var(--text-2);max-width:380px}
+.done-in .mono{font-size:10px;color:var(--text-3)}
+.done-in .btn{margin-top:8px}
+  </style>
+</head>
+<body>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="mark" viewBox="0 0 96 44">
+    <rect x="0" y="32" width="26" height="12" rx="4" fill="currentColor"/>
+    <rect x="35" y="18" width="26" height="26" rx="4" fill="currentColor"/>
+    <rect x="70" y="0" width="26" height="44" rx="4" fill="#F5C518"/>
+  </symbol>
+  <symbol id="mark-mono" viewBox="0 0 96 44">
+    <rect x="0" y="32" width="26" height="12" rx="4" fill="currentColor" opacity=".45"/>
+    <rect x="35" y="18" width="26" height="26" rx="4" fill="currentColor" opacity=".7"/>
+    <rect x="70" y="0" width="26" height="44" rx="4" fill="#F5C518"/>
+  </symbol>
+</svg>
+
+<!-- ══════════════ preview chrome (not part of the design) ══════════════ -->
+<nav class="dock" id="dock">
+  <span class="dock__label">拾级 · 设计预览</span>
+  <button class="dock__btn is-active" data-view="brand">品牌标识</button>
+  <button class="dock__btn" data-view="landing">Landing Page</button>
+  <button class="dock__btn" data-view="app-today">屏一 · 今日面板</button>
+  <button class="dock__btn" data-view="app-detail">屏二 · 任务详情</button>
+  <button class="dock__btn" data-view="app-modal">屏三 · AI 弹层</button>
+  <button class="dock__btn" data-view="notes">评审要点</button>
+</nav>
+
+<main class="stage">
+
+<!-- ══════════════════════════ VIEW · 品牌标识 ══════════════════════════ -->
+<section class="view is-active" id="view-brand">
+  <div class="brand">
+    <header class="sec-head">
+      <p class="eyebrow">01 &nbsp;/&nbsp; Brand System</p>
+      <h1 class="h-sec">拾级而上，<br>每一步都被看见。</h1>
+      <p class="lede">三级递高的圆角台阶取自「拾级」的字面意象；顶点一级使用全站唯一点缀黄 <code>#F5C518</code>，标识本身即是色彩系统的缩影。</p>
+    </header>
+
+    <div class="band">
+      <div class="band__row band__row--split">
+        <div class="logo-demo logo-demo--light">
+          <svg class="mark" style="width:96px;height:44px;color:#111"><use href="#mark"/></svg>
+          <div class="logo-demo__word">拾级 <span class="mono">GRADUS</span></div>
+        </div>
+        <div class="logo-demo logo-demo--dark">
+          <svg class="mark" style="width:96px;height:44px;color:#F5F2EA"><use href="#mark-mono"/></svg>
+          <div class="logo-demo__word logo-demo__word--rev">拾级 <span class="mono">GRADUS</span></div>
+        </div>
+      </div>
+      <div class="band__row">
+        <p class="label-mono">最小使用尺寸 26px（侧边栏）→ 最大 40px（Footer）</p>
+        <div class="size-ramp">
+          <div class="size-ramp__item"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><span class="mono">26</span></div>
+          <div class="size-ramp__item"><svg class="mark" style="width:32px;height:15px;color:#111"><use href="#mark"/></svg><span class="mono">32</span></div>
+          <div class="size-ramp__item"><svg class="mark" style="width:40px;height:19px;color:#111"><use href="#mark"/></svg><span class="mono">40</span></div>
+          <div class="size-ramp__item size-ramp__item--on"><svg class="mark" style="width:64px;height:30px;color:#111"><use href="#mark"/></svg><span class="mono">规格稿</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">色彩令牌</h2>
+      <div class="swatches">
+        <div class="swatch" style="--sw:#F5F2EA"><div class="swatch__chip"></div><p class="swatch__name">奶油底 Cream</p><p class="mono">#F5F2EA</p><p class="swatch__use">页面主背景、深底上的浅带</p></div>
+        <div class="swatch" style="--sw:#FAF8F3"><div class="swatch__chip"></div><p class="swatch__name">浅色带 Cream Light</p><p class="mono">#FAF8F3</p><p class="swatch__use">交替章节、App 界面底</p></div>
+        <div class="swatch" style="--sw:#111111"><div class="swatch__chip"></div><p class="swatch__name">墨色 Ink</p><p class="mono">#111111</p><p class="swatch__use">主文字、主按钮、深色带</p></div>
+        <div class="swatch" style="--sw:#F5C518"><div class="swatch__chip"></div><p class="swatch__name">拾级黄 Accent</p><p class="mono">#F5C518</p><p class="swatch__use">唯一点缀：句号 / 顶点 / 进行中 / CTA</p></div>
+        <div class="swatch" style="--sw:#0E0D0B"><div class="swatch__chip"></div><p class="swatch__name">深色带 Dark</p><p class="mono">#0E0D0B</p><p class="swatch__use">隐私区块、Footer、AI 卡</p></div>
+        <div class="swatch" style="--sw:#FFFFFF"><div class="swatch__chip"></div><p class="swatch__name">卡片白 Card</p><p class="mono">#FFFFFF</p><p class="swatch__use">白卡、导航底</p></div>
+      </div>
+      <div class="note">
+        <strong>克制规则</strong>：黄色全站只出现在五处 —— 句号、顶点台阶、进行中状态、强调统计卡、深底眉题。稀有即重要。
+        <em>次级文字 <code>#6E6B62</code> / 眉题 <code>#8A867C</code>；描边 <code>#E6E1D3</code> / <code>#E1DCCF</code> / <code>#C9C3B2</code> / 深底 <code>#2B2924</code>。</em>
+      </div>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">字体规格</h2>
+      <div class="type-spec">
+        <div class="type-spec__row"><span class="mono">H1 · Noto Sans SC Black</span><p style="font-size:64px;line-height:74px;font-weight:900;margin:0">今天迈上一级<span class="dot"></span></p><span class="mono">64 / 74</span></div>
+        <div class="type-spec__row"><span class="mono">H2 · Noto Sans SC Bold</span><p style="font-size:44px;line-height:56px;font-weight:700;margin:0">章节标题四十四</p><span class="mono">44 / 56</span></div>
+        <div class="type-spec__row"><span class="mono">Body · Noto Sans SC Regular</span><p style="font-size:16px;line-height:26px;margin:0">正文十五至十六像素，行高按 1.6 倍排布，保证长段落可读。</p><span class="mono">15–16 / 26</span></div>
+        <div class="type-spec__row"><span class="mono">Meta · JetBrains Mono Medium</span><p class="mono" style="font-size:12px;margin:0">EYEBROW / 眉题与元信息 / 全大写英文 + 中文</p><span class="mono">10–12</span></div>
+        <div class="type-spec__row"><span class="mono">Stat · Noto Sans SC Black</span><p style="font-size:28px;line-height:34px;font-weight:900;margin:0">86%</p><span class="mono">28（统计卡数值）</span></div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">组件样例</h2>
+      <div class="comp-grid">
+        <div class="comp">
+          <p class="label-mono">按钮 / Buttons</p>
+          <div class="comp__stack">
+            <button class="btn btn--primary">主按钮 · 墨色药丸</button>
+            <button class="btn btn--ghost">次按钮 · 描边药丸</button>
+            <button class="btn btn--app">App 内主按钮 · radius 12</button>
+            <button class="btn btn--accent">强调 · 黄底</button>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">输入 / Chips</p>
+          <input class="field" placeholder="三个月内通过日语 N3 考试">
+          <div class="chips">
+            <button class="chip">从零开始学 Python</button>
+            <button class="chip">读透《思考，快与慢》</button>
+            <button class="chip">30 天拿下手绘基础</button>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">卡片 / Card</p>
+          <div class="card card--pad">
+            <p class="eyebrow">CORE CAPABILITY</p>
+            <p style="font-weight:700;font-size:17px;margin:6px 0 4px">白卡 radius 16 · 1px 细描边 · padding 24</p>
+            <p style="color:var(--text-2);font-size:14px;margin:0">几乎无阴影，层次靠底色与描边建立。</p>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">深色卡 / Dark Card</p>
+          <div class="card card--dark card--pad">
+            <p class="eyebrow eyebrow--accent">AI REVIEW</p>
+            <p style="font-weight:700;font-size:17px;margin:6px 0 4px;color:var(--cream)">深底描边卡，眉题用黄</p>
+            <p style="color:var(--on-dark-2);font-size:14px;margin:0">AI 模块在界面里被一眼识别。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ VIEW · LANDING ══════════════════════════ -->
+<section class="view" id="view-landing">
+  <div class="lp">
+
+    <!-- 1 吸顶导航 -->
+    <header class="lp-nav" id="lpNav">
+      <a class="lp-nav__brand" href="#view-landing">
+        <svg class="mark" style="width:34px;height:16px;color:#111"><use href="#mark"/></svg>
+        <span>拾级</span>
+      </a>
+      <nav class="lp-nav__links">
+        <a href="#sec-whatsnew">更新</a>
+        <a href="#sec-how">如何使用</a>
+        <a href="#sec-cap">核心能力</a>
+        <a href="#sec-privacy">隐私</a>
+      </nav>
+      <div class="lp-nav__actions">
+        <a class="lp-nav__login" href="#">登录</a>
+        <button class="btn btn--primary btn--sm">免费开始</button>
+      </div>
+    </header>
+
+    <!-- 2 Hero -->
+    <section class="lp-hero">
+      <div class="lp-hero__grid">
+        <div class="lp-hero__copy">
+          <div class="badge"><i class="dot-live"></i>v2.4 · 全局接续排期已上线</div>
+          <p class="hero-tag"><span data-deco="1">◇</span> 面向自主学习者的 AI 学习任务规划器</p>
+          <h1 class="h-hero">从一个模糊的目标<br>到每天清楚要走<br>哪一级<i class="dot-accent"></i></h1>
+          <p class="hero-lede">说出你想学什么。拾级把它拆成带排期、带真实资源、带认知层级递进的子任务，自动核查并修订计划，然后在你迈上每一级之后，把后面的日程悄悄接上。</p>
+          <div class="hero-cta">
+            <button class="btn btn--primary">开始规划我的目标</button>
+            <button class="btn btn--ghost">看看它怎么工作</button>
+            <a class="link-arrow" href="#sec-cap">了解 Bloom 递进设计<span>→</span></a>
+          </div>
+          <p class="hero-foot">无需信用卡 · BYOK 接入你自己的模型 · 数据留在你自己的库里</p>
+        </div>
+
+        <div class="lp-hero__visual">
+          <div class="mock">
+            <div class="mock__bar"><i></i><i></i><i></i><span class="mono">gradus / 今日面板</span></div>
+            <div class="mock__body">
+              <p class="label-mono">NEW GOAL</p>
+              <div class="mock__input">三个月内通过日语 N3 考试<i class="mock__go">开始规划</i></div>
+              <div class="mock__rows">
+                <div class="mock__row is-done"><i></i><span>假名与发音定型</span><em>L1 · 2 天</em></div>
+                <div class="mock__row is-live"><i></i><span>核心动词变形 40 组</span><em>L3 · 3 天</em></div>
+                <div class="mock__row"><i></i><span>敬语与书面表达入门</span><em>L4 · 3 天</em></div>
+                <div class="mock__row"><i></i><span>N3 真题模考与复盘</span><em>L5 · 4 天</em></div>
+              </div>
+              <div class="mock__gantt">
+                <span class="bar bar--done" style="--r:1;--s:1;--c:4"></span>
+                <span class="bar bar--live" style="--r:2;--s:3;--c:4"></span>
+                <span class="bar bar--plan" style="--r:3;--s:6;--c:3"></span>
+              </div>
+            </div>
+          </div>
+          <div class="ai-pill"><i class="spin"></i>AI 正在生成计划 <span class="mono">阶段 2 / 4</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 What's New -->
+    <section class="lp-band" id="sec-whatsnew">
+      <div class="lp-wrap lp-wrap--split">
+        <div>
+          <p class="eyebrow">What&apos;s New</p>
+          <h2 class="h-sec sm">最近更新了什么</h2>
+          <ul class="feed">
+            <li><span class="mono">2026.09.18</span><h4>全局接续排期</h4><p>新目标不再挤压旧计划，自动从最末结束日 + 1 接续，超过 7 天空档则回退到今天。</p></li>
+            <li><span class="mono">2026.09.11</span><h4>资源三维可信度校验</h4><p>URL 存活、域名权威分、新鲜度并行校验，AI 不再凭空编造链接。</p></li>
+            <li><span class="mono">2026.09.03</span><h4>自动核查修订</h4><p>计划生成后跑一遍 VALIDATE，Bloom 层级跳跃或评分不足时自动重排。</p></li>
+            <li><span class="mono">2026.08.26</span><h4>间隔复习节点</h4><p>依据遗忘曲线在排期中插入复习提醒点。</p></li>
+          </ul>
+        </div>
+        <aside class="gh-card">
+          <p class="eyebrow eyebrow--accent">Open Source</p>
+          <h3>整个项目<br>是开源的<i class="dot-accent"></i></h3>
+          <p>Next.js + Drizzle + PostgreSQL，一条命令部署到你自己的服务器上。没有平台账号，没有厂商锁定。</p>
+          <code class="mono">github.com/huang-yi-dae/TalkTask</code>
+          <div class="gh-card__star"><span>★</span><b>1.2k</b><em>Stars</em></div>
+          <button class="btn btn--cream">在 GitHub 上查看</button>
+          <button class="btn btn--on-dark">复制部署命令</button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 4 How it works -->
+    <section class="lp-band lp-band--light" id="sec-how">
+      <div class="lp-wrap">
+        <p class="eyebrow">How it works</p>
+        <h2 class="h-sec sm">四步，从一句话到一张甘特图</h2>
+        <div class="steps">
+          <div class="step"><span class="mono">STEP 01</span><h4>说出目标</h4><p>一句模糊的话，或一门课、一本书、一篇论文的链接。</p></div>
+          <div class="step"><span class="mono">STEP 02</span><h4>AI 拆解</h4><p>意图解析 → 资源检索 → 计划生成，产出 4～8 个子任务。</p></div>
+          <div class="step"><span class="mono">STEP 03</span><h4>核查修订</h4><p>校验 Bloom 递进是否合理、资源是否真实可达，不合格就重排。</p></div>
+          <div class="step"><span class="mono">STEP 04</span><h4>每天接着走</h4><p>完成一级，后面的日程自动接续，复习节点按时提醒。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 核心能力 -->
+    <section class="lp-band" id="sec-cap">
+      <div class="lp-wrap">
+        <p class="eyebrow">Core Capabilities</p>
+        <h2 class="h-sec sm">六件事，它做得比通用待办更认真</h2>
+        <div class="cap-grid">
+          <div class="card cap"><span class="cap__i">◈</span><h4>AI 目标拆解</h4><p>把「学好日语」拆成可执行、可验收的子任务，每个带时长、优先级与认知层级。</p></div>
+          <div class="card cap"><span class="cap__i">◉</span><h4>资源检索与校验</h4><p>AI 只产出搜索意图，真实链接由白名单检索得到，并做存活 / 权威 / 新鲜度三维校验。</p></div>
+          <div class="card cap"><span class="cap__i">▤</span><h4>全局接续排期</h4><p>新任务永远排在未完成任务之后，每日槽位限制主题扎堆，认知负荷保持均衡。</p></div>
+          <div class="card cap"><span class="cap__i">◫</span><h4>甘特图与进度看板</h4><p>灰=已完成、黄=进行中、描边=计划中，一屏看清整条学习路径的现在时。</p></div>
+          <div class="card cap"><span class="cap__i">↻</span><h4>自动核查修订</h4><p>计划不是生成完就完了。核查段打分并给出建议，不达标自动重排一版。</p></div>
+          <div class="card cap"><span class="cap__i">▲</span><h4>Bloom 难度递进</h4><p>从记忆、理解到分析、评价，按认知层级排序子任务，避免一上来就啃硬骨头。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 隐私 深色带 -->
+    <section class="lp-band lp-band--dark" id="sec-privacy">
+      <div class="lp-wrap">
+        <p class="eyebrow eyebrow--accent">Privacy &amp; Ownership</p>
+        <h2 class="h-sec sm rev">你的学习数据，<br>只属于你和你的服务器<i class="dot-accent"></i></h2>
+        <div class="priv-grid">
+          <div class="card priv"><h4>BYOK</h4><p>自带模型密钥。<code>AI_PROVIDER_API_KEY</code> 在你自己的环境变量里，我们不代持、不经转售。</p></div>
+          <div class="card priv"><h4>自托管</h4><p>已从平台解耦，<code>package.json</code> 里没有任何厂商 SDK。Docker 或 Vercel 一键起。</p></div>
+          <div class="card priv"><h4>数据可导出</h4><p>任务、子任务、排期都是你自己库里的表结构，Drizzle schema 就是契约。</p></div>
+          <div class="card priv"><h4>无行为追踪</h4><p>不做学习行为画像，不埋营销事件。Analytics 只有一个页面计数，可关。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 最终 CTA -->
+    <section class="lp-cta">
+      <p class="eyebrow">Start today</p>
+      <h2 class="h-hero center">今天想学点什么<i class="dot-accent"></i></h2>
+      <p class="cta-lede">把你的目标丢给拾级，三十秒后你会拿到一张带资源、带排期、带复习节点的甘特图。</p>
+      <div class="cta-row">
+        <button class="btn btn--primary">免费开始规划</button>
+        <button class="btn btn--ghost">先看演示数据</button>
+        <button class="btn btn--ghost">自托管部署</button>
+      </div>
+      <p class="hero-foot">部署只需 <code>DATABASE_URL</code> 与一个模型密钥。</p>
+    </section>
+
+    <!-- 8 Footer -->
+    <footer class="lp-foot">
+      <div class="lp-wrap lp-wrap--foot">
+        <div class="foot-brand">
+          <svg class="mark" style="width:40px;height:19px;color:#F5F2EA"><use href="#mark-mono"/></svg>
+          <p class="foot-brand__word">拾级 <span class="mono">GRADUS</span></p>
+          <p class="foot-brand__tag">面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。</p>
+          <form class="subscribe" id="subscribe">
+            <p class="label-mono" style="color:var(--on-dark-2)">更新提醒</p>
+            <div class="subscribe__row">
+              <input class="subscribe__input" type="email" placeholder="you@example.com">
+              <button class="btn btn--accent" type="submit">订阅</button>
+            </div>
+            <p class="subscribe__hint" id="subHint">每两周一封，只写更新。</p>
+          </form>
+        </div>
+        <div class="foot-cols">
+          <div><p class="label-mono">产品</p><a href="#">今日面板</a><a href="#">甘特视图</a><a href="#">资源校验</a><a href="#">MCP 服务</a></div>
+          <div><p class="label-mono">资源</p><a href="#">README</a><a href="#">开发者指南</a><a href="#">部署文档</a><a href="#">更新日志</a></div>
+          <div><p class="label-mono">关于</p><a href="#">品牌标识</a><a href="#">设计说明</a><a href="#">开源协议</a><a href="#">联系方式</a></div>
+        </div>
+      </div>
+      <div class="lp-wrap foot-bar">
+        <p class="mono">Copyright 2026 Gradus · 拾级</p>
+        <nav><a href="#">隐私政策</a><a href="#">服务条款</a></nav>
+        <div class="foot-social">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.6 0 0 3.6 0 8c0 3.5 2.3 6.5 5.5 7.6.4.1.5-.2.5-.4v-1.4c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7.1-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.1-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8.6-.2 1.3-.3 2-.3s1.4.1 2 .3c1.5-1 2.2-.8 2.2-.8.5 1.1.2 1.9.1 2.1.5.5.8 1.2.8 2.1 0 3.1-1.8 3.7-3.6 4 .3.2.5.7.5 1.4v2.1c0 .2.1.5.5.4C13.7 14.5 16 11.5 16 8c0-4.4-3.6-8-8-8z"/></svg></a>
+          <a href="#" aria-label="X"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M12.3 1h2.4l-5.2 6 6.2 8h-4.9L6.7 10 1.6 1H-.8l5.9 6.9L1.3 15h4.9l4.4-6.2 4.6 6.2h3.1L12.3 1z" transform="translate(1 0)"/></svg></a>
+          <a href="#" aria-label="Email"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="14" height="10" rx="2"/><path d="M2 5l6 4 6-4"/></svg></a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏一 今日面板 ══════════════════ -->
+<section class="view" id="view-app-today">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / today</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a class="is-active" href="#"><i>▣</i>今日面板</a>
+          <a href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user">
+          <span class="avatar">L</span>
+          <div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="main__head">
+          <div>
+            <h2 class="h-page">今日面板</h2>
+            <p class="mono muted">2026.09.21 · 第 39 周 · 周日</p>
+          </div>
+          <div class="main__tools">
+            <div class="main__search"><span>⌕</span><input placeholder="搜索任务、子任务、资源"></div>
+            <button class="icon-btn">◴<i class="pip"></i></button>
+            <button class="icon-btn avatar-btn">L</button>
+          </div>
+        </header>
+
+        <section class="card goal">
+          <p class="eyebrow">New Goal</p>
+          <div class="goal__row">
+            <input class="field field--lg" id="goalInput" placeholder="三个月内通过日语 N3 考试">
+            <button class="btn btn--app" id="planBtn">开始规划</button>
+          </div>
+          <div class="chips">
+            <button class="chip" data-goal="从零开始学 Python，六个月后能做数据看板">从零开始学 Python</button>
+            <button class="chip" data-goal="两个月读透《思考，快与慢》并写出读书笔记">两个月读透《思考，快与慢》</button>
+            <button class="chip" data-goal="30 天拿下手绘基础，能独立画一个人像速写">30 天拿下手绘基础</button>
+          </div>
+        </section>
+
+        <section class="stats">
+          <div class="card stat"><p class="label-mono">进行中</p><b>3</b><p class="stat__foot">最近截止 09-24</p></div>
+          <div class="card stat"><p class="label-mono">今日待完成</p><b id="statToday">2</b><p class="stat__foot">共 5 项子任务</p></div>
+          <div class="card stat"><p class="label-mono">连续学习</p><b>12 <em>天</em></b><p class="stat__foot">个人最长纪录 18 天</p></div>
+          <div class="card stat stat--accent"><p class="label-mono">本周完成率</p><b>86%</b><p class="stat__foot">较上周 +11%</p></div>
+        </section>
+
+        <section class="cols">
+          <div class="card list">
+            <div class="card__head"><h3>今日子任务</h3><span class="mono muted">5 项 · 4.5 小时</span></div>
+            <ul class="subs" id="subList">
+              <li class="sub is-done" data-state="done"><button class="box" aria-label="切换状态"><i>✓</i></button><div class="sub__c"><b>助词は与が的辨析练习</b><p>复习 · 已完成于 09:20</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+              <li class="sub is-live" data-state="live"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>N4 语法收尾：被动与使役</b><p>进行中 · 预计今天 21:00 前</p></div><span class="tag">L4 分析</span><span class="mono sub__t">90min</span></li>
+              <li class="sub" data-state="todo"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>词汇 200 题模考</b><p>待开始 · 09-21 20:30</p></div><span class="tag">L3 应用</span><span class="mono sub__t">60min</span></li>
+              <li class="sub" data-state="todo"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>听力：新闻语速适应训练</b><p>待开始 · 明日 08:00</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+            </ul>
+          </div>
+          <div class="card ai-dark">
+            <div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div>
+            <h3>修订建议 2 条</h3>
+            <div class="sug">
+              <p class="sug__t">把「听力训练」后移一天</p>
+              <p class="sug__b">明天 08:00 与你的工作日的深工作时段冲突，后移一天可让该子任务落在 20:30 的空槽。</p>
+              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+            </div>
+            <div class="sug">
+              <p class="sug__t">「被动与使役」的认知层级偏低</p>
+              <p class="sug__b">该子任务后紧跟 L5 评价级的真题模考，建议插入一级 L4.5 的对比练习，避免跨度 1.8 层。</p>
+              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+            </div>
+            <p class="ai-dark__foot mono">VALIDATE 评分 82 / 100 · Bloom 跨度检查通过 4 / 5</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏二 任务详情 ══════════════════ -->
+<section class="view" id="view-app-detail">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / task / jlpt-n3</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a href="#"><i>▣</i>今日面板</a>
+          <a class="is-active" href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user"><span class="avatar">L</span><div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div></div>
+      </aside>
+      <div class="main main--detail">
+        <a class="back mono" href="#">← 返回我的任务</a>
+        <div class="detail-split">
+          <div class="detail-main">
+            <header class="main__head">
+              <div>
+                <p class="eyebrow">Task · 进行中</p>
+                <h2 class="h-page">三个月内通过日语 N3 考试</h2>
+                <p class="mono muted">12 个子任务 · 2026.09.10 → 12.10 · 主题：语言</p>
+              </div>
+              <div class="main__tools">
+                <button class="btn btn--ghost btn--sm">AI 重新规划</button>
+                <button class="btn btn--primary btn--sm">标记完成</button>
+              </div>
+            </header>
+
+            <section class="card prog">
+              <div class="prog__row">
+                <div class="prog__id">
+                  <h3>总体进度</h3>
+                  <p class="mono muted">7 已完成 · 1 进行中 · 4 计划中 · 剩余 41 天</p>
+                </div>
+                <div class="prog__bar"><span style="width:62%"></span></div>
+                <b class="prog__pct">62%</b>
+              </div>
+            </section>
+
+            <section class="card gantt">
+              <div class="card__head">
+                <h3>甘特图</h3>
+                <div class="legend">
+                  <span><i class="k k--done"></i>已完成</span>
+                  <span><i class="k k--live"></i>进行中</span>
+                  <span><i class="k k--plan"></i>计划中</span>
+                </div>
+              </div>
+              <div class="g">
+                <div class="g__head"><span class="g__lab mono">SUBTASK</span><div>
+                  <span class="mono">一</span><span class="mono">二</span><span class="mono">三</span><span class="mono">四</span><span class="mono">五</span><span class="mono">六</span><span class="mono is-today">日</span><span class="mono g__next">下周</span>
+                </div></div>
+                <div class="g__body">
+                  <div class="g__cols"><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i><i></i></div>
+                  <div class="g__row"><span class="g__lab"><b>基础轮：发音 · 假名 · 语调</b><em class="mono">L1–L4</em></span><div class="g__track"><span class="bar bar--done" style="--s:1;--c:4"></span></div></div>
+                  <div class="g__row"><span class="g__lab"><b>N4 语法收尾：助词与被动</b><em class="mono">L5–L7</em></span><div class="g__track"><span class="bar bar--live" style="--s:5;--c:3"></span></div></div>
+                  <div class="g__row"><span class="g__lab"><b>真题模考与失分模式复盘</b><em class="mono">L8</em></span><div class="g__track"><span class="bar bar--plan" style="--s:8;--c:1"></span></div></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card list">
+              <div class="card__head"><h3>子任务清单</h3><span class="mono muted">点击行查看详情</span></div>
+              <ul class="subs subs--detail" id="detailList">
+                <li class="sub is-done" data-card="0"><i class="mk mk--done">✓</i><div class="sub__c"><b>假名与发音定型</b><p>已完成 · L2 理解</p></div><span class="mono sub__t">09.10 – 09.13</span></li>
+                <li class="sub is-live" data-card="1"><i class="mk mk--live"></i><div class="sub__c"><b>N4 语法收尾：助词与被动表达</b><p>进行中 · L4 分析</p></div><span class="mono sub__t">09.19 – 09.21</span></li>
+                <li class="sub" data-card="2"><i class="mk mk--plan"></i><div class="sub__c"><b>敬语与书面表达入门</b><p>计划中 · L4 分析</p></div><span class="mono sub__t">09.22 – 09.25</span></li>
+                <li class="sub" data-card="3"><i class="mk mk--plan"></i><div class="sub__c"><b>N3 真题模考与复盘</b><p>计划中 · L5 评价</p></div><span class="mono sub__t">09.26 – 09.29</span></li>
+              </ul>
+            </section>
+          </div>
+
+          <aside class="panel">
+            <div class="panel__in" id="panel">
+              <div class="badge badge--live">进行中 · L4</div>
+              <h3 class="panel__title">N4 语法收尾：助词与被动表达</h3>
+              <div class="meta2">
+                <div><p class="label-mono">认知层级</p><b>Bloom L4 分析</b></div>
+                <div><p class="label-mono">深工作时长</p><b>3.5 小时</b></div>
+                <div><p class="label-mono">排期</p><b>09.19 – 09.21</b></div>
+                <div><p class="label-mono">优先级</p><b>高</b></div>
+              </div>
+              <p class="panel__p">把は/が、に/で、を的边界一次理清，并把被动、使役、使役被动四种形态做成对照表。收尾标准：能在 30 分钟内把 20 个主动句改写为被动与使役句且不错。</p>
+              <p class="label-mono">学习资源 · 2</p>
+              <a class="res" href="#">
+                <span class="res__t">日本語文法概説 · 第 4 章 受身形</span>
+                <span class="res__m mono"><i class="ok">VERIFIED</i> tokyo-term-learner.jp · 权威 0.86</span>
+              </a>
+              <a class="res" href="#">
+                <span class="res__t">使役受身の使い方 · 例文 60 本</span>
+                <span class="res__m mono"><i class="search">SEARCH ONLY</i> 未配 TAVILY_API_KEY · 跳转搜索自选</span>
+              </a>
+              <p class="label-mono">行动项 · 3</p>
+              <ol class="acts"><li>整理 は/が 各 8 条例句并标注语义差异</li><li>做被动 ↔ 使役 ↔ 使役被动转换表 20 行</li><li>计时改写 20 句，错 ≤ 2 即通过</li></ol>
+              <div class="panel__foot"><button class="btn btn--app btn--full">完成此项</button><button class="btn btn--ghost btn--full">稍后</button></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <div class="ai-pill ai-pill--app"><i class="spin"></i>AI 正在核查排期 <span class="mono">阶段 3 / 4</span></div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏三 AI 规划弹层 ══════════════════ -->
+<section class="view" id="view-app-modal">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / today</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a class="is-active" href="#"><i>▣</i>今日面板</a>
+          <a href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user"><span class="avatar">L</span><div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div></div>
+      </aside>
+      <div class="main">
+        <header class="main__head">
+          <div><h2 class="h-page">今日面板</h2><p class="mono muted">2026.09.21 · 第 39 周 · 周日</p></div>
+          <div class="main__tools"><div class="main__search"><span>⌕</span><input placeholder="搜索任务、子任务、资源"></div><button class="icon-btn">◴</button><button class="icon-btn avatar-btn">L</button></div>
+        </header>
+        <section class="card goal">
+          <p class="eyebrow">New Goal</p>
+          <div class="goal__row"><input class="field field--lg" value="三个月内通过日语 N3 考试"><button class="btn btn--app">开始规划</button></div>
+          <div class="chips"><button class="chip">从零开始学 Python</button><button class="chip">两个月读透《思考，快与慢》</button><button class="chip">30 天拿下手绘基础</button></div>
+        </section>
+        <section class="stats">
+          <div class="card stat"><p class="label-mono">进行中</p><b>3</b><p class="stat__foot">最近截止 09-24</p></div>
+          <div class="card stat"><p class="label-mono">今日待完成</p><b>2</b><p class="stat__foot">共 5 项子任务</p></div>
+          <div class="card stat"><p class="label-mono">连续学习</p><b>12 <em>天</em></b><p class="stat__foot">个人最长纪录 18 天</p></div>
+          <div class="card stat stat--accent"><p class="label-mono">本周完成率</p><b>86%</b><p class="stat__foot">较上周 +11%</p></div>
+        </section>
+        <section class="cols">
+          <div class="card list"><div class="card__head"><h3>今日子任务</h3><span class="mono muted">5 项 · 4.5 小时</span></div>
+            <ul class="subs">
+              <li class="sub is-done"><button class="box"><i>✓</i></button><div class="sub__c"><b>助词は与が的辨析练习</b><p>复习 · 已完成于 09:20</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+              <li class="sub is-live"><button class="box"></button><div class="sub__c"><b>N4 语法收尾：被动与使役</b><p>进行中 · 预计今天 21:00 前</p></div><span class="tag">L4 分析</span><span class="mono sub__t">90min</span></li>
+            </ul>
+          </div>
+          <div class="card ai-dark"><div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div><h3>修订建议 2 条</h3>
+            <div class="sug"><p class="sug__t">把「听力训练」后移一天</p><p class="sug__b">明天 08:00 与你的深工作时段冲突，后移一天可落在 20:30 的空槽。</p></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- overlay + modal -->
+    <div class="veil" id="veil">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="AI 规划流水线">
+        <header class="modal__head">
+          <svg class="mark" style="width:32px;height:15px;color:#111"><use href="#mark"/></svg>
+          <div><h3>AI 规划流水线</h3><p class="mono muted">INTENT → RESOURCE → PLAN → VALIDATE</p></div>
+          <button class="icon-btn modal__x" id="modalX" aria-label="关闭">✕</button>
+        </header>
+        <div class="modal__body">
+          <div class="pipe" id="pipe">
+            <div class="pnode is-done"><i>✓</i><b>意图解析</b><span class="mono">STAGE 1</span></div>
+            <span class="pline is-done"></span>
+            <div class="pnode is-done"><i>✓</i><b>资源检索</b><span class="mono">STAGE 2</span></div>
+            <span class="pline is-live"></span>
+            <div class="pnode is-live"><i>3</i><b>计划生成</b><span class="mono">STAGE 3</span></div>
+            <span class="pline"></span>
+            <div class="pnode"><i>4</i><b>核查修订</b><span class="mono">STAGE 4</span></div>
+          </div>
+
+          <section class="card stage-card">
+            <div class="stage-card__head"><p class="eyebrow">Stage 3 · 计划生成</p><b class="stage-card__pct" id="pct">62%</b></div>
+            <div class="prog__bar"><span id="stageBar" style="width:62%"></span></div>
+            <p class="stage-card__desc">依据意图与 8 条已校验资源，正在按 Bloom 层级生成 4～8 个子任务，并为每一条寻找可用日期槽位。</p>
+            <div class="stage-card__stats">
+              <div><b>6</b><p class="mono">子任务</p></div>
+              <div><b>8</b><p class="mono">资源</p></div>
+              <div><b>6 / 8</b><p class="mono">已校验</p></div>
+            </div>
+          </section>
+
+          <p class="label-mono">计划预览</p>
+          <ul class="preview" id="preview">
+            <li><span class="idx">01</span><div><b>五十音与发音定型</b><p class="mono">2 天 · 深工作 3.0h</p></div><span class="tag">L1 记忆</span></li>
+            <li><span class="idx">02</span><div><b>核心动词变形 40 组</b><p class="mono">3 天 · 深工作 6.5h</p></div><span class="tag">L3 应用</span></li>
+            <li><span class="idx">03</span><div><b>N4 语法收尾：助词与被动</b><p class="mono">3 天 · 深工作 5.0h</p></div><span class="tag">L4 分析</span></li>
+            <li><span class="idx">04</span><div><b>N3 真题模考与复盘</b><p class="mono">4 天 · 深工作 8.0h</p></div><span class="tag">L5 评价</span></li>
+          </ul>
+
+          <div class="done-in">
+            <div class="done-in__mark"><svg class="mark" style="width:44px;height:21px;color:#111"><use href="#mark"/></svg></div>
+            <h4>计划已应用</h4>
+            <p>6 个子任务已按 Bloom 层级递进排入日程，接续自 09-22。两个复习节点插在 L3 与 L5 之后，第 4 阶段的核查评分 88 / 100。</p>
+            <span class="mono">TOTAL 34 天 · 深工作 36.5H · 已校验资源 6 / 8</span>
+            <button class="btn btn--primary" id="goDetail">查看甘特图</button>
+          </div>
+        </div>
+        <footer class="modal__foot">
+          <p class="mono muted">规划期间可继续操作，取消不会删除已有任务</p>
+          <div><button class="btn btn--ghost btn--sm" id="modalCancel">取消</button><button class="btn btn--primary btn--sm" id="modalApply">应用计划</button></div>
+        </footer>
+      </div>
+      <div class="toast" id="toast">计划已应用 · 6 个子任务已排入日程</div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 评审要点 ══════════════════ -->
+<section class="view" id="view-notes">
+  <div class="brand">
+    <header class="sec-head">
+      <p class="eyebrow">Review Notes</p>
+      <h1 class="h-sec">这份预览里，<br>哪些地方和设计稿不一样<i class="dot-accent"></i></h1>
+      <p class="lede">本页是实现方写给设计方的对照清单。预览为纯前端静态实现，不含真实逻辑，所有文案与数据均为占位；下列偏差全部由浏览器实测得出，不是主观调整。</p>
+    </header>
+
+    <div class="band band--light">
+      <h2 class="h-sub">1 · 色彩令牌偏差（WCAG AA）</h2>
+      <p class="band-lead">设计稿 §1.2 的三个次级色在小字号 / 深底上不达 4.5:1。预览改用了可达标的派生值，原值保留在 <code>--text-3-spec</code> 供对照。</p>
+      <table class="cmp">
+        <thead><tr><th>用途</th><th>设计稿原值</th><th>实测比</th><th>预览改用</th><th>实测比</th></tr></thead>
+        <tbody>
+          <tr><td>眉题 / 元信息（10–12px）</td><td><i style="background:#8A867C"></i><code>#8A867C</code></td><td class="bad">3.25 – 3.63</td><td><i style="background:#6E6B62"></i><code>#6E6B62</code></td><td class="ok">4.70 – 5.32</td></tr>
+          <tr><td>副文（13–15px）</td><td><i style="background:#6E6B62"></i><code>#6E6B62</code></td><td class="warn">4.70 – 5.32</td><td><i style="background:#5E5B53"></i><code>#5E5B53</code></td><td class="ok">5.98 – 6.78</td></tr>
+          <tr><td>深底副文</td><td><i style="background:#3A3833"></i><code>#3A3833</code></td><td class="bad">1.66</td><td><i style="background:#918E86"></i><code>rgba(cream,.72)</code></td><td class="ok">8.90</td></tr>
+          <tr><td>深底元信息</td><td>—</td><td>—</td><td><i style="background:#77746D"></i><code>rgba(cream,.58)</code></td><td class="ok">6.40</td></tr>
+          <tr><td>黄底强调卡上的标签</td><td>—</td><td class="bad">3.63</td><td><i style="background:#5C5A55"></i><code>rgba(ink,.72)</code></td><td class="ok">5.40</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>为什么副文也要改</strong>：把眉题提到 <code>#6E6B62</code> 后，它与原稿副文同色，两级层次会塌掉。所以副文再压深一档，用明度差 + 字号 / 字重 / 全大写三重手段维持层级。若设计方更希望保住原色值，可改为「保留 <code>#8A867C</code> 但把眉题字号从 10–11px 提到 13px 并加粗到 700」，那条路径同样能达标。
+        <em>深底描边 <code>#2B2924</code> 对比度 1.34:1，只适合做 1px 分隔线，不可承载文字——预览里它确实只用于描边。</em>
+      </div>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">2 · 原稿歧义与实现选择</h2>
+      <div class="amb">
+        <div class="card">
+          <p class="eyebrow">屏二 · 甘特图</p>
+          <h4>「7 日表头」放不下「L8 计划条」</h4>
+          <p>§3 屏二同时要求 7 日表头（周日高亮）和三条任务条：已完成 L1–L4、进行中 L5–L7、计划 L8。L8 落在第 8 天，7 列网格里没有它的位置。</p>
+          <p class="amb__pick"><b>实现选择</b>：在 7 个真实日列之后追加一个弱化的「下周」延续列承接 L8，周日仍保持黄色高亮。若设计方倾向严格 7 列，可把 L8 画成从第 7 列溢出并带裁切的描边条，暗示「跨出可视窗口」。</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">屏二 · 画板高度</p>
+          <h4>悬浮 AI pill 会压住详情面板主按钮</h4>
+          <p>屏二内容（进度卡 + 甘特 + 4 行清单 + 380px 详情面板）在 1440×900 内本就接近饱和，pill 固定在右下角时正好盖住「完成此项」。</p>
+          <p class="amb__pick"><b>实现选择</b>：详情列底部留 58px 净空，代价是主区出现 <b>75px 内部滚动</b>。屏一、屏三仍严格 0 溢出塞进 900。备选方案：pill 改为顶部细条、或让右侧详情面板独立滚动。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">3 · 实测结论</h2>
+      <div class="metrics">
+        <div class="metric"><b>0</b><p class="mono">TEXT OVERFLOW</p><span>5 个视图逐节点量</span></div>
+        <div class="metric"><b>0</b><p class="mono">CLIPPED NODES</p><span>画板 900px 内裁切</span></div>
+        <div class="metric"><b>0</b><p class="mono">CONTRAST FAIL</p><span>按真实合成背景算</span></div>
+        <div class="metric"><b>0</b><p class="mono">CONSOLE ERRORS</p><span>chromium 全程</span></div>
+        <div class="metric"><b>0px</b><p class="mono">GANTT MISALIGN</p><span>条带边缘 vs 日列</span></div>
+        <div class="metric"><b>232</b><p class="mono">SIDEBAR PX ×3</p><span>三屏外壳一致</span></div>
+      </div>
+      <p class="band-lead">量测环境：1600×1000（画板 1:1）与 390×844（移动），Noto Sans SC / JetBrains Mono 经 <code>document.fonts</code> 确认已加载。移动视口下 5 个视图均无横向滚动，1440 画板等比缩到 0.23。</p>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">4 · 想请设计方拍板的问题</h2>
+      <ol class="ask">
+        <li><b>黄色只做点缀的「五处」规则要不要放宽？</b>目前预览里黄色出现在：句号、顶点台阶、进行中状态、强调统计卡、深底眉题，外加进度条。进度条算不算第六处，需要定。</li>
+        <li><b>屏三弹层要不要做「跑完即自动关闭」？</b>现在四阶段跑完停在 100% 等用户点「应用计划」。等待型 AI 流程是否该自动推进到成功态，是产品判断不是视觉判断。</li>
+        <li><b>Landing 全页约 4700px，是否拆二级页？</b>§5 残留说明里把它当作有意的长页浏览；如果投放渠道以移动端为主，这个长度需要重估。</li>
+        <li><b>移动端适配（§6 待办）什么时候进。</b>本预览只做了桌面 1440 基准，<code>&lt; 768px</code> 只保证不横向溢出，侧边栏收底部 Tab、统计卡 2 列都还没画。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+</main>
+  <script>
+/* ═══════════════════════════════════════════════════════════
+   拾级 Gradus · preview.js
+   纯前端演示交互 —— 不含任何真实业务逻辑，全部数据均为占位。
+   ═══════════════════════════════════════════════════════════ */
+
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ── 1 · 预览外壳：1440 画板按窗口宽度等比缩放 ────────── */
+const FRAME_W = 1440;
+function fitFrames() {
+  const avail = document.documentElement.clientWidth - 56;
+  const s = Math.min(1, Math.max(0.2, avail / FRAME_W));
+  $$('.frame-wrap').forEach(w => w.style.setProperty('--s', s.toFixed(4)));
+}
+addEventListener('resize', fitFrames, { passive: true });
+
+/* ── 2 · 视图切换 ─────────────────────────────────────── */
+function showView(name, { scroll = true } = {}) {
+  $$('.view').forEach(v => v.classList.toggle('is-active', v.id === `view-${name}`));
+  $$('.dock__btn').forEach(b => b.classList.toggle('is-active', b.dataset.view === name));
+  if (scroll) scrollTo({ top: 0, behavior: 'instant' });
+}
+$$('.dock__btn').forEach(b => b.addEventListener('click', () => {
+  closePipeline(false);
+  showView(b.dataset.view);
+  /* 屏三的设计稿本身就是「屏一 + 弹层」，直接进入时恢复静态态 */
+  if (b.dataset.view === 'app-modal') openVeilStatic();
+}));
+
+/* ── 3 · Landing：吸顶阴影 / 锚点高亮 / 订阅 ──────────── */
+const lpNav = $('#lpNav');
+const navLinks = $$('.lp-nav__links a');
+const sections = navLinks
+  .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+  .filter(Boolean);
+
+function onScroll() {
+  if (lpNav) lpNav.classList.toggle('is-stuck', scrollY > 8);
+  const y = scrollY + 140;
+  let here = null;
+  sections.forEach(s => { if (s.offsetTop <= y) here = s.id; });
+  navLinks.forEach(a => a.classList.toggle('is-here', a.getAttribute('href') === `#${here}`));
+}
+addEventListener('scroll', onScroll, { passive: true });
+
+$$('a[href^="#sec-"]').forEach(a => a.addEventListener('click', e => {
+  const t = document.getElementById(a.getAttribute('href').slice(1));
+  if (!t) return;
+  e.preventDefault();
+  scrollTo({ top: t.offsetTop - 92, behavior: 'smooth' });
+}));
+
+const subForm = $('#subscribe');
+if (subForm) subForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const input = $('.subscribe__input', subForm);
+  const hint = $('#subHint');
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
+  subForm.classList.toggle('shake', !ok);
+  setTimeout(() => subForm.classList.remove('shake'), 400);
+  hint.textContent = ok ? '演示状态：已订阅，实际项目将写入你的库。' : '演示状态：邮箱格式不正确。';
+  hint.classList.toggle('is-ok', ok);
+  if (ok) input.value = '';
+});
+
+/* ── 4 · 屏一：复选框三态 + 统计联动（纯视觉） ────────── */
+const STATE_CYCLE = { todo: 'done', done: 'live', live: 'todo' };
+const statToday = $('#statToday');
+
+function refreshTodayCount() {
+  const rows = $$('#subList .sub');
+  if (!rows.length || !statToday) return;
+  statToday.textContent = rows.filter(r => r.dataset.state !== 'done').length;
+}
+const subList = $('#subList');
+if (subList) subList.addEventListener('click', e => {
+  const box = e.target.closest('.box');
+  if (!box) return;
+  const row = box.closest('.sub');
+  const next = STATE_CYCLE[row.dataset.state || 'todo'];
+  row.dataset.state = next;
+  row.classList.toggle('is-done', next === 'done');
+  row.classList.toggle('is-live', next === 'live');
+  const line = $('.sub__c p', row);
+  if (line) line.textContent = next === 'done' ? '已完成 · 刚刚'
+    : next === 'live' ? '进行中 · 预计今天 21:00 前'
+    : '待开始 · 09-21 20:30';
+  refreshTodayCount();
+});
+
+$$('.chip[data-goal]').forEach(c => c.addEventListener('click', () => {
+  const input = $('#goalInput');
+  input.value = c.dataset.goal;
+  input.focus();
+}));
+
+const planBtn = $('#planBtn');
+if (planBtn) planBtn.addEventListener('click', () => {
+  showView('app-modal');
+  runPipeline();
+});
+
+/* ── 5 · 屏三：AI 规划流水线（模拟节奏，无真实请求） ──── */
+const veil = $('#veil');
+const modal = veil && $('.modal', veil);
+const stageBar = $('#stageBar');
+const pct = $('#pct');
+const nodes = $$('#pipe .pnode');
+const lines = $$('#pipe .pline');
+const STAGES = [
+  { name: '意图解析', desc: '解析目标语义、 topic 分类、紧急度与既有基础，估计总投入工时。', bar: 100 },
+  { name: '资源检索', desc: '由 8 条搜索意图经白名单域名检索真实链接，并做存活 / 权威 / 新鲜度三维校验。', bar: 100 },
+  { name: '计划生成', desc: '依据意图与已校验资源生成 4～8 个子任务，按 Bloom 层级排序并逐条寻找可用日期槽位。', bar: 62 },
+  { name: '核查修订', desc: 'VALIDATE 段对层级跨度与资源可达性打分，未达阈值则自动重排一版。', bar: 100 },
+];
+let timers = [];
+
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+function paintStage(i, partial) {
+  if (!nodes.length) return;
+  nodes.forEach((n, k) => {
+    n.classList.toggle('is-done', k < i);
+    n.classList.toggle('is-live', k === i);
+  });
+  lines.forEach((l, k) => {
+    l.classList.toggle('is-done', k < i);
+    l.classList.toggle('is-live', k === i);
+  });
+  const head = $('.stage-card .eyebrow');
+  if (head) head.textContent = `Stage ${i + 1} · ${STAGES[i].name}`;
+  const desc = $('.stage-card__desc');
+  if (desc) desc.textContent = STAGES[i].desc;
+  if (stageBar) stageBar.style.width = `${partial}%`;
+  if (pct) pct.textContent = `${Math.round(partial)}%`;
+}
+function resetPipeline() {
+  if (!modal) return;
+  modal.classList.remove('modal--done');
+  paintStage(2, 62);
+}
+function openVeilStatic() {
+  if (!veil) return;
+  clearTimers();
+  veil.classList.remove('is-off');
+  resetPipeline();
+}
+function runPipeline() {
+  if (!veil) return;
+  clearTimers();
+  veil.classList.remove('is-off');
+  modal.classList.remove('modal--done');
+  [0, 1, 2, 3].forEach(i => {
+    timers.push(setTimeout(() => paintStage(i, 18 + i * 26), 320 + i * 1150));
+  });
+  timers.push(setTimeout(() => {
+    const head = $('.stage-card .eyebrow');
+    if (head) head.textContent = 'Stage 4 · 核查完成';
+    const desc = $('.stage-card__desc');
+    if (desc) desc.textContent = 'VALIDATE 评分 88 / 100，Bloom 层级跨度检查通过 5 / 5，无需重排。计划已就绪，可应用至日程。';
+    if (stageBar) stageBar.style.width = '100%';
+    if (pct) pct.textContent = '100%';
+    nodes.forEach(n => { n.classList.add('is-done'); n.classList.remove('is-live'); });
+    lines.forEach(l => { l.classList.add('is-done'); l.classList.remove('is-live'); });
+  }, 320 + 4 * 1150));
+}
+function closePipeline(animate = true) {
+  clearTimers();
+  if (!veil) return;
+  veil.classList.add('is-off');
+  if (animate) setTimeout(resetPipeline, 260);
+}
+if (veil) {
+  veil.addEventListener('click', e => { if (e.target === veil) closePipeline(); });
+  $('#modalX').addEventListener('click', () => closePipeline());
+  $('#modalCancel').addEventListener('click', () => closePipeline());
+  $('#modalApply').addEventListener('click', () => {
+    clearTimers();
+    modal.classList.add('modal--done');
+    const toast = $('#toast');
+    toast.classList.add('is-on');
+    timers.push(setTimeout(() => { toast.classList.remove('is-on'); }, 2600));
+    timers.push(setTimeout(() => { closePipeline(); resetPipeline(); }, 3400));
+  });
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !veil.classList.contains('is-off')) closePipeline();
+  });
+}
+
+/* ── 6 · 屏二：子任务清单 ↔ 详情面板（占位数据） ──────── */
+const CARDS = [
+  {
+    badge: '已完成 · L2', cls: 'badge--done', title: '假名与发音定型',
+    level: 'Bloom L2 理解', hours: '4.0 小时', range: '09.10 – 09.13', prio: '中',
+    desc: '清音、浊音、半浊音与促音/长音的辨认与朗读，建立发音肌肉记忆。收尾标准：看到假名能在 1 秒内读出，听写 46 音错 ≤ 2。',
+    res: [['五十音图与发音要点 · 第 1 讲', 'ok', 'VERIFIED', 'jp-nihongo.edu.cn · 权威 0.91'],
+          ['假名书写笔顺动画合集', 'search', 'SEARCH ONLY', '未配 TAVILY_API_KEY · 跳转搜索自选']],
+    acts: ['跟读 46 音三遍并录音回听', '听写测试错 ≤ 2 即通过', '整理易混假名（し/つ、ぬ/め）对照卡'],
+  },
+  {
+    badge: '进行中 · L4', cls: 'badge--live', title: 'N4 语法收尾：助词与被动表达',
+    level: 'Bloom L4 分析', hours: '3.5 小时', range: '09.19 – 09.21', prio: '高',
+    desc: '把は/が、に/で、を的边界一次理清，并把被动、使役、使役被动四种形态做成对照表。收尾标准：能在 30 分钟内把 20 个主动句改写为被动与使役句且不错。',
+    res: [['日本語文法概説 · 第 4 章 受身形', 'ok', 'VERIFIED', 'tokyo-term-learner.jp · 权威 0.86'],
+          ['使役受身の使い方 · 例文 60 本', 'search', 'SEARCH ONLY', '未配 TAVILY_API_KEY · 跳转搜索自选']],
+    acts: ['整理 は/が 各 8 条例句并标注语义差异', '做被动 ↔ 使役 ↔ 使役被动转换表 20 行', '计时改写 20 句，错 ≤ 2 即通过'],
+  },
+  {
+    badge: '计划中 · L4', cls: 'badge--plan', title: '敬语与书面表达入门',
+    level: 'Bloom L4 分析', hours: '5.0 小时', range: '09.22 – 09.25', prio: '中',
+    desc: '尊敬语、谦让语、丁宁语三分法与切换场景，重点练邮件与问卷两类书面语料。排期落在深工作槽位 20:30，避开上午的低密度时段。',
+    res: [['敬语的三种形态与使用边界', 'ok', 'VERIFIED', 'keigo-guide.or.jp · 权威 0.78'],
+          ['N3 语法 · 敬语专项 120 题', 'ok', 'VERIFIED', 'jlpt-prep.jp · 权威 0.83']],
+    acts: ['把 10 句普通体改写为丁宁体并互查', '写一封 200 字日语请假邮件', '完成敬语专项 120 题，正确率 ≥ 80%'],
+  },
+  {
+    badge: '计划中 · L5', cls: 'badge--plan', title: 'N3 真题模考与复盘',
+    level: 'Bloom L5 评价', hours: '8.0 小时', range: '09.26 – 09.29', prio: '高',
+    desc: '两套完整真题限时模考，按词汇/语法/阅读/听力分项打分，定位失分模式并回写到后续子任务。这是本阶段的认知顶点，前置层级未过不建议开始。',
+    res: [['N3 历年真题与官方解析（PDF）', 'ok', 'VERIFIED', 'jlpt.go.jp · 权威 0.97'],
+          ['听力 · 即时问题语速适应训练', 'search', 'SEARCH ONLY', '未配 TAVILY_API_KEY · 跳转搜索自选']],
+    acts: ['限时完成模考 A 卷并记录分项分', '把错题按语法点归类成清单', '针对最低分项追加一个 2 天子任务'],
+  },
+];
+
+function renderPanel(i) {
+  const d = CARDS[i];
+  const panel = $('#panel');
+  if (!d || !panel) return;
+  panel.innerHTML = `
+    <div class="badge ${d.cls}">${d.badge}</div>
+    <h3 class="panel__title">${d.title}</h3>
+    <div class="meta2">
+      <div><p class="label-mono">认知层级</p><b>${d.level}</b></div>
+      <div><p class="label-mono">深工作时长</p><b>${d.hours}</b></div>
+      <div><p class="label-mono">排期</p><b>${d.range}</b></div>
+      <div><p class="label-mono">优先级</p><b>${d.prio}</b></div>
+    </div>
+    <p class="panel__p">${d.desc}</p>
+    <p class="label-mono">学习资源 · ${d.res.length}</p>
+    ${d.res.map(r => `<a class="res" href="#"><span class="res__t">${r[0]}</span>
+      <span class="res__m mono"><i class="${r[1]}">${r[2]}</i>${r[3]}</span></a>`).join('')}
+    <p class="label-mono">行动项 · ${d.acts.length}</p>
+    <ol class="acts">${d.acts.map(a => `<li>${a}</li>`).join('')}</ol>
+    <div class="panel__foot">
+      <button class="btn btn--app btn--full" data-complete="${i}">${d.cls === 'badge--done' ? '已完成此项' : '完成此项'}</button>
+      <button class="btn btn--ghost btn--full">稍后</button>
+    </div>`;
+}
+
+const detailList = $('#detailList');
+if (detailList) {
+  $$('#detailList .sub').forEach((li, k) => li.addEventListener('click', () => {
+    $$('#detailList .sub').forEach(x => x.classList.remove('is-sel'));
+    li.classList.add('is-sel');
+    renderPanel(+li.dataset.card);
+  }));
+  detailList.addEventListener('click', e => {
+    const btn = e.target.closest('[data-complete]');
+    if (!btn) return;
+    const row = $$('#detailList .sub')[+btn.dataset.complete];
+    row.classList.remove('is-live');
+    row.classList.add('is-done');
+    $('.mk', row).className = 'mk mk--done';
+    $('.mk', row).textContent = '✓';
+    $('.sub__c p', row).textContent = '已完成 · 刚刚';
+    renderPanel(+btn.dataset.complete);
+  });
+}
+
+/* ── 7 · boot ─────────────────────────────────────────── */
+fitFrames();
+onScroll();
+refreshTodayCount();
+resetPipeline();
+$$('#detailList .sub')[1]?.classList.add('is-sel');
+  </script>
+</body>
+</html>

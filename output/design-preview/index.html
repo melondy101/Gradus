@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾级 Gradus · 品牌与产品设计预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="mark" viewBox="0 0 96 44">
+    <rect x="0" y="32" width="26" height="12" rx="4" fill="currentColor"/>
+    <rect x="35" y="18" width="26" height="26" rx="4" fill="currentColor"/>
+    <rect x="70" y="0" width="26" height="44" rx="4" fill="#F5C518"/>
+  </symbol>
+  <symbol id="mark-mono" viewBox="0 0 96 44">
+    <rect x="0" y="32" width="26" height="12" rx="4" fill="currentColor" opacity=".45"/>
+    <rect x="35" y="18" width="26" height="26" rx="4" fill="currentColor" opacity=".7"/>
+    <rect x="70" y="0" width="26" height="44" rx="4" fill="#F5C518"/>
+  </symbol>
+</svg>
+
+<!-- ══════════════ preview chrome (not part of the design) ══════════════ -->
+<nav class="dock" id="dock">
+  <span class="dock__label">拾级 · 设计预览</span>
+  <button class="dock__btn is-active" data-view="brand">品牌标识</button>
+  <button class="dock__btn" data-view="landing">Landing Page</button>
+  <button class="dock__btn" data-view="app-today">屏一 · 今日面板</button>
+  <button class="dock__btn" data-view="app-detail">屏二 · 任务详情</button>
+  <button class="dock__btn" data-view="app-modal">屏三 · AI 弹层</button>
+  <button class="dock__btn" data-view="notes">评审要点</button>
+</nav>
+
+<main class="stage">
+
+<!-- ══════════════════════════ VIEW · 品牌标识 ══════════════════════════ -->
+<section class="view is-active" id="view-brand">
+  <div class="brand">
+    <header class="sec-head">
+      <p class="eyebrow">01 &nbsp;/&nbsp; Brand System</p>
+      <h1 class="h-sec">拾级而上，<br>每一步都被看见。</h1>
+      <p class="lede">三级递高的圆角台阶取自「拾级」的字面意象；顶点一级使用全站唯一点缀黄 <code>#F5C518</code>，标识本身即是色彩系统的缩影。</p>
+    </header>
+
+    <div class="band">
+      <div class="band__row band__row--split">
+        <div class="logo-demo logo-demo--light">
+          <svg class="mark" style="width:96px;height:44px;color:#111"><use href="#mark"/></svg>
+          <div class="logo-demo__word">拾级 <span class="mono">GRADUS</span></div>
+        </div>
+        <div class="logo-demo logo-demo--dark">
+          <svg class="mark" style="width:96px;height:44px;color:#F5F2EA"><use href="#mark-mono"/></svg>
+          <div class="logo-demo__word logo-demo__word--rev">拾级 <span class="mono">GRADUS</span></div>
+        </div>
+      </div>
+      <div class="band__row">
+        <p class="label-mono">最小使用尺寸 26px（侧边栏）→ 最大 40px（Footer）</p>
+        <div class="size-ramp">
+          <div class="size-ramp__item"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><span class="mono">26</span></div>
+          <div class="size-ramp__item"><svg class="mark" style="width:32px;height:15px;color:#111"><use href="#mark"/></svg><span class="mono">32</span></div>
+          <div class="size-ramp__item"><svg class="mark" style="width:40px;height:19px;color:#111"><use href="#mark"/></svg><span class="mono">40</span></div>
+          <div class="size-ramp__item size-ramp__item--on"><svg class="mark" style="width:64px;height:30px;color:#111"><use href="#mark"/></svg><span class="mono">规格稿</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">色彩令牌</h2>
+      <div class="swatches">
+        <div class="swatch" style="--sw:#F5F2EA"><div class="swatch__chip"></div><p class="swatch__name">奶油底 Cream</p><p class="mono">#F5F2EA</p><p class="swatch__use">页面主背景、深底上的浅带</p></div>
+        <div class="swatch" style="--sw:#FAF8F3"><div class="swatch__chip"></div><p class="swatch__name">浅色带 Cream Light</p><p class="mono">#FAF8F3</p><p class="swatch__use">交替章节、App 界面底</p></div>
+        <div class="swatch" style="--sw:#111111"><div class="swatch__chip"></div><p class="swatch__name">墨色 Ink</p><p class="mono">#111111</p><p class="swatch__use">主文字、主按钮、深色带</p></div>
+        <div class="swatch" style="--sw:#F5C518"><div class="swatch__chip"></div><p class="swatch__name">拾级黄 Accent</p><p class="mono">#F5C518</p><p class="swatch__use">唯一点缀：句号 / 顶点 / 进行中 / CTA</p></div>
+        <div class="swatch" style="--sw:#0E0D0B"><div class="swatch__chip"></div><p class="swatch__name">深色带 Dark</p><p class="mono">#0E0D0B</p><p class="swatch__use">隐私区块、Footer、AI 卡</p></div>
+        <div class="swatch" style="--sw:#FFFFFF"><div class="swatch__chip"></div><p class="swatch__name">卡片白 Card</p><p class="mono">#FFFFFF</p><p class="swatch__use">白卡、导航底</p></div>
+      </div>
+      <div class="note">
+        <strong>克制规则</strong>：黄色全站只出现在五处 —— 句号、顶点台阶、进行中状态、强调统计卡、深底眉题。稀有即重要。
+        <em>次级文字 <code>#6E6B62</code> / 眉题 <code>#8A867C</code>；描边 <code>#E6E1D3</code> / <code>#E1DCCF</code> / <code>#C9C3B2</code> / 深底 <code>#2B2924</code>。</em>
+      </div>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">字体规格</h2>
+      <div class="type-spec">
+        <div class="type-spec__row"><span class="mono">H1 · Noto Sans SC Black</span><p style="font-size:64px;line-height:74px;font-weight:900;margin:0">今天迈上一级<span class="dot"></span></p><span class="mono">64 / 74</span></div>
+        <div class="type-spec__row"><span class="mono">H2 · Noto Sans SC Bold</span><p style="font-size:44px;line-height:56px;font-weight:700;margin:0">章节标题四十四</p><span class="mono">44 / 56</span></div>
+        <div class="type-spec__row"><span class="mono">Body · Noto Sans SC Regular</span><p style="font-size:16px;line-height:26px;margin:0">正文十五至十六像素，行高按 1.6 倍排布，保证长段落可读。</p><span class="mono">15–16 / 26</span></div>
+        <div class="type-spec__row"><span class="mono">Meta · JetBrains Mono Medium</span><p class="mono" style="font-size:12px;margin:0">EYEBROW / 眉题与元信息 / 全大写英文 + 中文</p><span class="mono">10–12</span></div>
+        <div class="type-spec__row"><span class="mono">Stat · Noto Sans SC Black</span><p style="font-size:28px;line-height:34px;font-weight:900;margin:0">86%</p><span class="mono">28（统计卡数值）</span></div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">组件样例</h2>
+      <div class="comp-grid">
+        <div class="comp">
+          <p class="label-mono">按钮 / Buttons</p>
+          <div class="comp__stack">
+            <button class="btn btn--primary">主按钮 · 墨色药丸</button>
+            <button class="btn btn--ghost">次按钮 · 描边药丸</button>
+            <button class="btn btn--app">App 内主按钮 · radius 12</button>
+            <button class="btn btn--accent">强调 · 黄底</button>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">输入 / Chips</p>
+          <input class="field" placeholder="三个月内通过日语 N3 考试">
+          <div class="chips">
+            <button class="chip">从零开始学 Python</button>
+            <button class="chip">读透《思考，快与慢》</button>
+            <button class="chip">30 天拿下手绘基础</button>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">卡片 / Card</p>
+          <div class="card card--pad">
+            <p class="eyebrow">CORE CAPABILITY</p>
+            <p style="font-weight:700;font-size:17px;margin:6px 0 4px">白卡 radius 16 · 1px 细描边 · padding 24</p>
+            <p style="color:var(--text-2);font-size:14px;margin:0">几乎无阴影，层次靠底色与描边建立。</p>
+          </div>
+        </div>
+        <div class="comp">
+          <p class="label-mono">深色卡 / Dark Card</p>
+          <div class="card card--dark card--pad">
+            <p class="eyebrow eyebrow--accent">AI REVIEW</p>
+            <p style="font-weight:700;font-size:17px;margin:6px 0 4px;color:var(--cream)">深底描边卡，眉题用黄</p>
+            <p style="color:var(--on-dark-2);font-size:14px;margin:0">AI 模块在界面里被一眼识别。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ VIEW · LANDING ══════════════════════════ -->
+<section class="view" id="view-landing">
+  <div class="lp">
+
+    <!-- 1 吸顶导航 -->
+    <header class="lp-nav" id="lpNav">
+      <a class="lp-nav__brand" href="#view-landing">
+        <svg class="mark" style="width:34px;height:16px;color:#111"><use href="#mark"/></svg>
+        <span>拾级</span>
+      </a>
+      <nav class="lp-nav__links">
+        <a href="#sec-whatsnew">更新</a>
+        <a href="#sec-how">如何使用</a>
+        <a href="#sec-cap">核心能力</a>
+        <a href="#sec-privacy">隐私</a>
+      </nav>
+      <div class="lp-nav__actions">
+        <a class="lp-nav__login" href="#">登录</a>
+        <button class="btn btn--primary btn--sm">免费开始</button>
+      </div>
+    </header>
+
+    <!-- 2 Hero -->
+    <section class="lp-hero">
+      <div class="lp-hero__grid">
+        <div class="lp-hero__copy">
+          <div class="badge"><i class="dot-live"></i>v2.4 · 全局接续排期已上线</div>
+          <p class="hero-tag"><span data-deco="1">◇</span> 面向自主学习者的 AI 学习任务规划器</p>
+          <h1 class="h-hero">从一个模糊的目标<br>到每天清楚要走<br>哪一级<i class="dot-accent"></i></h1>
+          <p class="hero-lede">说出你想学什么。拾级把它拆成带排期、带真实资源、带认知层级递进的子任务，自动核查并修订计划，然后在你迈上每一级之后，把后面的日程悄悄接上。</p>
+          <div class="hero-cta">
+            <button class="btn btn--primary">开始规划我的目标</button>
+            <button class="btn btn--ghost">看看它怎么工作</button>
+            <a class="link-arrow" href="#sec-cap">了解 Bloom 递进设计<span>→</span></a>
+          </div>
+          <p class="hero-foot">无需信用卡 · BYOK 接入你自己的模型 · 数据留在你自己的库里</p>
+        </div>
+
+        <div class="lp-hero__visual">
+          <div class="mock">
+            <div class="mock__bar"><i></i><i></i><i></i><span class="mono">gradus / 今日面板</span></div>
+            <div class="mock__body">
+              <p class="label-mono">NEW GOAL</p>
+              <div class="mock__input">三个月内通过日语 N3 考试<i class="mock__go">开始规划</i></div>
+              <div class="mock__rows">
+                <div class="mock__row is-done"><i></i><span>假名与发音定型</span><em>L1 · 2 天</em></div>
+                <div class="mock__row is-live"><i></i><span>核心动词变形 40 组</span><em>L3 · 3 天</em></div>
+                <div class="mock__row"><i></i><span>敬语与书面表达入门</span><em>L4 · 3 天</em></div>
+                <div class="mock__row"><i></i><span>N3 真题模考与复盘</span><em>L5 · 4 天</em></div>
+              </div>
+              <div class="mock__gantt">
+                <span class="bar bar--done" style="--r:1;--s:1;--c:4"></span>
+                <span class="bar bar--live" style="--r:2;--s:3;--c:4"></span>
+                <span class="bar bar--plan" style="--r:3;--s:6;--c:3"></span>
+              </div>
+            </div>
+          </div>
+          <div class="ai-pill"><i class="spin"></i>AI 正在生成计划 <span class="mono">阶段 2 / 4</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 What's New -->
+    <section class="lp-band" id="sec-whatsnew">
+      <div class="lp-wrap lp-wrap--split">
+        <div>
+          <p class="eyebrow">What&apos;s New</p>
+          <h2 class="h-sec sm">最近更新了什么</h2>
+          <ul class="feed">
+            <li><span class="mono">2026.09.18</span><h4>全局接续排期</h4><p>新目标不再挤压旧计划，自动从最末结束日 + 1 接续，超过 7 天空档则回退到今天。</p></li>
+            <li><span class="mono">2026.09.11</span><h4>资源三维可信度校验</h4><p>URL 存活、域名权威分、新鲜度并行校验，AI 不再凭空编造链接。</p></li>
+            <li><span class="mono">2026.09.03</span><h4>自动核查修订</h4><p>计划生成后跑一遍 VALIDATE，Bloom 层级跳跃或评分不足时自动重排。</p></li>
+            <li><span class="mono">2026.08.26</span><h4>间隔复习节点</h4><p>依据遗忘曲线在排期中插入复习提醒点。</p></li>
+          </ul>
+        </div>
+        <aside class="gh-card">
+          <p class="eyebrow eyebrow--accent">Open Source</p>
+          <h3>整个项目<br>是开源的<i class="dot-accent"></i></h3>
+          <p>Next.js + Drizzle + PostgreSQL，一条命令部署到你自己的服务器上。没有平台账号，没有厂商锁定。</p>
+          <code class="mono">github.com/huang-yi-dae/TalkTask</code>
+          <div class="gh-card__star"><span>★</span><b>1.2k</b><em>Stars</em></div>
+          <button class="btn btn--cream">在 GitHub 上查看</button>
+          <button class="btn btn--on-dark">复制部署命令</button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 4 How it works -->
+    <section class="lp-band lp-band--light" id="sec-how">
+      <div class="lp-wrap">
+        <p class="eyebrow">How it works</p>
+        <h2 class="h-sec sm">四步，从一句话到一张甘特图</h2>
+        <div class="steps">
+          <div class="step"><span class="mono">STEP 01</span><h4>说出目标</h4><p>一句模糊的话，或一门课、一本书、一篇论文的链接。</p></div>
+          <div class="step"><span class="mono">STEP 02</span><h4>AI 拆解</h4><p>意图解析 → 资源检索 → 计划生成，产出 4～8 个子任务。</p></div>
+          <div class="step"><span class="mono">STEP 03</span><h4>核查修订</h4><p>校验 Bloom 递进是否合理、资源是否真实可达，不合格就重排。</p></div>
+          <div class="step"><span class="mono">STEP 04</span><h4>每天接着走</h4><p>完成一级，后面的日程自动接续，复习节点按时提醒。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 核心能力 -->
+    <section class="lp-band" id="sec-cap">
+      <div class="lp-wrap">
+        <p class="eyebrow">Core Capabilities</p>
+        <h2 class="h-sec sm">六件事，它做得比通用待办更认真</h2>
+        <div class="cap-grid">
+          <div class="card cap"><span class="cap__i">◈</span><h4>AI 目标拆解</h4><p>把「学好日语」拆成可执行、可验收的子任务，每个带时长、优先级与认知层级。</p></div>
+          <div class="card cap"><span class="cap__i">◉</span><h4>资源检索与校验</h4><p>AI 只产出搜索意图，真实链接由白名单检索得到，并做存活 / 权威 / 新鲜度三维校验。</p></div>
+          <div class="card cap"><span class="cap__i">▤</span><h4>全局接续排期</h4><p>新任务永远排在未完成任务之后，每日槽位限制主题扎堆，认知负荷保持均衡。</p></div>
+          <div class="card cap"><span class="cap__i">◫</span><h4>甘特图与进度看板</h4><p>灰=已完成、黄=进行中、描边=计划中，一屏看清整条学习路径的现在时。</p></div>
+          <div class="card cap"><span class="cap__i">↻</span><h4>自动核查修订</h4><p>计划不是生成完就完了。核查段打分并给出建议，不达标自动重排一版。</p></div>
+          <div class="card cap"><span class="cap__i">▲</span><h4>Bloom 难度递进</h4><p>从记忆、理解到分析、评价，按认知层级排序子任务，避免一上来就啃硬骨头。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 隐私 深色带 -->
+    <section class="lp-band lp-band--dark" id="sec-privacy">
+      <div class="lp-wrap">
+        <p class="eyebrow eyebrow--accent">Privacy &amp; Ownership</p>
+        <h2 class="h-sec sm rev">你的学习数据，<br>只属于你和你的服务器<i class="dot-accent"></i></h2>
+        <div class="priv-grid">
+          <div class="card priv"><h4>BYOK</h4><p>自带模型密钥。<code>AI_PROVIDER_API_KEY</code> 在你自己的环境变量里，我们不代持、不经转售。</p></div>
+          <div class="card priv"><h4>自托管</h4><p>已从平台解耦，<code>package.json</code> 里没有任何厂商 SDK。Docker 或 Vercel 一键起。</p></div>
+          <div class="card priv"><h4>数据可导出</h4><p>任务、子任务、排期都是你自己库里的表结构，Drizzle schema 就是契约。</p></div>
+          <div class="card priv"><h4>无行为追踪</h4><p>不做学习行为画像，不埋营销事件。Analytics 只有一个页面计数，可关。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 最终 CTA -->
+    <section class="lp-cta">
+      <p class="eyebrow">Start today</p>
+      <h2 class="h-hero center">今天想学点什么<i class="dot-accent"></i></h2>
+      <p class="cta-lede">把你的目标丢给拾级，三十秒后你会拿到一张带资源、带排期、带复习节点的甘特图。</p>
+      <div class="cta-row">
+        <button class="btn btn--primary">免费开始规划</button>
+        <button class="btn btn--ghost">先看演示数据</button>
+        <button class="btn btn--ghost">自托管部署</button>
+      </div>
+      <p class="hero-foot">部署只需 <code>DATABASE_URL</code> 与一个模型密钥。</p>
+    </section>
+
+    <!-- 8 Footer -->
+    <footer class="lp-foot">
+      <div class="lp-wrap lp-wrap--foot">
+        <div class="foot-brand">
+          <svg class="mark" style="width:40px;height:19px;color:#F5F2EA"><use href="#mark-mono"/></svg>
+          <p class="foot-brand__word">拾级 <span class="mono">GRADUS</span></p>
+          <p class="foot-brand__tag">面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。</p>
+          <form class="subscribe" id="subscribe">
+            <p class="label-mono" style="color:var(--on-dark-2)">更新提醒</p>
+            <div class="subscribe__row">
+              <input class="subscribe__input" type="email" placeholder="you@example.com">
+              <button class="btn btn--accent" type="submit">订阅</button>
+            </div>
+            <p class="subscribe__hint" id="subHint">每两周一封，只写更新。</p>
+          </form>
+        </div>
+        <div class="foot-cols">
+          <div><p class="label-mono">产品</p><a href="#">今日面板</a><a href="#">甘特视图</a><a href="#">资源校验</a><a href="#">MCP 服务</a></div>
+          <div><p class="label-mono">资源</p><a href="#">README</a><a href="#">开发者指南</a><a href="#">部署文档</a><a href="#">更新日志</a></div>
+          <div><p class="label-mono">关于</p><a href="#">品牌标识</a><a href="#">设计说明</a><a href="#">开源协议</a><a href="#">联系方式</a></div>
+        </div>
+      </div>
+      <div class="lp-wrap foot-bar">
+        <p class="mono">Copyright 2026 Gradus · 拾级</p>
+        <nav><a href="#">隐私政策</a><a href="#">服务条款</a></nav>
+        <div class="foot-social">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.6 0 0 3.6 0 8c0 3.5 2.3 6.5 5.5 7.6.4.1.5-.2.5-.4v-1.4c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7.1-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.1-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8.6-.2 1.3-.3 2-.3s1.4.1 2 .3c1.5-1 2.2-.8 2.2-.8.5 1.1.2 1.9.1 2.1.5.5.8 1.2.8 2.1 0 3.1-1.8 3.7-3.6 4 .3.2.5.7.5 1.4v2.1c0 .2.1.5.5.4C13.7 14.5 16 11.5 16 8c0-4.4-3.6-8-8-8z"/></svg></a>
+          <a href="#" aria-label="X"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M12.3 1h2.4l-5.2 6 6.2 8h-4.9L6.7 10 1.6 1H-.8l5.9 6.9L1.3 15h4.9l4.4-6.2 4.6 6.2h3.1L12.3 1z" transform="translate(1 0)"/></svg></a>
+          <a href="#" aria-label="Email"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="14" height="10" rx="2"/><path d="M2 5l6 4 6-4"/></svg></a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏一 今日面板 ══════════════════ -->
+<section class="view" id="view-app-today">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / today</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a class="is-active" href="#"><i>▣</i>今日面板</a>
+          <a href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user">
+          <span class="avatar">L</span>
+          <div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="main__head">
+          <div>
+            <h2 class="h-page">今日面板</h2>
+            <p class="mono muted">2026.09.21 · 第 39 周 · 周日</p>
+          </div>
+          <div class="main__tools">
+            <div class="main__search"><span>⌕</span><input placeholder="搜索任务、子任务、资源"></div>
+            <button class="icon-btn">◴<i class="pip"></i></button>
+            <button class="icon-btn avatar-btn">L</button>
+          </div>
+        </header>
+
+        <section class="card goal">
+          <p class="eyebrow">New Goal</p>
+          <div class="goal__row">
+            <input class="field field--lg" id="goalInput" placeholder="三个月内通过日语 N3 考试">
+            <button class="btn btn--app" id="planBtn">开始规划</button>
+          </div>
+          <div class="chips">
+            <button class="chip" data-goal="从零开始学 Python，六个月后能做数据看板">从零开始学 Python</button>
+            <button class="chip" data-goal="两个月读透《思考，快与慢》并写出读书笔记">两个月读透《思考，快与慢》</button>
+            <button class="chip" data-goal="30 天拿下手绘基础，能独立画一个人像速写">30 天拿下手绘基础</button>
+          </div>
+        </section>
+
+        <section class="stats">
+          <div class="card stat"><p class="label-mono">进行中</p><b>3</b><p class="stat__foot">最近截止 09-24</p></div>
+          <div class="card stat"><p class="label-mono">今日待完成</p><b id="statToday">2</b><p class="stat__foot">共 5 项子任务</p></div>
+          <div class="card stat"><p class="label-mono">连续学习</p><b>12 <em>天</em></b><p class="stat__foot">个人最长纪录 18 天</p></div>
+          <div class="card stat stat--accent"><p class="label-mono">本周完成率</p><b>86%</b><p class="stat__foot">较上周 +11%</p></div>
+        </section>
+
+        <section class="cols">
+          <div class="card list">
+            <div class="card__head"><h3>今日子任务</h3><span class="mono muted">5 项 · 4.5 小时</span></div>
+            <ul class="subs" id="subList">
+              <li class="sub is-done" data-state="done"><button class="box" aria-label="切换状态"><i>✓</i></button><div class="sub__c"><b>助词は与が的辨析练习</b><p>复习 · 已完成于 09:20</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+              <li class="sub is-live" data-state="live"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>N4 语法收尾：被动与使役</b><p>进行中 · 预计今天 21:00 前</p></div><span class="tag">L4 分析</span><span class="mono sub__t">90min</span></li>
+              <li class="sub" data-state="todo"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>词汇 200 题模考</b><p>待开始 · 09-21 20:30</p></div><span class="tag">L3 应用</span><span class="mono sub__t">60min</span></li>
+              <li class="sub" data-state="todo"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>听力：新闻语速适应训练</b><p>待开始 · 明日 08:00</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+            </ul>
+          </div>
+          <div class="card ai-dark">
+            <div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div>
+            <h3>修订建议 2 条</h3>
+            <div class="sug">
+              <p class="sug__t">把「听力训练」后移一天</p>
+              <p class="sug__b">明天 08:00 与你的工作日的深工作时段冲突，后移一天可让该子任务落在 20:30 的空槽。</p>
+              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+            </div>
+            <div class="sug">
+              <p class="sug__t">「被动与使役」的认知层级偏低</p>
+              <p class="sug__b">该子任务后紧跟 L5 评价级的真题模考，建议插入一级 L4.5 的对比练习，避免跨度 1.8 层。</p>
+              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+            </div>
+            <p class="ai-dark__foot mono">VALIDATE 评分 82 / 100 · Bloom 跨度检查通过 4 / 5</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏二 任务详情 ══════════════════ -->
+<section class="view" id="view-app-detail">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / task / jlpt-n3</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a href="#"><i>▣</i>今日面板</a>
+          <a class="is-active" href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user"><span class="avatar">L</span><div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div></div>
+      </aside>
+      <div class="main main--detail">
+        <a class="back mono" href="#">← 返回我的任务</a>
+        <div class="detail-split">
+          <div class="detail-main">
+            <header class="main__head">
+              <div>
+                <p class="eyebrow">Task · 进行中</p>
+                <h2 class="h-page">三个月内通过日语 N3 考试</h2>
+                <p class="mono muted">12 个子任务 · 2026.09.10 → 12.10 · 主题：语言</p>
+              </div>
+              <div class="main__tools">
+                <button class="btn btn--ghost btn--sm">AI 重新规划</button>
+                <button class="btn btn--primary btn--sm">标记完成</button>
+              </div>
+            </header>
+
+            <section class="card prog">
+              <div class="prog__row">
+                <div class="prog__id">
+                  <h3>总体进度</h3>
+                  <p class="mono muted">7 已完成 · 1 进行中 · 4 计划中 · 剩余 41 天</p>
+                </div>
+                <div class="prog__bar"><span style="width:62%"></span></div>
+                <b class="prog__pct">62%</b>
+              </div>
+            </section>
+
+            <section class="card gantt">
+              <div class="card__head">
+                <h3>甘特图</h3>
+                <div class="legend">
+                  <span><i class="k k--done"></i>已完成</span>
+                  <span><i class="k k--live"></i>进行中</span>
+                  <span><i class="k k--plan"></i>计划中</span>
+                </div>
+              </div>
+              <div class="g">
+                <div class="g__head"><span class="g__lab mono">SUBTASK</span><div>
+                  <span class="mono">一</span><span class="mono">二</span><span class="mono">三</span><span class="mono">四</span><span class="mono">五</span><span class="mono">六</span><span class="mono is-today">日</span><span class="mono g__next">下周</span>
+                </div></div>
+                <div class="g__body">
+                  <div class="g__cols"><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i><i></i></div>
+                  <div class="g__row"><span class="g__lab"><b>基础轮：发音 · 假名 · 语调</b><em class="mono">L1–L4</em></span><div class="g__track"><span class="bar bar--done" style="--s:1;--c:4"></span></div></div>
+                  <div class="g__row"><span class="g__lab"><b>N4 语法收尾：助词与被动</b><em class="mono">L5–L7</em></span><div class="g__track"><span class="bar bar--live" style="--s:5;--c:3"></span></div></div>
+                  <div class="g__row"><span class="g__lab"><b>真题模考与失分模式复盘</b><em class="mono">L8</em></span><div class="g__track"><span class="bar bar--plan" style="--s:8;--c:1"></span></div></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card list">
+              <div class="card__head"><h3>子任务清单</h3><span class="mono muted">点击行查看详情</span></div>
+              <ul class="subs subs--detail" id="detailList">
+                <li class="sub is-done" data-card="0"><i class="mk mk--done">✓</i><div class="sub__c"><b>假名与发音定型</b><p>已完成 · L2 理解</p></div><span class="mono sub__t">09.10 – 09.13</span></li>
+                <li class="sub is-live" data-card="1"><i class="mk mk--live"></i><div class="sub__c"><b>N4 语法收尾：助词与被动表达</b><p>进行中 · L4 分析</p></div><span class="mono sub__t">09.19 – 09.21</span></li>
+                <li class="sub" data-card="2"><i class="mk mk--plan"></i><div class="sub__c"><b>敬语与书面表达入门</b><p>计划中 · L4 分析</p></div><span class="mono sub__t">09.22 – 09.25</span></li>
+                <li class="sub" data-card="3"><i class="mk mk--plan"></i><div class="sub__c"><b>N3 真题模考与复盘</b><p>计划中 · L5 评价</p></div><span class="mono sub__t">09.26 – 09.29</span></li>
+              </ul>
+            </section>
+          </div>
+
+          <aside class="panel">
+            <div class="panel__in" id="panel">
+              <div class="badge badge--live">进行中 · L4</div>
+              <h3 class="panel__title">N4 语法收尾：助词与被动表达</h3>
+              <div class="meta2">
+                <div><p class="label-mono">认知层级</p><b>Bloom L4 分析</b></div>
+                <div><p class="label-mono">深工作时长</p><b>3.5 小时</b></div>
+                <div><p class="label-mono">排期</p><b>09.19 – 09.21</b></div>
+                <div><p class="label-mono">优先级</p><b>高</b></div>
+              </div>
+              <p class="panel__p">把は/が、に/で、を的边界一次理清，并把被动、使役、使役被动四种形态做成对照表。收尾标准：能在 30 分钟内把 20 个主动句改写为被动与使役句且不错。</p>
+              <p class="label-mono">学习资源 · 2</p>
+              <a class="res" href="#">
+                <span class="res__t">日本語文法概説 · 第 4 章 受身形</span>
+                <span class="res__m mono"><i class="ok">VERIFIED</i> tokyo-term-learner.jp · 权威 0.86</span>
+              </a>
+              <a class="res" href="#">
+                <span class="res__t">使役受身の使い方 · 例文 60 本</span>
+                <span class="res__m mono"><i class="search">SEARCH ONLY</i> 未配 TAVILY_API_KEY · 跳转搜索自选</span>
+              </a>
+              <p class="label-mono">行动项 · 3</p>
+              <ol class="acts"><li>整理 は/が 各 8 条例句并标注语义差异</li><li>做被动 ↔ 使役 ↔ 使役被动转换表 20 行</li><li>计时改写 20 句，错 ≤ 2 即通过</li></ol>
+              <div class="panel__foot"><button class="btn btn--app btn--full">完成此项</button><button class="btn btn--ghost btn--full">稍后</button></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <div class="ai-pill ai-pill--app"><i class="spin"></i>AI 正在核查排期 <span class="mono">阶段 3 / 4</span></div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 屏三 AI 规划弹层 ══════════════════ -->
+<section class="view" id="view-app-modal">
+  <div class="frame-wrap"><div class="frame-slot"><div class="frame">
+    <div class="browser">
+      <div class="browser__dots"><i></i><i></i><i></i></div>
+      <div class="browser__url mono">gradus.app / today</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="side__brand"><svg class="mark" style="width:26px;height:12px;color:#111"><use href="#mark"/></svg><b>拾级</b></div>
+        <p class="label-mono side__menu">MENU</p>
+        <nav class="side__nav">
+          <a class="is-active" href="#"><i>▣</i>今日面板</a>
+          <a href="#"><i>◈</i>我的任务</a>
+          <a href="#"><i>▤</i>甘特视图</a>
+          <a href="#"><i>◉</i>学习资源</a>
+          <a href="#"><i>◭</i>数据统计</a>
+        </nav>
+        <div class="side__widget">
+          <p class="label-mono">本周进度</p>
+          <div class="side__bar"><span style="width:72%"></span></div>
+          <p class="side__meta"><b>8.5</b> / 12 小时</p>
+          <p class="side__foot mono">+2.5H VS 上周</p>
+        </div>
+        <div class="side__user"><span class="avatar">L</span><div><b>Lin Yuchen</b><p class="mono">BYOK · 自托管</p></div></div>
+      </aside>
+      <div class="main">
+        <header class="main__head">
+          <div><h2 class="h-page">今日面板</h2><p class="mono muted">2026.09.21 · 第 39 周 · 周日</p></div>
+          <div class="main__tools"><div class="main__search"><span>⌕</span><input placeholder="搜索任务、子任务、资源"></div><button class="icon-btn">◴</button><button class="icon-btn avatar-btn">L</button></div>
+        </header>
+        <section class="card goal">
+          <p class="eyebrow">New Goal</p>
+          <div class="goal__row"><input class="field field--lg" value="三个月内通过日语 N3 考试"><button class="btn btn--app">开始规划</button></div>
+          <div class="chips"><button class="chip">从零开始学 Python</button><button class="chip">两个月读透《思考，快与慢》</button><button class="chip">30 天拿下手绘基础</button></div>
+        </section>
+        <section class="stats">
+          <div class="card stat"><p class="label-mono">进行中</p><b>3</b><p class="stat__foot">最近截止 09-24</p></div>
+          <div class="card stat"><p class="label-mono">今日待完成</p><b>2</b><p class="stat__foot">共 5 项子任务</p></div>
+          <div class="card stat"><p class="label-mono">连续学习</p><b>12 <em>天</em></b><p class="stat__foot">个人最长纪录 18 天</p></div>
+          <div class="card stat stat--accent"><p class="label-mono">本周完成率</p><b>86%</b><p class="stat__foot">较上周 +11%</p></div>
+        </section>
+        <section class="cols">
+          <div class="card list"><div class="card__head"><h3>今日子任务</h3><span class="mono muted">5 项 · 4.5 小时</span></div>
+            <ul class="subs">
+              <li class="sub is-done"><button class="box"><i>✓</i></button><div class="sub__c"><b>助词は与が的辨析练习</b><p>复习 · 已完成于 09:20</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
+              <li class="sub is-live"><button class="box"></button><div class="sub__c"><b>N4 语法收尾：被动与使役</b><p>进行中 · 预计今天 21:00 前</p></div><span class="tag">L4 分析</span><span class="mono sub__t">90min</span></li>
+            </ul>
+          </div>
+          <div class="card ai-dark"><div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div><h3>修订建议 2 条</h3>
+            <div class="sug"><p class="sug__t">把「听力训练」后移一天</p><p class="sug__b">明天 08:00 与你的深工作时段冲突，后移一天可落在 20:30 的空槽。</p></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- overlay + modal -->
+    <div class="veil" id="veil">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="AI 规划流水线">
+        <header class="modal__head">
+          <svg class="mark" style="width:32px;height:15px;color:#111"><use href="#mark"/></svg>
+          <div><h3>AI 规划流水线</h3><p class="mono muted">INTENT → RESOURCE → PLAN → VALIDATE</p></div>
+          <button class="icon-btn modal__x" id="modalX" aria-label="关闭">✕</button>
+        </header>
+        <div class="modal__body">
+          <div class="pipe" id="pipe">
+            <div class="pnode is-done"><i>✓</i><b>意图解析</b><span class="mono">STAGE 1</span></div>
+            <span class="pline is-done"></span>
+            <div class="pnode is-done"><i>✓</i><b>资源检索</b><span class="mono">STAGE 2</span></div>
+            <span class="pline is-live"></span>
+            <div class="pnode is-live"><i>3</i><b>计划生成</b><span class="mono">STAGE 3</span></div>
+            <span class="pline"></span>
+            <div class="pnode"><i>4</i><b>核查修订</b><span class="mono">STAGE 4</span></div>
+          </div>
+
+          <section class="card stage-card">
+            <div class="stage-card__head"><p class="eyebrow">Stage 3 · 计划生成</p><b class="stage-card__pct" id="pct">62%</b></div>
+            <div class="prog__bar"><span id="stageBar" style="width:62%"></span></div>
+            <p class="stage-card__desc">依据意图与 8 条已校验资源，正在按 Bloom 层级生成 4～8 个子任务，并为每一条寻找可用日期槽位。</p>
+            <div class="stage-card__stats">
+              <div><b>6</b><p class="mono">子任务</p></div>
+              <div><b>8</b><p class="mono">资源</p></div>
+              <div><b>6 / 8</b><p class="mono">已校验</p></div>
+            </div>
+          </section>
+
+          <p class="label-mono">计划预览</p>
+          <ul class="preview" id="preview">
+            <li><span class="idx">01</span><div><b>五十音与发音定型</b><p class="mono">2 天 · 深工作 3.0h</p></div><span class="tag">L1 记忆</span></li>
+            <li><span class="idx">02</span><div><b>核心动词变形 40 组</b><p class="mono">3 天 · 深工作 6.5h</p></div><span class="tag">L3 应用</span></li>
+            <li><span class="idx">03</span><div><b>N4 语法收尾：助词与被动</b><p class="mono">3 天 · 深工作 5.0h</p></div><span class="tag">L4 分析</span></li>
+            <li><span class="idx">04</span><div><b>N3 真题模考与复盘</b><p class="mono">4 天 · 深工作 8.0h</p></div><span class="tag">L5 评价</span></li>
+          </ul>
+
+          <div class="done-in">
+            <div class="done-in__mark"><svg class="mark" style="width:44px;height:21px;color:#111"><use href="#mark"/></svg></div>
+            <h4>计划已应用</h4>
+            <p>6 个子任务已按 Bloom 层级递进排入日程，接续自 09-22。两个复习节点插在 L3 与 L5 之后，第 4 阶段的核查评分 88 / 100。</p>
+            <span class="mono">TOTAL 34 天 · 深工作 36.5H · 已校验资源 6 / 8</span>
+            <button class="btn btn--primary" id="goDetail">查看甘特图</button>
+          </div>
+        </div>
+        <footer class="modal__foot">
+          <p class="mono muted">规划期间可继续操作，取消不会删除已有任务</p>
+          <div><button class="btn btn--ghost btn--sm" id="modalCancel">取消</button><button class="btn btn--primary btn--sm" id="modalApply">应用计划</button></div>
+        </footer>
+      </div>
+      <div class="toast" id="toast">计划已应用 · 6 个子任务已排入日程</div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- ══════════════════ VIEW · 评审要点 ══════════════════ -->
+<section class="view" id="view-notes">
+  <div class="brand">
+    <header class="sec-head">
+      <p class="eyebrow">Review Notes</p>
+      <h1 class="h-sec">这份预览里，<br>哪些地方和设计稿不一样<i class="dot-accent"></i></h1>
+      <p class="lede">本页是实现方写给设计方的对照清单。预览为纯前端静态实现，不含真实逻辑，所有文案与数据均为占位；下列偏差全部由浏览器实测得出，不是主观调整。</p>
+    </header>
+
+    <div class="band band--light">
+      <h2 class="h-sub">1 · 色彩令牌偏差（WCAG AA）</h2>
+      <p class="band-lead">设计稿 §1.2 的三个次级色在小字号 / 深底上不达 4.5:1。预览改用了可达标的派生值，原值保留在 <code>--text-3-spec</code> 供对照。</p>
+      <table class="cmp">
+        <thead><tr><th>用途</th><th>设计稿原值</th><th>实测比</th><th>预览改用</th><th>实测比</th></tr></thead>
+        <tbody>
+          <tr><td>眉题 / 元信息（10–12px）</td><td><i style="background:#8A867C"></i><code>#8A867C</code></td><td class="bad">3.25 – 3.63</td><td><i style="background:#6E6B62"></i><code>#6E6B62</code></td><td class="ok">4.70 – 5.32</td></tr>
+          <tr><td>副文（13–15px）</td><td><i style="background:#6E6B62"></i><code>#6E6B62</code></td><td class="warn">4.70 – 5.32</td><td><i style="background:#5E5B53"></i><code>#5E5B53</code></td><td class="ok">5.98 – 6.78</td></tr>
+          <tr><td>深底副文</td><td><i style="background:#3A3833"></i><code>#3A3833</code></td><td class="bad">1.66</td><td><i style="background:#918E86"></i><code>rgba(cream,.72)</code></td><td class="ok">8.90</td></tr>
+          <tr><td>深底元信息</td><td>—</td><td>—</td><td><i style="background:#77746D"></i><code>rgba(cream,.58)</code></td><td class="ok">6.40</td></tr>
+          <tr><td>黄底强调卡上的标签</td><td>—</td><td class="bad">3.63</td><td><i style="background:#5C5A55"></i><code>rgba(ink,.72)</code></td><td class="ok">5.40</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>为什么副文也要改</strong>：把眉题提到 <code>#6E6B62</code> 后，它与原稿副文同色，两级层次会塌掉。所以副文再压深一档，用明度差 + 字号 / 字重 / 全大写三重手段维持层级。若设计方更希望保住原色值，可改为「保留 <code>#8A867C</code> 但把眉题字号从 10–11px 提到 13px 并加粗到 700」，那条路径同样能达标。
+        <em>深底描边 <code>#2B2924</code> 对比度 1.34:1，只适合做 1px 分隔线，不可承载文字——预览里它确实只用于描边。</em>
+      </div>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">2 · 原稿歧义与实现选择</h2>
+      <div class="amb">
+        <div class="card">
+          <p class="eyebrow">屏二 · 甘特图</p>
+          <h4>「7 日表头」放不下「L8 计划条」</h4>
+          <p>§3 屏二同时要求 7 日表头（周日高亮）和三条任务条：已完成 L1–L4、进行中 L5–L7、计划 L8。L8 落在第 8 天，7 列网格里没有它的位置。</p>
+          <p class="amb__pick"><b>实现选择</b>：在 7 个真实日列之后追加一个弱化的「下周」延续列承接 L8，周日仍保持黄色高亮。若设计方倾向严格 7 列，可把 L8 画成从第 7 列溢出并带裁切的描边条，暗示「跨出可视窗口」。</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">屏二 · 画板高度</p>
+          <h4>悬浮 AI pill 会压住详情面板主按钮</h4>
+          <p>屏二内容（进度卡 + 甘特 + 4 行清单 + 380px 详情面板）在 1440×900 内本就接近饱和，pill 固定在右下角时正好盖住「完成此项」。</p>
+          <p class="amb__pick"><b>实现选择</b>：详情列底部留 58px 净空，代价是主区出现 <b>75px 内部滚动</b>。屏一、屏三仍严格 0 溢出塞进 900。备选方案：pill 改为顶部细条、或让右侧详情面板独立滚动。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="band band--light">
+      <h2 class="h-sub">3 · 实测结论</h2>
+      <div class="metrics">
+        <div class="metric"><b>0</b><p class="mono">TEXT OVERFLOW</p><span>5 个视图逐节点量</span></div>
+        <div class="metric"><b>0</b><p class="mono">CLIPPED NODES</p><span>画板 900px 内裁切</span></div>
+        <div class="metric"><b>0</b><p class="mono">CONTRAST FAIL</p><span>按真实合成背景算</span></div>
+        <div class="metric"><b>0</b><p class="mono">CONSOLE ERRORS</p><span>chromium 全程</span></div>
+        <div class="metric"><b>0px</b><p class="mono">GANTT MISALIGN</p><span>条带边缘 vs 日列</span></div>
+        <div class="metric"><b>232</b><p class="mono">SIDEBAR PX ×3</p><span>三屏外壳一致</span></div>
+      </div>
+      <p class="band-lead">量测环境：1600×1000（画板 1:1）与 390×844（移动），Noto Sans SC / JetBrains Mono 经 <code>document.fonts</code> 确认已加载。移动视口下 5 个视图均无横向滚动，1440 画板等比缩到 0.23。</p>
+    </div>
+
+    <div class="band">
+      <h2 class="h-sub">4 · 想请设计方拍板的问题</h2>
+      <ol class="ask">
+        <li><b>黄色只做点缀的「五处」规则要不要放宽？</b>目前预览里黄色出现在：句号、顶点台阶、进行中状态、强调统计卡、深底眉题，外加进度条。进度条算不算第六处，需要定。</li>
+        <li><b>屏三弹层要不要做「跑完即自动关闭」？</b>现在四阶段跑完停在 100% 等用户点「应用计划」。等待型 AI 流程是否该自动推进到成功态，是产品判断不是视觉判断。</li>
+        <li><b>Landing 全页约 4700px，是否拆二级页？</b>§5 残留说明里把它当作有意的长页浏览；如果投放渠道以移动端为主，这个长度需要重估。</li>
+        <li><b>移动端适配（§6 待办）什么时候进。</b>本预览只做了桌面 1440 基准，<code>&lt; 768px</code> 只保证不横向溢出，侧边栏收底部 Tab、统计卡 2 列都还没画。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+</main>
+<script src="js/preview.js"></script>
+</body>
+</html>
