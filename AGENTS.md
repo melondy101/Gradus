@@ -1,7 +1,7 @@
 # 开发者指南（AGENTS）
 
 > 原项目名 **AutoTask**，GitHub 仓库名 **TalkTask**，现产品名 **「拾级（Gradus）」**。
-> 本文件供人类开发者与 AI Agent 接手本项目时快速建立上下文。产品定位、运行方式见 [README.md](./README.md)，功能细节见 [PRD.md](./PRD.md)。
+> 本文件供人类开发者与 AI Agent 接手本项目时快速建立上下文。产品定位、运行方式见 [README.md](./README.md)，功能细节见 [docs/PRD.md](./docs/PRD.md)。
 
 ---
 
@@ -34,50 +34,25 @@
 
 ## 3. 目录结构
 
+逐文件清单读代码即可，此处只留边界与真相源：
+
 ```
-src/
-  app/
-    layout.tsx                      根布局：I18nProvider > UserProvider > EazoProvider(shim) > LocaleSyncEffect > Toaster
-    page.tsx                        首页入口 → <HomePage />
-    task/[id]/page.tsx              任务详情页（甘特图）
-    history/page.tsx                历史任务页
-    api/
-      auth/{register,login,logout,me}/route.ts  公开鉴权（限流）
-      tasks/route.ts                GET 列表 / POST 创建
-      tasks/[id]/route.ts           GET / PATCH(status) / DELETE(级联)
-      tasks/[id]/analyze/route.ts   POST 4+ 段 AI 流水线（缓冲 JSON，非 SSE）
-      tasks/[id]/subtasks/[subtaskId]/route.ts  PATCH 切换完成状态
-      subtasks/route.ts             GET 全量子任务 JOIN 大任务
-      user/profile/route.ts         GET 当前用户
-      user/stats/route.ts           GET 统计
-      mcp/route.ts                  GET/POST/DELETE MCP Streamable HTTP
-      notifications/cron/daily-digest/route.ts   Vercel Cron 每日提醒
-      notifications/test/route.ts    测试推送
-  components/
-    auth/        auth-modal / global-auth-modal（全局唯一登录注册弹窗，挂载于 layout）
-    home/        home-page / new-task-input / subtask-row / subtask-detail-modal / congrats-modal / right-panel
-    task/        task-input-form / task-phase / analysis-panel / gantt-chart / task-detail-page-v2
-    history/     history-page
-    user-profile/ user-badge / user-sync-effect
-    i18n/        i18n-provider / language-switcher / locale-sync-effect
-    ui/          shadcn/ui 基础组件
-  lib/
-    ai/prompts.ts        INTENT / RESOURCE_INTENT / PLAN / VALIDATE 提示词
-    api/                 request / tasks / user-profile / app-ai-request / index
-    auth/                index.ts(jwt cookie) / env / jwt / password / cookie / temp-account / ratelimit / current-user / user-provider / auth-attempts
-    db/                  schema(tasks,subtasks,users,auth-attempts) / queries / client / migrate / migrations/
-    eazo-ai-billing.ts   appAi 客户端（byok / creator proxy）
-    eazo-shim.ts         EazoProvider / auth / memory / useEazo 兼容层（读 UserProvider）
-    fetchers/            article / arxiv / bilibili / course / pdf / workspace / fallback
-    i18n/                locale / preference / server-locale / server-preference
-    mcp/server.ts        MCP 工具定义
-    resource-validator.ts  三维可信度校验
-    scheduler.ts         全局排期算法（Bloom 渐进 + 每日槽位）
-    tavily.ts            resolveResources（两阶段资源检索）
-    url-fetcher.ts       URL 内容抓取与格式化
-  middleware.ts                          兜底建临时账号 + 滑动续期
-  utils/utils.ts         cn() Tailwind 类名合并
+src/app/            page.tsx → Landing；/app 产品壳（HomePage）；/task/[id]；/history；
+                    /task/parity-probe（固定样例渲染屏二/屏三与浮层，供闸门实测，noindex）
+  api/              25 个 route.ts，清单见 §7
+src/components/     ui/（原子件，见 §13）、home/、task/、landing/、layout/、auth/、
+                    membership/、share/、history/、errors/、user-profile/、i18n/
+src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ mcp/ + scheduler.ts tavily.ts
+                    resource-validator.ts url-fetcher.ts growth.ts task-tags.ts safe-url.ts
+                    eazo-shim.ts eazo-ai-billing.ts（平台解耦兼容层，见 §2）
+src/app/globals.css 品牌令牌（@theme）+ keyframes + iOS 输入字号兜底。**不放组件样式**
+src/middleware.ts   兜底建临时账号 + 滑动续期（matcher 见 §11.1）
+output/             设计真源（见 §14）。⚠ 未被 git 跟踪，别清理
+scripts/            四道设计闸门脚本（见 §14）
+docs/               PRD.md · ANDROID_PACKAGING.md · plans/
 ```
+
+**AI 流水线、排期、资源检索的落点见 §6 的关键文件地图；数据模型见 §11.2。**
 
 ---
 
@@ -89,11 +64,15 @@ bun dev
 bun run build
 bun start
 bun run lint
+bun run test             # node --test
 bun run db:generate      # 生成迁移
 bun run db:migrate       # 执行迁移
 bun run db:push          # 直接同步 schema
 bun run db:studio        # Drizzle Studio
+bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 DATABASE_URL）
 ```
+
+> 设计保真四道闸门 `audit:tokens / audit:design / audit:parity / audit:modals` 见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
 
 > ⚠️ 旧的 `bun run cleanup:demo` 已在 2026-08-14 删除（指向不存在的脚本），当前 `package.json` 已不再声明该命令。
 
@@ -101,7 +80,7 @@ bun run db:studio        # Drizzle Studio
 
 ## 5. 环境变量
 
-见 [.env.example](./.env.example)。**必填**：`DATABASE_URL`、`AUTH_SECRET`（≥ 32 字符；**惰性校验**——构建期不报错，仅运行时首次签发/校验 JWT 时强制，缺失则相关请求 503）、`EAZO_AI_PROVIDER_MODE=byok`、`AI_PROVIDER_BASE_URL`、`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL`。**可选**：`TAVILY_API_KEY`、`NEXT_PUBLIC_APP_TITLE/DESCRIPTION`、`CRON_SECRET`。生成命令：`openssl rand -hex 32`。
+见 [.env.example](./.env.example)。**必填**：`DATABASE_URL`、`AUTH_SECRET`（≥ 32 字符；**惰性校验**——构建期不报错，仅运行时首次签发/校验 JWT 时强制，缺失则相关请求 503）、`EAZO_AI_PROVIDER_MODE=byok`、`AI_PROVIDER_BASE_URL`、`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL`。**可选**：`TAVILY_API_KEY`（无则资源降级为 search_only 跳转）、`NEXT_PUBLIC_APP_TITLE/DESCRIPTION`、`CRON_SECRET`（Vercel Cron 与 `/api/cron/cleanup` 的 `Bearer`）、`AI_MAX_TOKENS`、`GEMINI_API_KEY`。**邮箱验证码**（`/api/auth/send-code`）：`QQ_EMAIL_USER`、`QQ_EMAIL_PASS`（SMTP 授权码，非登录密码）、`SMTP_HOST`、`SMTP_PORT`（默认 465）、`EMAIL_FROM`。**Watcha OAuth 登录**（`/api/auth/oauth/watcha`）：`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`、`WATCHA_AUTH_URL`、`WATCHA_TOKEN_URL`、`WATCHA_USERINFO_URL`、`WATCHA_REDIRECT_URI`。**Android 热更新检查**（`/api/app/check-update`）：`GITHUB_TOKEN`（仅代码引用，`.env.example` 未列）。生成命令：`openssl rand -hex 32`。
 
 ---
 
@@ -142,6 +121,17 @@ bun run db:studio        # Drizzle Studio
 | `GET/POST/DELETE` | `/api/mcp` | MCP Streamable HTTP | 已登录 |
 | `GET` | `/api/notifications/cron/daily-digest` | 每日推送（Cron） | `Bearer ${CRON_SECRET}` |
 | `GET` | `/api/notifications/test` | 测试推送 | 已登录 |
+| `GET` | `/api/auth/config` | 前端可用的登录方式开关 | 公开 |
+| `POST` | `/api/auth/send-code` | 邮箱验证码（SMTP） | 公开（限流） |
+| `GET` | `/api/auth/oauth/watcha` | 跳转 Watcha OAuth 授权 | 公开 |
+| `GET` | `/api/auth/oauth/watcha/callback` | 回调：换 token、合并临时账号数据 | 公开 |
+| `GET` | `/api/cron/cleanup` | 清理过期临时账号 / 验证码 / 限流记录 | `Bearer ${CRON_SECRET}` |
+| `GET` | `/api/app/check-update` | 查 GitHub Releases（Capacitor 壳热更） | 公开 |
+| `GET/PATCH/DELETE` | `/api/notifications` | 站内通知列表 / 已读 / 删除 | 已登录 |
+| `GET` | `/api/user/membership` | 当前会员等级与到期 | 已登录 |
+| `GET/POST/DELETE` | `/api/membership/codes` | 兑换码管理（`requireAdmin`，见 `src/lib/auth/admin.ts`） | 已登录（管理员） |
+| `GET` | `/api/membership/records` | 兑换记录 | 已登录 |
+| `POST` | `/api/membership/redeem` | 用码兑换会员 | 已登录 |
 
 > 鉴权列三态：
 >   - **已登录** —— `__Host-session` cookie 解析合法 JWT；middleware 已在请求入口兜底建临时账号。
@@ -194,7 +184,7 @@ bun run db:studio        # Drizzle Studio
 
 ### 11.1 三层鉴权边界
 
-1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。
+1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（见 §15 日历导出待办），别以为它已经存在。
 2. **`requireAuth(request)`（`src/lib/auth/index.ts`）** — 解析 cookie → `verifySession` → 查 users → 返回 `{ ok, user, userId }` 或抛 401。**所有受保护路由 handler 第一行 await。**
 3. **RSC `<UserProvider>`（`src/lib/auth/user-provider.tsx` + `src/app/layout.tsx`）** — 根布局在 RSC 阶段直接调 `getCurrentUser()` 解出 user，作为 props 注入 `<UserProvider user={user}>`，客户端 `useEazo()` 读 Context，**首屏零闪烁**。
 
@@ -207,12 +197,13 @@ bun run db:studio        # Drizzle Studio
   - `passwordHash text NOT NULL DEFAULT ''`
   - `emailLower varchar(256) UNIQUE` —— 注册 / 登录唯一性依据
   - `auth_attempts(id, ip, kind, attemptedAt)` —— 滑动窗口限流
+- **全部 8 张表**（`src/lib/db/schema/`）：`tasks` `subtasks` `users` `auth_attempts` `email_verifications`（验证码）`redemption_codes` + `redemption_records`（会员兑换，`membership.ts`）`notifications`（站内通知）。
 
 ### 11.3 临时账号生命周期
 
 - **创建时机**：middleware 检测到 `/api/*` 请求缺 cookie 自动建。`name="访客 {4 位 hex}"`，`email="temp-{uuid}@anon.local"`。
 - **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务无缝转移。
-- **过期清理**：30 天未访问的临时账号**不在 v1 范围**（见 §15 TODO）。
+- **过期清理**：由 `/api/cron/cleanup` 负责 —— 删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。
 
 ### 11.4 限流机制
 
@@ -251,22 +242,26 @@ bun run db:studio        # Drizzle Studio
 - 不要深入 `@eazo/sdk` 内部（自托管下根本不存在该依赖）。
 - AI 只在服务端 `src/app/api/` 调用。
 - 发布前：`bun run lint` && `bun run build` 必须通过。
+- 设计保真有四道实测闸门，全部对着 `output/拾级Gradus-设计预览.html`（设计真源）量浏览器里的 computed 值，不靠肉眼比对：
+  - `bun run audit:tokens` — 设计稿 `:root` 的 21 条色彩/字体/圆角令牌 vs 实现同名属性的计算值（两侧都涂到白底取像素，避免 `#F5C518` 与 `oklab()` 字符串对不上）。
+  - `bun run audit:design` — 4 条路由 × 桌面/移动两视口 × 今日/天梯/全部/甘特四视图：底色、字体加载、横向溢出、逐元素文字溢出、WCAG 对比度、落地页 8 段结构。
+  - `bun run audit:parity` — 设计稿元素与实现元素逐件对表（卡片/输入框/按钮/chip/眉题/统计卡/深底卡/侧栏/甘特/详情面板）。
+  - `bun run audit:modals` — 需要交互才出现的 10 组浮层（新建目标 / ⌘K / 会员 / 屏三流水线两态 / 删除确认 / 升级 / 结业 / 子任务详情）的 §3 弹层语言。
+- 无本地 `DATABASE_URL` 时 `/api/*` 会挂起后 401，屏一/屏二的真实数据态量不了；`/task/parity-probe`（`?ritual=<phase>` / `?overlay=<name>`）用固定样例渲染同一套版面，是这些版面的实测入口。
 
 ---
 
 ## 15. 已知遗留 / 待清理
 
-- `src/app/layout.tsx` 的 metadata 仍引用 `eazo.ai` 的 favicon 与 `openGraph.siteName: "Eazo"`，品牌未完全切换为「拾级」。
-- 界面文案目前为中文硬编码，i18n 仅保留脚手架（`en-US` / `zh-CN`），未全面接入 `t()`。
+- 界面文案：22 个组件已走 `t()`，其余仍是硬编码中文；`en-US` / `zh-CN` 两个 locale 都在，但英文条目覆盖不全，切英文会露出中文。
+- 无本地 `DATABASE_URL` 时数据屏只能渲染空态（见 §14 探针入口）。
 
 ### 15.1 认证 / 账号系统 TODO（不在 v1 范围）
 
-- 临时账号 30 天过期清理脚本（定期 cron 扫描 `passwordHash = ''` 且 `updatedAt < NOW() - INTERVAL '30 days'` 的行）
 - JWT 撤销列表（用户主动注销已签发 token，演示版可接受"复制 cookie 在 30 天内仍可用"）
 - Turnstile / hCaptcha 等 CAPTCHA（防自动化撞库 + 自动化注册）
-- 邮箱验证邮件发送（注册时验证邮箱有效性）
-- 密码找回 / 重置流程
-- 第三方 OAuth（Google / GitHub）
+- 密码找回 / 重置流程（目前无 `/api` 路由，验证码只能用于注册）
+- 第三方 OAuth 扩展（Google / GitHub；**Watcha 已接入** `/api/auth/oauth/watcha`）
 - 服务端 IP 黑白名单
 - 账号删除 / 数据导出（GDPR 合规）
 - 多设备会话管理（"踢出其他设备"）

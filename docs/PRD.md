@@ -192,28 +192,28 @@ POST /api/tasks  →  DB: INSERT tasks (status="active", totalDays=0)
        │
        ▼  弹窗关闭，右侧面板新增标签页
        ▼
-POST /api/tasks/:id/analyze  →  SSE 流开始
+POST /api/tasks/:id/analyze  →  一次 HTTP 请求，服务端串行跑完 4+ 段
        │
    ┌───┴──────────────────────────────────────────┐
    │  AI 调用 #1 · 意图分析                        │
    │    输入：rawGoal [+ adjustment]               │
    │    输出：task_name / topic / urgency /        │
    │           importance / keywords / domain     │
-   │  → SSE: phase=intent, intent_done            │
+   │  → 阶段 intent 完成（前端本地节奏点亮动效）            │
    │                                              │
    │  AI 调用 #2 · 资源搜索                        │
    │    输入：goal + domain + keywords            │
    │    输出：resources[] (4-8 items)             │
-   │  → SSE: phase=search, search_done            │
+   │  → 阶段 search 完成            │
    │                                              │
    │  AI 调用 #3 · 计划生成                        │
    │    输入：goal + task_name + resources        │
    │    输出：subtasks[] (4-8 items)              │
-   │  → SSE: phase=plan                           │
+   │  → 阶段 plan                           │
    │                                              │
    │  AI 调用 #4 · 核查                            │
    │    pass=false → AI 调用 #5 修订              │
-   │  → SSE: phase=validate [→ revise]            │
+   │  → 阶段 validate [→ revise]            │
    └──────────────────────────────────────────────┘
        │
        ▼
@@ -227,7 +227,7 @@ DB 写入
   - INSERT subtasks × N (含 topic/urgency/importance/keywords/resources JSON)
        │
        ▼
-SSE 推送 "result" 事件 → 前端 getTask() 加载完整数据
+整个流水线缓冲成一份 JSON 一次返回 → 前端 getTask() 加载完整数据
 左侧列表刷新（GET /api/subtasks）
        │
        ▼
@@ -315,7 +315,7 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 │  │  ├── UserBadge           (右上角临时/正式徽章)       │  │
 │  │  ├── CongratulationsModal (全部完成庆祝)            │  │
 │  │  └── RightPanel                                     │  │
-│  │      ├── useAnalysisPanel() Hook (SSE状态机)      │  │
+│  │      ├── useAnalysisPanel() Hook (缓冲 JSON + 本地阶段动效)      │  │
 │  │      ├── PipelineSteps   (4段进度展示)              │  │
 │  │      ├── EntryDetail × N (每任务详情+资源)          │  │
 │  │      └── ResourceCard    (资源卡片，可点击跳转)      │  │
@@ -337,7 +337,7 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 │  │  GET    /api/tasks/:id              单任务+子任务      │  │
 │  │  PATCH  /api/tasks/:id              更新 status       │  │
 │  │  DELETE /api/tasks/:id              删除(级联)        │  │
-│  │  POST   /api/tasks/:id/analyze ◄── 4段SSE Pipeline │  │
+│  │  POST   /api/tasks/:id/analyze ◄── 4+段流水线（缓冲 JSON） │  │
 │  │  PATCH  /api/tasks/:id/subtasks/:sid 切换完成状态     │  │
 │  │  GET    /api/subtasks               全量子任务JOIN    │  │
 │  │  GET    /api/user/profile           当前 user          │  │
@@ -361,60 +361,20 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 │   └── auth_attempts    │              │  (Tavily 资源检索可选)  │
 └────────────────────────┘              └─────────────────────────┘
 ```
-### 5.2 前端目录结构
+### 5.2 前端结构（路由与分层）
 
-```
-src/
-├── app/
-│   ├── layout.tsx                    根布局：EazoProvider + I18nProvider + Toaster
-│   ├── page.tsx                      薄路由入口 → <HomePage />
-│   ├── task/[id]/page.tsx            任务详情页 → <TaskDetailPage />
-│   ├── history/page.tsx              历史任务页
-│   └── api/                          ← 见第六章 API 层
-│
-├── components/
-│   ├── home/
-│   │   ├── home-page.tsx             主仪表板（全局状态枢纽）
-│   │   ├── new-task-input.tsx        目标输入弹窗
-│   │   ├── subtask-row.tsx           左侧子任务行 + 属性标签
-│   │   ├── subtask-detail-modal.tsx  子任务详情弹窗
-│   │   ├── congrats-modal.tsx        全部完成庆祝弹窗
-│   │   ├── right-panel.tsx           右侧AI面板 + useAnalysisPanel Hook
-│   │   └── index.tsx                 导出
-│   ├── task/
-│   │   ├── gantt-chart.tsx           甘特图组件
-│   │   └── task-detail-page-v2.tsx   任务详情页（完整子任务列表 + 甘特图）
-│   ├── history/
-│   │   └── history-page.tsx          历史任务列表
-│   ├── user-profile/
-│   │   ├── user-badge.tsx            用户头像 + 登录按钮
-│   │   └── user-sync-effect.tsx      Mobile 登录后 DB upsert 触发器
-│   └── i18n/
-│       ├── i18n-provider.tsx         i18next 初始化
-│       ├── language-switcher.tsx     语言切换参考实现
-│       └── locale-sync-effect.tsx    locale 持久化同步
-│
-└── lib/
-    ├── api/
-    │   ├── request.ts                fetch 封装（注入 locale header；session 由浏览器自动附带 cookie）
-    │   ├── tasks.ts                  任务相关客户端 API 函数（全类型化）
-    │   └── app-ai-request.ts         App AI 402 错误处理
-    ├── auth/
-    │   └── index.ts                  re-export requireAuth from @eazo/sdk/server
-    ├── db/
-    │   ├── schema/
-    │   │   ├── tasks.ts              Drizzle 表定义（tasks + subtasks）
-    │   │   └── users.ts              Drizzle 用户表
-    │   ├── queries/
-    │   │   ├── tasks.ts              任务 CRUD + JOIN 查询
-    │   │   └── users.ts              upsertUser
-    │   ├── client.ts                 postgres.js + Drizzle 实例
-    │   └── migrate.ts                迁移执行脚本
-    ├── mcp/
-    │   └── server.ts                 MCP Server 工具定义
-    ├── eazo-ai-billing.ts            appAi 客户端（Creator Proxy 模式）
-    └── scheduler.ts                  全局排期算法
-```
+完整目录树以 [AGENTS.md §3](../AGENTS.md) 为准，这里只标产品视角的边界，避免两处真相源互相腐烂。
+
+| 路由 | 页面 | 主要目录 |
+|---|---|---|
+| `/` | 品牌落地页（8 段营销结构） | `src/components/landing/` |
+| `/app` | 产品壳 + 屏一「今日面板」 | `src/components/layout/` · `src/components/home/` |
+| `/task/[id]` | 屏二 任务详情（甘特图） | `src/components/task/` |
+| `/history` | 历史任务 | `src/components/history/` |
+| `/task/parity-probe` | 设计对等实测的固定样例页（`noindex`，吃 `?ritual=` / `?overlay=`） | `src/app/task/parity-probe/` |
+
+- 视觉只有一套来源：`src/components/ui/` 的原子件（button / card / badge / chip / eyebrow / heading / stat / modal / ai-pill / check-box / icon-button）+ `src/app/globals.css` 的 `@theme` 品牌令牌。**不接受新增手写样式表**。
+- 取数一律走 `src/lib/api/*`，组件内不直接 fetch。
 
 ### 5.3 关键数据流
 
@@ -427,9 +387,8 @@ src/
 新建任务
   → POST /api/tasks              → createTask()
   → setEntries([新Entry, ...])   → 右侧面板新标签页
-  → POST /api/tasks/:id/analyze  → SSE 流
-      每个 SSE event → patchStream() / setEntries()
-      "result" event → getTask() → entry.task 更新
+  → POST /api/tasks/:id/analyze  → 缓冲 JSON（一次请求串行跑完 4+ 段流水线，非 SSE；
+      前端在等待期用本地节奏逐阶段点亮流水线动效，拿到 result 后一次性回填面板）
   → entries.phase 变 "done"     → loadSubtasks()（左侧刷新）
 
 子任务勾选
@@ -445,6 +404,8 @@ src/
 ## 六、API 设计
 
 ### 6.1 API 全览
+
+> 只列主干。完整清单（邮箱验证码、Watcha OAuth、会员兑换码、日历订阅、App 热更新、`/api/cron/*`）以 [AGENTS.md §7](../AGENTS.md) 为准，最终以 `src/app/api/**/route.ts` 为准。
 
 | 方法 | 路径 | 描述 | 认证 | 文件 |
 |---|---|---|---|---|
@@ -698,23 +659,19 @@ function computeNewTaskStartDate(existingTasks, today) {
 // dailyTopicMap: Map<dateStr, Map<topicCategory, count>>
 ```
 
-### 8.3 分析进度展示（`right-panel.tsx: useAnalysisPanel`）
+### 8.3 分析进度展示（`src/components/home/use-analysis-panel.ts`）
+
+后端把整条流水线**缓冲成一份 JSON 一次返回**，客户端拿不到增量信号。"Agent 正在工作"的观感由前端本地重建：1 秒 ticker 按各阶段实测耗时推 `phase`，`deltaLen` 兼作已用秒数，于是一次 90 秒的运行不会看起来卡死。
 
 ```typescript
-// SSE 解析循环
-let buf = "";
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-  buf += decoder.decode(value, { stream: true });
-  const lines = buf.split("\n");
-  buf = lines.pop() ?? "";        // 保留不完整行
-  for (const line of lines) {
-    if (!line.startsWith("data: ")) continue;
-    const msg = JSON.parse(line.slice(6));
-    // 处理 phase / delta / intent_done / result / error 事件
-  }
-}
+patchStream({ phase: "intent", startedAt: Date.now() });   // 请求发出即进入第一段
+const ticker = setInterval(() => {
+  const phase = phaseForElapsed(Math.floor((Date.now() - startedAt) / 1000));
+  // 只推进动效，不代表服务端真实进度
+}, 1000);
+const { result } = await res.json();   // res = request(`/api/tasks/${taskId}/analyze`, { method: "POST", … })
+clearInterval(ticker);                                      // 拿到结果才算数
+patchStream({ phase: "done" });
 ```
 
 **状态机转换：**
@@ -906,288 +863,3 @@ animation: `ganttGrow 0.9s cubic-bezier(.2,.8,.2,1) ${i * 0.12}s both`
 | `NEXT_PUBLIC_APP_TITLE` | ❌ | App 标题（默认 拾级） |
 | `NEXT_PUBLIC_APP_DESCRIPTION` | ❌ | App 描述 |
 | `CRON_SECRET` | ❌ | Vercel Cron 鉴权密钥（仅在 `vercel.json` 的 cron 配置启用时必填） |
-
----
-
-## 附录：历史 SDK 模板文档（已过期）
-
-> **警告**：本附录是从 Eazo SDK 模板复制过来的英文使用说明，不代表当前仓库。
-> 当前项目已完全脱离 Eazo SDK （`@eazo/sdk` 以与 Eazo AI Gateway / Eazo Gum / Eazo Mobile WebView 都不再依赖），
-> 现状参考 [AGENTS.md](../AGENTS.md) §1、6 、 §11，本附录仅作为历史考验保留。
-
----
-
-# Agent Guide
-
-This repository is a Bun-first, minimal Next.js starter for building apps that run on the Eazo platform — seamlessly in a browser and inside the Eazo Mobile WebView.
-
-## 1. Stack
-
-- Next.js 16 with App Router
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- Bun (package manager + local script runner)
-- `@eazo/sdk` — capability-first SDK: `auth`, `device`, `ai`, `storage`, `memory`, `notifications`, React integration, server-side `requireAuth` + `notifications.publish`; bundles GenAuth login + ECC/AES session decryption internally; `ai` routes through AWS Bedrock via the Eazo AI gateway; `memory` records user actions as persistent, semantically searchable memory for AI context retrieval; `notifications` opts users into per-app system push and lets the server fan out notifications to subscribers
-- shadcn/ui, lucide-react, framer-motion
-- Drizzle ORM (PostgreSQL via `drizzle-orm` + `postgres.js`)
-- `i18next` + `react-i18next` — optional bilingual UI stack (`en-US` / `zh-CN`, same as Eazo Creator frontend). The template ships `I18nProvider`, locale JSON, and a reference `LanguageSwitcher`. Use the full stack for non-English or explicitly multilingual apps; for English-only products, remove the switcher and hardcode English copy.
-
-## 2. Use This Template
-
-1. Copy this project to start a new app.
-2. Rename the package in `package.json`.
-3. Read the following files to understand how the template implements each platform capability before writing any product code:
-   - **Auth** — `src/app/layout.tsx`, `src/lib/auth/index.ts`, `src/components/user-profile/user-badge.tsx`, `src/lib/api/request.ts`
-   - **Database** — `src/lib/db/schema/`, `src/lib/db/queries/`, `src/lib/db/client.ts`
-   - **Object Storage** — `src/app/api/todos/[id]/attachment/route.ts`
-   - **AI** — `src/app/api/todos/analyze/route.ts`, `src/components/todo-list/ai-analysis-panel.tsx`
-   - **Memory** — `src/components/todo-list/index.tsx` (fire-and-forget `memory.reportAction()` pattern after each mutation)
-   - **Notifications** — `src/components/notifications/notifications-toggle.tsx`, `src/app/api/notifications/test/route.ts`, `src/app/api/notifications/cron/daily-digest/route.ts`, `vercel.json#crons`
-4. Run `bun run cleanup:demo` before any feature development to remove all template demo artifacts.
-5. The app title/description come from `NEXT_PUBLIC_APP_TITLE` / `NEXT_PUBLIC_APP_DESCRIPTION` in `.env` (stamped by the platform at scaffold time) and are consumed by `src/app/layout.tsx`. Do NOT hardcode the title in `layout.tsx`. To change the user-facing app name, update those `.env` values.
-6. Replace the default content in `src/app/page.tsx`.
-7. Add product-specific routes, components, and data logic from there.
-
-## 3. Commands
-
-```bash
-bun install
-bun dev
-bun run lint
-bun run build
-bun start
-bun run cleanup:demo   # one-click remove demo artifacts and auto-fix stale todos exports in index files
-```
-
-If you are developing `@eazo/sdk` locally, build it first and sync into `node_modules`:
-
-```bash
-(cd ../eazo-sdk/sdk && npm install && npm run build)
-bun run sdk:sync
-```
-
-### 3.1 Database (Drizzle)
-
-```bash
-bun run db:generate
-bun run db:migrate
-bun run db:push
-bun run db:studio
-```
-
-## 4. Project Structure
-
-```
-src/
-  app/
-    api/
-      user/profile/route.ts   — GET: returns the authenticated user; upserts user to DB (both Web and Mobile paths)
-      todos/route.ts          — GET (list) + POST (create)
-      todos/[id]/route.ts     — GET / PATCH / DELETE
-      todos/analyze/route.ts  — POST: streams AI analysis of the user's todo list (SSE)
-      mcp/route.ts            — GET / POST / DELETE: MCP Streamable HTTP server (exposes todo CRUD as MCP tools)
-    layout.tsx                — root layout; mounts <EazoProvider> (SDK auto-renders login UI inside)
-    page.tsx                  — demo page
-  components/
-    user-profile/
-      user-badge.tsx          — reads user via useEazo(s => s.auth.user); Sign-in button calls auth.login()
-      user-sync-effect.tsx    — fires GET /api/user/profile after Mobile bridge login to upsert the user to DB
-    todo-list/                — Todo List demo
-      ai-analysis-panel.tsx   — streams and renders the AI analysis response
-    ui/                       — shadcn/ui primitives
-  lib/
-    api/
-      request.ts              — fetch wrapper; injects x-eazo-session via auth.getSessionHeader()
-      user-profile.ts         — fetchUserProfile() → GET /api/user/profile
-      todos.ts                — getTodos / createTodo / updateTodo / deleteTodo
-    auth/
-      index.ts                — re-exports requireAuth from @eazo/sdk/server
-    db/
-      schema/                 — Drizzle table definitions (todos, users)
-      queries/                — db client + CRUD helpers (todos, users)
-      migrations/             — auto-generated SQL files (commit to git)
-  utils/
-    utils.ts                  — cn() Tailwind class helper
-```
-
-## 5. Capabilities
-
-The platform exposes capabilities through `@eazo/sdk`. Most capabilities (`auth`, `device`) work the same in browsers and inside Eazo Mobile. The `ai` capability is **server-side only** — see its section for details.
-
-### 5.1 React Provider
-
-Mount `EazoProvider` once at the root layout. Also mount `UserSyncEffect` inside the provider — it upserts the authenticated user to the local DB after every login (Web and Mobile both converge through `GET /api/user/profile`).
-
-### 5.2 `auth`（*已替换为自托管 JWT cookie 模型，原 SDK auth 流不再可用*）
-
-拾级在自托管模式下使用 **JWT cookie** 鉴权（`jose` + HS256，密钥 `AUTH_SECRET`）。完整架构见 [AGENTS.md §11](../AGENTS.md)。
-
-客户端兼容层（`useEazo(s => s.auth.user)` / `auth.login()` / `auth.logout()`）保持原有 API 形态，底层改为代理到 `/api/auth/login` / `/api/auth/logout` / `/api/auth/me`。
-
-```ts
-// 客户端
-useEazo((s) => s.auth.user)        // → User（来自 RSC 注入的 <UserProvider>）
-auth.login(mode?)                    // → 打开全局 <AuthModal>（mode: "login" | "register"）
-auth.logout()                        // → POST /api/auth/logout + 清本地 user
-auth.refresh()                       // → 重新拉 /api/auth/me，更新 store
-```
-
-Server-side guard：
-```ts
-import { requireAuth } from "@/lib/auth";
-const r = await requireAuth(request);
-if (!r.ok) return r.response;       // 401
-// r.user: { id, email, name, avatarUrl, emailLower, passwordHash, ... }
-```
-
-**用户首次访问**无需登录：middleware（`src/middleware.ts`）兜底建临时账号，签 JWT，写 `__Host-session` cookie。**注册时**自动把临时账号下的任务转移到正式账号（同事务 `UPDATE tasks SET user_id = new` + `DELETE FROM users WHERE id = temp`）。**限流**：`/api/auth/register` 与 `/api/auth/login` 共享 60s / 5 次 / IP（`auth_attempts` 表）。
-
-> 未做的事（v1 范围外）：邮箱验证、密码找回、JWT 撤销列表、Turnstile、第三方 OAuth、密码强度策略、双因素认证。详见 [AGENTS.md §15.1](../AGENTS.md)。
-
-### 5.3 `device`
-
-```ts
-device.platform  // 'web' | 'mobile'
-```
-
-Safe-area: use `env(safe-area-inset-top/bottom)` and `100dvh`.
-
-### 5.4 App AI — Server-side only
-
-```ts
-import { appAi } from "@/lib/eazo-ai-billing";
-
-// Non-streaming
-const result = await appAi.chat({
-  model: process.env.EAZO_AI_MODEL_KEY || "deepseek.v3.1",
-  messages: [{ role: "user", content: "Hello!" }],
-});
-
-// Streaming
-const stream = await appAi.chat({ ..., stream: true });
-for await (const chunk of stream) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
-}
-```
-
-**Hard rule: AI is server-side only. Never import `appAi` in client components.**
-
-Pattern: `Client component → fetch → API route → appAi.chat()`
-
-Default model: `deepseek.v3.1`. Supported models include deepseek, openai-oss, qwen, mistral, google, nvidia, minimax, moonshotai, zai, writer variants.
-
-### 5.5 Memory
-
-```ts
-import { memory } from "@eazo/sdk";
-memory.reportAction({
-  content: 'User created task: "Learn Python"',
-  event_type: "create",
-}).catch(() => {});  // always fire-and-forget
-```
-
-### 5.6 Notifications
-
-```ts
-// Server-side publish
-import { notifications } from "@eazo/sdk/server";
-await notifications.publish({ title, body, data });
-
-// Client-side subscription toggle (see notifications-toggle.tsx)
-```
-
-### 5.7 Object Storage
-
-```ts
-import { storage } from "@eazo/sdk";
-const { uploadUrl, fileUrl } = await storage.getUploadUrl(filename, contentType);
-await fetch(uploadUrl, { method: "PUT", body: file });
-// fileUrl is permanent CDN URL
-```
-
-### 5.8 MCP Server
-
-Expose app data as MCP tools via `/api/mcp` using `@modelcontextprotocol/sdk` Web Standard Streamable HTTP transport. Stateless mode for serverless compatibility.
-
-## 6. Memory — User Memory Persistence
-
-`memory.reportAction()` writes a user action to Gum memory service — persistent, semantically searchable. Client-side only, fire-and-forget, always `.catch(() => {})`.
-
-## 7. Notifications
-
-Server publishes via `notifications.publish()`. Client toggles subscription via `notifications.subscribe()/unsubscribe()`. Cron jobs (Vercel) trigger daily digests via `GET /api/notifications/cron/daily-digest` with Bearer auth.
-
-## 8. Object Storage
-
-Browser → presigned PUT → S3 → permanent CDN URL. Server gets presigned URL via `storage.getUploadUrl()`.
-
-## 9. MCP Server
-
-`src/lib/mcp/server.ts` defines tools. `/api/mcp/route.ts` handles GET/POST/DELETE. Stateless, per-user isolation enforced.
-
-## 10. Eazo AI Billing
-
-`src/lib/eazo-ai-billing.ts` wraps `appAi`. In `eazo` mode: routes through Creator proxy, charges creator credits. In `byok` mode: uses creator-provided API key.
-
-## 11. i18n
-
-Locales: `en-US`, `zh-CN`. Preference in `localStorage` key `eazo-app.locale.v1`. `request()` sends `x-app-locale`. Server: `getRequestLocale(request)`.
-
-**Multilingual apps**: keep `I18nProvider`, `LocaleSyncEffect`, `t()` for all strings, both locale files, visible language control.
-
-**English-only apps**: hardcode English, remove `LanguageSwitcher`, no locale files needed.
-
-## 12. Code Standards
-
-### 12.1 One Component Per File
-
-**Strictly enforced.** Each file exports exactly one component. Split immediately when a second component appears.
-
-### 12.2 File Size Limits
-
-| File type | Soft | Hard |
-|---|---|---|
-| Page component (`page.tsx`) | 30 lines | 50 lines |
-| Feature component | 150 lines | 250 lines |
-| Utility / helper | 80 lines | 150 lines |
-| API route handler | 60 lines | 100 lines |
-
-### 12.3 Naming Conventions
-
-- Files: `kebab-case.tsx`
-- Exports: `PascalCase` named export
-- Feature folders: barrel `index.tsx`
-- API helpers: `camelCase` in `src/lib/api/<resource>.ts`
-
-### 12.4 State and Data
-
-- No data fetching in `page.tsx` — delegate to components
-- Auth state via `useAuthStore((s) => s.user)` only
-- Zustand stores in `src/stores/`
-
-### 12.5 API Requests
-
-- All fetch logic in `src/lib/api/`
-- Group by resource: `tasks.ts`, `projects.ts`, etc.
-- Re-export through `src/lib/api/index.ts`
-- Fully typed parameters and return types
-
-### 12.6 Imports
-
-- Use `@/` path aliases everywhere
-- UI primitives from `@/components/ui/`
-
-## 13. Project Rules
-
-- Prefer Bun for all install/script commands
-- Do not reach into `@eazo/sdk` internals
-- AI must only be called inside `src/app/api/` route handlers
-- Call `memory.reportAction()` after every meaningful user mutation (fire-and-forget)
-- Always maintain a local `users` table
-- Run `bun run cleanup:demo` before feature development
-- Before shipping: `bun run lint` && `bun run build`
-
-## 14. Goal
-
-Start fast, stay flexible, and only add complexity when there is a concrete product requirement.

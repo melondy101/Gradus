@@ -11,7 +11,7 @@
 > 独立开发、已部署的学习规划原型：把模糊目标变成有真实资源支撑、可排进日程的下一步。<br>
 > *An independently built prototype that turns a vague learning goal into a resource-backed, scheduled learning plan.*
 
-[![Next.js 16](https://img.shields.io/badge/Next.js-16.0_(App_Router)-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.3_(App_Router)-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript 5](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -111,7 +111,7 @@
 
 ```bash
 git clone https://github.com/melondy101/Gradus.git
-cd TalkTask
+cd Gradus
 bun install
 ```
 
@@ -190,6 +190,12 @@ bun run db:generate   # 根据 Schema 生成 Drizzle SQL 迁移文件
 bun run db:migrate    # 执行待处理的数据库迁移
 bun run db:push       # 将 TypeScript Schema 直接同步至数据库
 bun run db:studio     # 启动可视化 Drizzle Studio 数据库管理界面
+
+# 设计保真闸门（对着 output/拾级Gradus-设计预览.html 量浏览器 computed 值，非肉眼比对）
+bun run audit:tokens  # 设计稿 :root 21 条令牌 vs 实现同名属性
+bun run audit:design  # 4 路由 × 桌面/移动 × 四视图：溢出 / WCAG 对比度 / 字体 / 落地页结构
+bun run audit:parity  # 设计稿元素与实现元素逐件对表
+bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起着）
 ```
 
 ---
