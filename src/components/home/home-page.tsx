@@ -576,7 +576,6 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
                 onOpenReport={() => {
                   if (stats) handleOpenWeeklyReport(stats);
                 }}
-                aiPanel={<RightPanel variant="card" entries={entries} focusedId={focusedId} setFocusedId={setFocusedId} regenAnalysis={regenAnalysis} removeEntry={removeEntry} onRequestDelete={handleRequestDelete} onToggleSubtask={handleToggleSubtask} onJumpToSubtask={handleJumpToSubtask} />}
               />
             )}
 

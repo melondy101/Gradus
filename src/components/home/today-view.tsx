@@ -11,7 +11,6 @@
  *   #today-task-area 是新手引导 step 3 的兜底锚点（onboarding-tour fallbackSelector）。
  */
 
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mono } from "@/components/ui/eyebrow";
@@ -55,8 +54,6 @@ interface Props {
   onNewGoal: (goal: string) => void;
   onOpenDialog: (goal: string) => void;
   onOpenReport: () => void;
-  /** 右列 AI 深底卡（home-page 注入的 RightPanel variant="card"） */
-  aiPanel: ReactNode;
 }
 
 export function TodayView(props: Props) {
@@ -66,7 +63,7 @@ export function TodayView(props: Props) {
     todaySection, laterSections, totalRowCount, showOnlyPending, selectedTag,
     onToggleFilterPending, onClearTag, onOpen, onSelect, onToggle, onSkip, onPostpone,
     activeSubtaskId, focusedTaskId, highlightedSubtaskId,
-    onOpenPalette, onNewGoal, onOpenDialog, onOpenReport, aiPanel,
+    onOpenPalette, onNewGoal, onOpenDialog, onOpenReport,
   } = props;
 
   const rowHandlers = { onOpen, onSelect, onToggle, onSkip, onPostpone };
@@ -94,11 +91,7 @@ export function TodayView(props: Props) {
           <ViewStateCard kind="error" onRetry={onRetry} />
         ) : (
           <section
-            className={
-              narrow
-                ? "grid grid-cols-1 items-start gap-3.5"
-                : "grid grid-cols-[minmax(0,1fr)_380px] items-start gap-3.5"
-            }
+            className="flex flex-col gap-3.5"
           >
             <div className="flex min-w-0 flex-col gap-3.5">
               {loading ? (
@@ -132,7 +125,6 @@ export function TodayView(props: Props) {
                 </>
               )}
             </div>
-            {aiPanel}
           </section>
         )}
       </div>
