@@ -36,22 +36,8 @@ export interface WeekProgressFallback {
   totalPlans: number;
 }
 
-const MS_PER_DAY = 86_400_000;
-
-/** 本周一 00:00（本地时区，与排期算法一致） */
-export function startOfWeek(now: Date = new Date()): number {
-  const d = new Date(now);
-  const offsetFromMonday = d.getDay() === 0 ? 6 : d.getDay() - 1;
-  d.setDate(d.getDate() - offsetFromMonday);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function toDate(value?: Date | string | number | null): Date | null {
-  if (value === null || value === undefined || value === "") return null;
-  const d = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
+export { isWithinWeek, startOfWeek } from "./week-progress-date";
+import { isWithinWeek, startOfWeek } from "./week-progress-date";
 
 function toHours(value?: number | null): number {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
@@ -66,35 +52,6 @@ function clampPercent(done: number, total: number): number {
   return Math.min(100, Math.max(0, Math.round((done / total) * 100)));
 }
 
-/** 子任务的排期起点（无大任务起始日期时返回 null，只按完成时间归集） */
-function plannedStart(subtask: WeekSubtaskLike): number | null {
-  const base = toDate(subtask.taskStartDate);
-  if (!base) return null;
-  const offsetDays = Number.isFinite(subtask.startDay ?? NaN) ? (subtask.startDay as number) : 0;
-  return base.getTime() + offsetDays * MS_PER_DAY;
-}
-
-/** 该子任务是否落在本周（周一至周日）：排期区间与本周区间相交，或本周内完成 */
-export function isWithinWeek(
-  subtask: WeekSubtaskLike,
-  weekStart: number = startOfWeek()
-): boolean {
-  const weekEnd = weekStart + 7 * MS_PER_DAY;
-
-  const completedAt = toDate(subtask.completedAt);
-  if (completedAt && completedAt.getTime() >= weekStart && completedAt.getTime() < weekEnd) {
-    return true;
-  }
-
-  const start = plannedStart(subtask);
-  if (start === null) return false;
-  const durationDays =
-    Number.isFinite(subtask.durationDays ?? NaN) && (subtask.durationDays as number) > 0
-      ? (subtask.durationDays as number)
-      : 1;
-  const end = start + durationDays * MS_PER_DAY;
-  return start < weekEnd && end > weekStart;
-}
 
 /** 未接入本周排期明细时的兜底口径：只使用侧边栏已有的真实计数 */
 function fallbackModel({ todayPending, totalPlans }: WeekProgressFallback): WeekProgressModel {

@@ -7,16 +7,16 @@ import { FootCol } from "./foot-col";
 import { FootSocial } from "./foot-social";
 import { SubscribeForm } from "./subscribe-form";
 import type { FootLink } from "./foot-anchor";
-import { APP_URL, REPO_URL } from "./links";
+import { APP_URL, appViewUrl, REPO_URL } from "./links";
 
 const COLUMNS: { label: string; links: FootLink[] }[] = [
   {
     label: "产品",
     links: [
       { text: "今日面板", href: APP_URL },
-      { text: "甘特视图", href: APP_URL },
+      { text: "甘特视图", href: appViewUrl("timeline") },
       { text: "资源校验", href: "#sec-cap" },
-      { text: "MCP 服务", href: APP_URL },
+      { text: "MCP 服务", href: `${REPO_URL}#mcp-协议集成`, external: true },
     ],
   },
   {
@@ -39,9 +39,9 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
   {
     label: "关于",
     links: [
-      { text: "品牌标识", href: "#" },
-      { text: "设计说明", href: "#" },
-      { text: "开源协议", href: `${REPO_URL}/blob/main/LICENSE`, external: true },
+      { text: "品牌标识", href: `${REPO_URL}/tree/main/output`, external: true },
+      { text: "设计说明", href: `${REPO_URL}/tree/main/output`, external: true },
+      { text: "开源协议", href: `${REPO_URL}#-开源许可证`, external: true },
       { text: "联系方式", href: `${REPO_URL}/issues`, external: true },
     ],
   },
@@ -85,12 +85,12 @@ export function LandingFooter() {
       >
         <Mono className="text-on-dark-3">Copyright 2026 Gradus · 拾级</Mono>
         <nav className="flex gap-[22px]">
-          <a href="#" className={LEGAL_LINK_CLASS}>
+          <a href="#sec-privacy" className={LEGAL_LINK_CLASS}>
             隐私政策
           </a>
-          <a href="#" className={LEGAL_LINK_CLASS}>
-            服务条款
-          </a>
+          <span className={LEGAL_LINK_CLASS} title="服务条款尚未发布">
+            服务条款（筹备中）
+          </span>
         </nav>
         <FootSocial />
       </div>

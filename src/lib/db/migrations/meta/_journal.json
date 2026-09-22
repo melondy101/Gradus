@@ -43,6 +43,13 @@
       "when": 1789302600490,
       "tag": "0005_remarkable_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789401600000,
+      "tag": "0006_redemption_claim_integrity",
+      "breakpoints": true
     }
   ]
 }

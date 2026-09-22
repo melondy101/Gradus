@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
-import { APP_URL, REPO_URL } from "./links";
+import { APP_URL, appViewUrl, REPO_URL } from "./links";
 
 /**
  * 7 · 最终 CTA —— 《品牌与产品设计说明》§2.7
@@ -37,7 +37,7 @@ export function LandingFinalCta() {
         <Link href={APP_URL} className={buttonVariants({ variant: "default" })}>
           免费开始规划
         </Link>
-        <Link href={APP_URL} className={buttonVariants({ variant: "outline" })}>
+        <Link href={appViewUrl("plans")} className={buttonVariants({ variant: "outline" })}>
           先看演示数据
         </Link>
         <a

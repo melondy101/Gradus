@@ -20,28 +20,10 @@ import { Tag } from "@/components/ui/badge";
 import { Mono } from "@/components/ui/eyebrow";
 import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
-import { BLOOM_CONFIG } from "@/lib/design-tokens";
 import { MiniActionButton } from "./mini-action-button";
 import { getSubtaskDateRange } from "./subtask-row";
-import type { TimeFilter } from "./timeline-sections";
-
-export type SubtaskLineState = "done" | "live" | "todo";
-
-/** 三态判定：已完成 → done；今日桶里的未完成 → live（黄环呼吸点）；其余 → todo */
-export function lineStateOf(row: SubtaskWithTask, section: TimeFilter): SubtaskLineState {
-  if (row.completed) return "done";
-  return section === "today" ? "live" : "todo";
-}
-
-/** Bloom 层级标签的令牌色（§1.2 暖灰阶梯 → 顶点黄），避免内联 style */
-const BLOOM_TAG_CLASS: Record<number, string> = {
-  1: "text-bloom-1 border-bloom-1",
-  2: "text-bloom-2 border-bloom-2",
-  3: "text-bloom-3 border-bloom-3",
-  4: "text-bloom-4 border-bloom-4",
-  5: "text-bloom-5 border-bloom-5",
-  6: "text-bloom-6 border-bloom-6",
-};
+import { BLOOM_TAG_CLASS, bloomOf, hoursOf, type SubtaskLineState } from "./subtask-line-model";
+export { lineStateOf, type SubtaskLineState } from "./subtask-line-model";
 
 interface Props {
   row: SubtaskWithTask;
@@ -56,15 +38,6 @@ interface Props {
   onPostpone?: (e: React.MouseEvent) => void;
 }
 
-function bloomOf(row: SubtaskWithTask) {
-  const level = Math.min(6, Math.max(1, row.bloomLevel ?? (row.urgency ? 7 - row.urgency : 3)));
-  return { level, config: BLOOM_CONFIG[level as keyof typeof BLOOM_CONFIG] ?? BLOOM_CONFIG[3] };
-}
-
-function hoursOf(row: SubtaskWithTask): number {
-  const deep = row.deepWorkHours ? Number(row.deepWorkHours) : 0;
-  return deep > 0 ? deep : (row.durationDays || 1) * 1.5;
-}
 
 export function SubtaskLine({
   row, state, isSelected, isActive, isHighlighted,

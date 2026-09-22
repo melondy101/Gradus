@@ -494,7 +494,7 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                         type="text"
                         value={redeemInput}
                         onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
-                        placeholder="例如：VIP888 或 GRADUS2026"
+                        placeholder="请输入管理员发放的兑换码"
                         disabled={redeeming}
                         className="flex-1 rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm font-mono font-semibold tracking-wider text-foreground placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary uppercase"
                       />
@@ -686,13 +686,10 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                       </div>
 
                       <button
-                        onClick={() => {
-                          setRedeemInput("VIP888");
-                          setActiveTab("redeem");
-                        }}
+                        onClick={() => setActiveTab("redeem")}
                         className="w-full mt-2 rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
                       >
-                        兑换 Pro 体验卡
+                        输入 Pro 兑换码
                       </button>
                     </div>
 
@@ -738,13 +735,10 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                       </div>
 
                       <button
-                        onClick={() => {
-                          setRedeemInput("PREMIUM-SUPER");
-                          setActiveTab("redeem");
-                        }}
+                        onClick={() => setActiveTab("redeem")}
                         className="w-full mt-2 rounded-lg bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition-colors"
                       >
-                        兑换 Premium 卡
+                        输入 Premium 兑换码
                       </button>
                     </div>
                   </div>
@@ -768,7 +762,7 @@ export function MembershipModal({ open, initialTab = "overview", onClose }: Prop
                   ) : (
                     <div className="py-12 text-center text-xs text-muted-foreground space-y-2">
                       <p className="font-bold text-foreground">无权访问管理员后台</p>
-                      <p>激活码生成与管理仅限系统管理员账号 (dae201459@gmail.com) 访问</p>
+                      <p>激活码生成与管理仅限系统管理员账号访问</p>
                     </div>
                   )}
                 </motion.div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { getUserQuotaSummary } from "@/lib/membership/quota";
-import { TIER_CONFIGS, PRESET_REDEMPTION_CODES } from "@/lib/membership/tiers";
+import { TIER_CONFIGS } from "@/lib/membership/tiers";
 import { getUserRedemptionHistory } from "@/lib/db/queries/membership";
 
 export async function GET(request: NextRequest) {
@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     },
     membership: quota,
     tiers: TIER_CONFIGS,
-    presetCodes: PRESET_REDEMPTION_CODES,
     history,
   });
 }

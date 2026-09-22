@@ -1,6 +1,6 @@
 import { getUserById, updateUser, getTasksByUser } from "@/lib/db/queries";
 import { type User } from "@/lib/db/schema";
-import { isAdminUser } from "@/lib/auth/admin-shared";
+import { isAdminUser } from "@/lib/auth/admin";
 import {
   type MembershipTier,
   TIER_CONFIGS,

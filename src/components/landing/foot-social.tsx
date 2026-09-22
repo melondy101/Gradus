@@ -12,20 +12,8 @@ const ITEMS = [
     ),
   },
   {
-    label: "X",
-    href: "#",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-        <path
-          d="M12.3 1h2.4l-5.2 6 6.2 8h-4.9L6.7 10 1.6 1H-.8l5.9 6.9L1.3 15h4.9l4.4-6.2 4.6 6.2h3.1L12.3 1z"
-          transform="translate(1 0)"
-        />
-      </svg>
-    ),
-  },
-  {
-    label: "Email",
-    href: "#",
+    label: "GitHub Issues",
+    href: `${REPO_URL}/issues`,
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -49,7 +37,7 @@ const SOCIAL_CLASS = [
   "hover:border-on-dark-3 hover:bg-[rgba(245,242,234,.06)] hover:text-on-dark",
 ].join(" ");
 
-/** 底栏社交图标组 —— 仓库外链真实可达，X / 邮件在设计稿里即为占位 */
+/** 底栏社交图标组 —— 仅保留已验证的仓库与反馈入口。 */
 export function FootSocial() {
   return (
     <div className="flex gap-2.5">

@@ -41,14 +41,14 @@ import { PostponeDialog } from "./postpone-dialog";
 import { useToast } from "./use-toast";
 import { useSubtaskActions } from "./use-subtask-actions";
 
-export function HomePage() {
+export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const user = useEazo((s) => s.auth.user);
   const authLoading = useEazo((s) => s.auth.loading);
 
   // 核心状态
-  const [currentView, setCurrentView] = useState<NavView>("today");
+  const [currentView, setCurrentView] = useState<NavView>(initialView);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 

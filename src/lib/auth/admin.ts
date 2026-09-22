@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { requireAuth, type AuthResult } from "./index";
 import type { User } from "@/lib/db/schema";
-import {
-  ADMIN_EMAIL,
-  ADMIN_DEFAULT_PASSWORD,
-  isAdminEmail,
-  isAdminUser,
-} from "./admin-shared";
 
-export { ADMIN_EMAIL, ADMIN_DEFAULT_PASSWORD, isAdminEmail, isAdminUser };
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? "";
+
+export function isAdminEmail(email?: string | null): boolean {
+  return Boolean(ADMIN_EMAIL && email?.trim().toLowerCase() === ADMIN_EMAIL);
+}
+
+export function isAdminUser(user?: { email?: string | null } | null): boolean {
+  return isAdminEmail(user?.email);
+}
 
 /**
  * 服务端 API 鉴权拦截器：仅允许系统管理员访问
@@ -30,7 +32,7 @@ export async function requireAdmin(
       response: NextResponse.json(
         {
           ok: false,
-          error: "权限不足：当前操作仅限管理员账号 (dae201459@gmail.com) 访问",
+          error: "权限不足：当前操作仅限管理员账号访问",
         },
         { status: 403 }
       ),

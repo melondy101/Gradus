@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { db } from "../client";
 import {
   redemptionCodes,
@@ -53,7 +54,7 @@ export async function recordRedemption(data: {
 }): Promise<RedemptionRecord> {
   const normalized = data.code.trim().toUpperCase();
   const newRecord: RedemptionRecord = {
-    id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: randomUUID(),
     userId: data.userId,
     codeId: data.codeId ?? null,
     code: normalized,
@@ -131,7 +132,7 @@ export async function createRedemptionCode(data: {
 }): Promise<RedemptionCode> {
   const normalized = data.code.trim().toUpperCase();
   const newCode: RedemptionCode = {
-    id: `code-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: randomUUID(),
     code: normalized,
     tier: data.tier || "pro",
     durationDays: data.durationDays || 30,
@@ -148,12 +149,11 @@ export async function createRedemptionCode(data: {
       memStore.redemptionCodes.set(normalized, rows[0]);
       return rows[0];
     }
-  } catch {
-    // DB offline, fallback to memory
+  } catch (error) {
+    throw new Error("Failed to create redemption code", { cause: error });
   }
 
-  memStore.redemptionCodes.set(normalized, newCode);
-  return newCode;
+  throw new Error("Failed to create redemption code");
 }
 
 export async function batchCreateRedemptionCodes(
@@ -177,11 +177,13 @@ export async function batchCreateRedemptionCodes(
 export async function deleteRedemptionCode(codeOrId: string): Promise<boolean> {
   const normalized = codeOrId.trim().toUpperCase();
   try {
-    await db
+    const rows = await db
       .delete(redemptionCodes)
-      .where(sql`UPPER(${redemptionCodes.code}) = ${normalized} OR ${redemptionCodes.id}::text = ${codeOrId}`);
-  } catch {
-    // DB offline
+      .where(sql`UPPER(${redemptionCodes.code}) = ${normalized} OR ${redemptionCodes.id}::text = ${codeOrId}`)
+      .returning({ id: redemptionCodes.id });
+    if (!rows[0]) return false;
+  } catch (error) {
+    throw new Error("Failed to delete redemption code", { cause: error });
   }
 
   memStore.redemptionCodes.delete(normalized);

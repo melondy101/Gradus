@@ -3,11 +3,10 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  postponeSubtask,
-  unpostponeSubtask,
   deleteTask,
 } from "@/lib/api/tasks";
 import type { SubtaskWithTask, TaskWithSubtasks } from "@/lib/api/tasks";
+import { useSubtaskPostpone } from "./use-subtask-postpone";
 
 interface Deps {
   tasksList: TaskWithSubtasks[];
@@ -49,38 +48,11 @@ export function useSubtaskActions({
    * 三段文案逐个传入：原实现里两条路径的 undoFailed 兜底串并不相同，
    * 合并时不能顺手把它们统一掉。
    */
-  const postponeWithUndo = useCallback(
-    async (
-      row: SubtaskWithTask,
-      doneText: string,
-      failText: string,
-      undoFailText: string
-    ) => {
-      setSubtaskRows((prev) =>
-        prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay + 1 } : s))
-      );
-      const newStartDay = await postponeSubtask(row.taskId, row.id).catch(() => null);
-      if (newStartDay === null) {
-        setSubtaskRows((prev) =>
-          prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay - 1 } : s))
-        );
-        showToast(failText);
-        return;
-      }
-      showToast(doneText, t("home.toast.undo"), () => {
-        setSubtaskRows((prev) =>
-          prev.map((s) => (s.id === row.id ? { ...s, startDay: Math.max(0, s.startDay - 1) } : s))
-        );
-        unpostponeSubtask(row.taskId, row.id).catch(() => {
-          setSubtaskRows((prev) =>
-            prev.map((s) => (s.id === row.id ? { ...s, startDay: s.startDay + 1 } : s))
-          );
-          showToast(undoFailText);
-        });
-      });
-    },
-    [setSubtaskRows, showToast, t]
-  );
+  const postponeWithUndo = useSubtaskPostpone({
+    setRows: setSubtaskRows,
+    showToast,
+    undoLabel: t("home.toast.undo"),
+  });
 
   const confirmPostpone = useCallback(
     async (row: SubtaskWithTask) => {

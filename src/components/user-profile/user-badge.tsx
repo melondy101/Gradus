@@ -227,7 +227,7 @@ function DropdownPanel({
       </div>
 
       <div className="border-t border-border px-4 py-2.5 text-xs text-muted-foreground space-y-1">
-        <Row label="当前身份" value={isAdmin ? "系统管理员 (dae201459)" : config.name} />
+        <Row label="当前身份" value={isAdmin ? "系统管理员" : config.name} />
         <Row label={userIdLabel} value={user.id} mono />
       </div>
 

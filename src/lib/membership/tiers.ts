@@ -85,12 +85,3 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
     ],
   },
 };
-
-export const PRESET_REDEMPTION_CODES = [
-  { code: "VIP888", tierName: "专业版 Pro", duration: "30 天", desc: "新手体验福利码" },
-  { code: "PRO30", tierName: "专业版 Pro", duration: "30 天", desc: "月度学习成长卡" },
-  { code: "GRADUS2026", tierName: "专业版 Pro", duration: "90 天", desc: "拾级进阶季度卡" },
-  { code: "GRADUS-VIP", tierName: "专业版 Pro", duration: "30 天", desc: "拾级社区专属月卡" },
-  { code: "PREMIUM-SUPER", tierName: "尊享版 Premium", duration: "365 天", desc: "年度旗舰尊享卡" },
-  { code: "TALKTASK-VIP", tierName: "专业版 Pro", duration: "30 天", desc: "社区专属月卡" },
-];

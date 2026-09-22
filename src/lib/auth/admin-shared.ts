@@ -1,12 +1,14 @@
-export const ADMIN_EMAIL = "dae201459@gmail.com";
-export const ADMIN_DEFAULT_PASSWORD = "dae201459@gmail.com0928";
+/**
+ * Client-side display hint only. API authorization must use `admin.ts`, which
+ * reads the non-public `ADMIN_EMAIL` environment variable on the server.
+ */
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase() ?? "";
 
 /**
  * 校验邮箱是否为系统管理员
  */
 export function isAdminEmail(email?: string | null): boolean {
-  if (!email) return false;
-  return email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  return Boolean(ADMIN_EMAIL && email?.trim().toLowerCase() === ADMIN_EMAIL);
 }
 
 /**

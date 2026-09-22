@@ -9,6 +9,7 @@ import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
 import { APP_URL } from "./links";
+import { auth } from "@/lib/eazo-shim";
 
 /** 锚点链接组 —— id 与各 section 元素的 id 一一对应 */
 const NAV_LINKS = [
@@ -114,12 +115,13 @@ export function LandingNav() {
           </nav>
 
           <div className="flex items-center justify-self-end gap-5">
-            <Link
-              href={APP_URL}
+            <button
+              type="button"
+              onClick={() => auth.login().catch(() => {})}
               className="text-[14.5px] font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink"
             >
               登录
-            </Link>
+            </button>
             <Link
               href={APP_URL}
               className={cn(

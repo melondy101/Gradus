@@ -1,9 +1,7 @@
 import { cookies } from "next/headers";
 import { readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
-import { getUserById, getUserByEmailLower, upsertUser } from "@/lib/db/queries";
-import { ADMIN_EMAIL, ADMIN_DEFAULT_PASSWORD } from "./admin-shared";
-import { hashPassword } from "./password";
+import { getUserById, getUserByEmailLower } from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
 
 /**
@@ -31,23 +29,6 @@ async function resolveUserFromDecoded(decoded: { sub: string; email?: string; na
   let user = await getUserById(decoded.sub);
   if (!user && decoded.email) {
     user = await getUserByEmailLower(decoded.email.toLowerCase());
-  }
-
-  // 管理员账号特权自愈：若 Token 为系统管理员但 DB 中记录缺失，自动补齐
-  if (
-    !user &&
-    ((decoded.email && decoded.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
-      decoded.sub === "admin-system-root")
-  ) {
-    user = await upsertUser({
-      id: decoded.sub || "admin-system-root",
-      email: ADMIN_EMAIL,
-      emailLower: ADMIN_EMAIL.toLowerCase(),
-      name: decoded.name || "系统管理员",
-      passwordHash: await hashPassword(ADMIN_DEFAULT_PASSWORD),
-      membershipTier: "premium",
-      membershipExpiresAt: new Date("2099-12-31T23:59:59Z"),
-    });
   }
 
   return user || null;

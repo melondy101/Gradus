@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   uuid,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -41,6 +42,7 @@ export const redemptionRecords = pgTable(
   (table) => ({
     userIdIdx: index("redemption_records_user_id_idx").on(table.userId),
     codeIdx: index("redemption_records_code_idx").on(table.code),
+    userCodeUnique: uniqueIndex("redemption_records_user_code_unique").on(table.userId, table.code),
   })
 );
 

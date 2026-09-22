@@ -76,7 +76,7 @@ export function TaskDetailScreen({
 
   return (
     <BrandPageShell railLabel="历史任务" railHref="/history">
-      <BrandBackLink href="/app">返回我的任务</BrandBackLink>
+      <BrandBackLink href="/app?view=plans">返回我的任务</BrandBackLink>
 
       <div className="grid grid-cols-[minmax(0,1fr)_380px] items-start gap-3.5 pb-[58px] max-lg:grid-cols-1">
         <div className="flex min-w-0 flex-col gap-3.5">
