@@ -1,23 +1,20 @@
 "use client";
 
 /**
- * 应用顶栏（跨视图共用）：品牌 / 当前视图 / 标签过滤 / 等级徽章 + 新建入口。
+ * 应用顶栏（跨视图共用）：品牌 / 当前视图 / 标签过滤 / 等级徽章。
  *
- * DOM 契约：#btn-header-new-task 与 #header-active-tag-filter 由 onboarding-tour
- * 与统计逻辑消费，改名前先确认引用。
+ * 桌面端任务、搜索与主题操作统一放在侧栏和右下主题入口，避免重复入口。
  */
 
 import Link from "next/link";
-import { Crown, Plus, Search, Tag as TagIcon, X } from "lucide-react";
+import { Search, Tag as TagIcon, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { GradusLogo } from "@/components/ui/gradus-logo";
 import { IconButton } from "@/components/ui/icon-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { UserBadge } from "@/components/user-profile/user-badge";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import type { NavView } from "@/components/layout/icon-rail";
 import { LevelBadge } from "./level-badge";
 
@@ -26,7 +23,6 @@ interface Props {
   selectedTag: string | null;
   onClearTag: () => void;
   onOpenPalette: () => void;
-  onNewTask: () => void;
   showLevelBadge: boolean;
   streakTick: number;
 }
@@ -39,7 +35,7 @@ const VIEW_LABEL: Record<NavView, string> = {
 };
 
 export function AppHeader({
-  currentView, selectedTag, onClearTag, onOpenPalette, onNewTask, showLevelBadge, streakTick,
+  currentView, selectedTag, onClearTag, onOpenPalette, showLevelBadge, streakTick,
 }: Props) {
   return (
     <header className="flex h-[52px] flex-none items-center justify-between gap-2 border-b border-bd-card bg-card px-3.5">
@@ -77,18 +73,6 @@ export function AppHeader({
         )}
       </div>
 
-      {/* 桌面端：检索与新建入口（⌘K 是同一能力，这里放一个可见入口） */}
-      <div className="hidden items-center gap-2 sm:flex">
-        <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-[10px]">
-          <Search size={16} />
-        </IconButton>
-        <Button id="btn-header-new-task" size="xs" onClick={onNewTask}>
-          <Plus size={13} />
-          <span>新学习目标</span>
-        </Button>
-        <ThemeToggle />
-      </div>
-
       {/* 移动端顶栏快捷操作 */}
       <div className="flex items-center gap-1 shrink-0 sm:hidden">
         <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-[10px]">
@@ -96,13 +80,6 @@ export function AppHeader({
         </IconButton>
         <NotificationCenter />
         <ThemeToggle />
-        <IconButton
-          onClick={() => openMembershipModal("overview")}
-          aria-label="会员中心"
-          className="size-8 rounded-[10px] text-accent-ink"
-        >
-          <Crown size={18} />
-        </IconButton>
         <UserBadge />
       </div>
     </header>

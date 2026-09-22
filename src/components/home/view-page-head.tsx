@@ -8,14 +8,11 @@
 
 import { ChartNoAxesCombined, Search } from "lucide-react";
 import { getResolvedLocale } from "@/i18n";
-import { Avatar, IconButton } from "@/components/ui/icon-button";
 import { Button } from "@/components/ui/button";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Heading } from "@/components/ui/heading";
 import { Tag } from "@/components/ui/badge";
 import { NotificationCenter } from "@/components/notifications/notification-center";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
-import { useEazo } from "@/lib/eazo-shim";
 
 interface Props {
   title: string;
@@ -38,8 +35,6 @@ function todayLine(): string {
 }
 
 export function ViewPageHead({ title, eyebrow, onOpenPalette, onOpenReport }: Props) {
-  const user = useEazo((s) => s.auth.user);
-
   return (
     <header className="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
       <div className="min-w-0">
@@ -75,13 +70,6 @@ export function ViewPageHead({ title, eyebrow, onOpenPalette, onOpenReport }: Pr
         </button>
 
         <NotificationCenter />
-
-        <IconButton
-          title="会员中心 · 账号菜单在左侧栏底部"
-          onClick={() => openMembershipModal("overview")}
-        >
-          <Avatar name={user?.name || "访客"} />
-        </IconButton>
       </div>
     </header>
   );

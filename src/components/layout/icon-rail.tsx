@@ -87,56 +87,58 @@ export function IconRail({
       <div className="hidden h-full shrink-0 sm:flex" style={{ zIndex: 30 }}>
         <aside
           style={{ width: SIDE_WIDTH, flex: `0 0 ${SIDE_WIDTH}px` }}
-          className="h-full select-none overflow-x-hidden overflow-y-auto border-r border-bd-card bg-card px-3.5 pb-4 pt-[18px] [scrollbar-width:thin]"
+          className="flex h-full select-none flex-col overflow-hidden border-r border-bd-card bg-card"
         >
-          {/* 品牌行：三级台阶标识 + 拾级 / GRADUS + 部件收展 */}
-          <div className="flex items-center gap-[9px] px-1.5 pb-[18px]">
-            <GradusLogo size={12} showText />
-            <IconButton
-              id="nav-btn-toggle-widgets"
-              onClick={onToggleCollapsed}
-              title={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
-              aria-label={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
-              className="ml-auto size-7 rounded-[8px] bg-card"
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3.5 pb-4 pt-[18px] [scrollbar-width:thin]">
+            {/* 品牌行：三级台阶标识 + 拾级 / GRADUS + 部件收展 */}
+            <div className="flex items-center gap-[9px] px-1.5 pb-[18px]">
+              <GradusLogo size={12} showText />
+              <IconButton
+                id="nav-btn-toggle-widgets"
+                onClick={onToggleCollapsed}
+                title={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
+                aria-label={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
+                className="ml-auto size-7 rounded-[8px] bg-card"
+              >
+                {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+              </IconButton>
+            </div>
+
+            {/* 新建计划（快速入口，同时是新手引导的兜底锚点 #nav-btn-new-plan） */}
+            <Button
+              id="nav-btn-new-plan"
+              variant="app"
+              onClick={onNewPlan}
+              title="新建学习任务 (N)"
+              className="mb-4 h-[38px] w-full gap-2 px-3 text-[13.5px] font-bold"
             >
-              {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-            </IconButton>
+              <Plus size={16} strokeWidth={2.2} />
+              <span>新建计划</span>
+            </Button>
+
+            {/* MENU 导航组（#nav-rail-group / #nav-item-<view> 为新手引导锚点） */}
+            <SideNav
+              currentView={currentView}
+              onSelectView={onSelectView}
+              todayPendingCount={todayPendingCount}
+              totalPlansCount={totalPlansCount}
+            />
+
+            {/* 本周进度 */}
+            {collapsed ? null : <WeekProgressWidget model={progressModel} />}
+
+            {/* 标签筛选（收起部件时只保留标题行与已选标签摘要） */}
+            <SideTagFilter
+              availableTags={availableTags}
+              selectedTag={selectedTag}
+              onSelectTag={onSelectTag}
+              totalPlansCount={totalPlansCount}
+              compact={collapsed}
+            />
           </div>
 
-          {/* 新建计划（快速入口，同时是新手引导的兜底锚点 #nav-btn-new-plan） */}
-          <Button
-            id="nav-btn-new-plan"
-            variant="app"
-            onClick={onNewPlan}
-            title="新建学习任务 (N)"
-            className="mb-4 h-[38px] w-full gap-2 px-3 text-[13.5px] font-bold"
-          >
-            <Plus size={16} strokeWidth={2.2} />
-            <span>新建计划</span>
-          </Button>
-
-          {/* MENU 导航组（#nav-rail-group / #nav-item-<view> 为新手引导锚点） */}
-          <SideNav
-            currentView={currentView}
-            onSelectView={onSelectView}
-            todayPendingCount={todayPendingCount}
-            totalPlansCount={totalPlansCount}
-          />
-
-          {/* 本周进度 */}
-          {collapsed ? null : <WeekProgressWidget model={progressModel} />}
-
-          {/* 标签筛选（收起部件时只保留标题行与已选标签摘要） */}
-          <SideTagFilter
-            availableTags={availableTags}
-            selectedTag={selectedTag}
-            onSelectTag={onSelectTag}
-            totalPlansCount={totalPlansCount}
-            compact={collapsed}
-          />
-
-          {/* 沉底区：功能簇 + 用户卡（margin-top:auto 把整组推到侧边栏底部） */}
-          <div className="mt-auto flex flex-col gap-2 pt-3.5">
+          {/* 固定底部功能簇：滚动内容不会挤走通知、会员、搜索与认证入口。 */}
+          <div className="flex flex-none flex-col gap-2 border-t border-bd-card bg-card px-3.5 pb-4 pt-3">
             <SideFooter onOpenCommandPalette={onOpenCommandPalette} />
             <SideUserCard />
           </div>

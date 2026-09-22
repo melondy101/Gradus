@@ -29,12 +29,11 @@ export interface TourStep {
 
 const TOUR_STEPS: TourStep[] = [
   {
-    targetSelector: "#btn-header-new-task",
-    fallbackSelector: "#nav-btn-new-plan",
+    targetSelector: "#nav-btn-new-plan",
     title: "第一步：输入模糊学习目标",
     subtitle: "从一句话或一段链接开启规划",
     description:
-      "无需担心目标过于模糊。点击「+ 新学习目标」或按键盘 N，输入任何你想掌握的知识（如“精通 Python 异步编程”或粘贴 B站/arXiv/GitHub 链接），AI 引擎会自动解析意图与前置背景。",
+      "无需担心目标过于模糊。点击侧栏「新建计划」或按键盘 N，输入任何你想掌握的知识（如“精通 Python 异步编程”或粘贴 B站/arXiv/GitHub 链接），AI 引擎会自动解析意图与前置背景。",
     badge: "1 / 3 目标解析",
     icon: Sparkles,
     preferredPlacement: "bottom",

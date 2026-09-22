@@ -16,7 +16,6 @@ import { UserProvider } from "@/lib/auth/user-provider";
 import { UserSyncEffect } from "@/components/user-profile/user-sync-effect";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { ThemePreviewModal } from "@/components/theme/theme-preview-modal";
 
 const notoSansSC = Noto_Sans_SC({
   subsets: ["latin"],
@@ -120,7 +119,6 @@ export default async function RootLayout({
                 <GlobalAuthModal />
                 <GlobalMembershipModal />
                 <GlobalUpdateModal />
-                <ThemePreviewModal />
                 <Toaster />
                 <Analytics />
               </EazoProvider>

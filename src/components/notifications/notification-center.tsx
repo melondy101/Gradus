@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -35,6 +36,14 @@ interface NotificationCenterProps {
   collapsed?: boolean;
 }
 
+interface PopoverPosition {
+  left: number;
+  top?: number;
+  bottom?: number;
+  maxHeight: number;
+  width: number;
+}
+
 export function NotificationCenter({ collapsed = false }: NotificationCenterProps) {
   const user = useEazo((s) => s.auth.user);
   const router = useRouter();
@@ -43,6 +52,9 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
   const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const popoverRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
 
   const loadData = useCallback(() => {
     if (!user?.id) return;
@@ -66,7 +78,12 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
   // 点击外部关闭
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -77,6 +94,47 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [open]);
+
+  const updatePopoverPosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const viewportPadding = 12;
+    const width = Math.min(320, window.innerWidth - viewportPadding * 2);
+    const left = Math.min(
+      Math.max(viewportPadding, rect.left),
+      window.innerWidth - width - viewportPadding
+    );
+    const shouldOpenAbove = rect.top >= 240;
+
+    setPopoverPosition(
+      shouldOpenAbove
+        ? {
+            left,
+            bottom: Math.max(viewportPadding, window.innerHeight - rect.top + 8),
+            maxHeight: Math.max(160, rect.top - viewportPadding * 2),
+            width,
+          }
+        : {
+            left,
+            top: rect.bottom + 8,
+            maxHeight: Math.max(160, window.innerHeight - rect.bottom - viewportPadding),
+            width,
+          }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    updatePopoverPosition();
+    window.addEventListener("resize", updatePopoverPosition);
+    window.addEventListener("scroll", updatePopoverPosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePopoverPosition);
+      window.removeEventListener("scroll", updatePopoverPosition, true);
+    };
+  }, [open, updatePopoverPosition]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -140,11 +198,13 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
     <div className="relative inline-block" ref={popoverRef}>
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         id="btn-notification-trigger"
         onClick={() => {
           setOpen(!open);
           if (!open) loadData();
         }}
+        aria-expanded={open}
         title="站内消息通知"
         style={{
           display: "flex",
@@ -201,23 +261,25 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
       </button>
 
       {/* Popover Panel */}
-      {open && (
+      {open && popoverPosition && typeof document !== "undefined"
+        ? createPortal(
         <div
+          ref={panelRef}
           id="notification-center-panel"
           style={{
-            position: "absolute",
-            bottom: "100%",
-            left: 0,
-            marginBottom: 8,
-            width: 320,
-            maxHeight: 420,
+            position: "fixed",
+            top: popoverPosition.top,
+            bottom: popoverPosition.bottom,
+            left: popoverPosition.left,
+            width: popoverPosition.width,
+            maxHeight: Math.min(420, popoverPosition.maxHeight),
             background: "var(--card)",
             border: "1px solid var(--border)",
             borderRadius: 12,
             boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
             display: "flex",
             flexDirection: "column",
-            zIndex: 100,
+            zIndex: 250,
             overflow: "hidden",
             animation: "fadeIn 0.15s ease",
           }}
@@ -451,7 +513,10 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
             )}
           </div>
         </div>
-      )}
+        ,
+        document.body
+      )
+        : null}
     </div>
   );
 }

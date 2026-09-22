@@ -48,12 +48,19 @@ function readStoredTheme(): ThemeId {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeId, setThemeIdState] = useState<ThemeId>(readStoredTheme);
+  // 服务端与客户端首帧统一为默认主题，避免 localStorage 造成 hydration 不一致。
+  const [themeId, setThemeIdState] = useState<ThemeId>("cream");
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setThemeIdState(readStoredTheme()));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
     for (const v of LEGACY_INLINE_VARS) root.style.removeProperty(v);
     root.classList.toggle("dark", themeId === "ink");
+    root.dataset.theme = themeId === "cream" || themeId === "ink" ? "" : themeId;
     root.style.colorScheme = themeId === "ink" ? "dark" : "light";
     root.style.removeProperty("background-color");
   }, [themeId]);

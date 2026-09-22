@@ -517,13 +517,12 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
 
       {/* ── 2. 中央主视图与顶栏 ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100%", overflow: "hidden" }}>
-        {/* 顶栏：品牌 / 当前视图 / 标签过滤 / 等级徽章 + 检索与新建入口 */}
+        {/* 顶栏：品牌 / 当前视图 / 标签过滤 / 等级徽章 */}
         <AppHeader
           currentView={currentView}
           selectedTag={selectedTag}
           onClearTag={() => setSelectedTag(null)}
           onOpenPalette={() => setCommandPaletteOpen(true)}
-          onNewTask={() => setShowInput(true)}
           showLevelBadge={!!user && subtaskRows.length > 0}
           streakTick={streakTick}
         />

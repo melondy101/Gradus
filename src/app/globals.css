@@ -298,6 +298,121 @@
   --shadow-lg: 0 40px 90px -40px rgba(0, 0, 0, 0.7);
 }
 
+/* ── 可选浅色主题：保留同一套语义令牌，仅替换纸张、墨色与点缀色。 ── */
+:root[data-theme="forest"] {
+  --cream: #F0F5F1;
+  --cream-light: #E6F0E8;
+  --ink: #17352A;
+  --accent: #3E8A63;
+  --accent-deep: #286746;
+  --accent-ink: #245C43;
+  --dark: #153126;
+  --card: #FFFFFF;
+  --text-2: #557064;
+  --text-3: #6D8579;
+  --on-dark: #F0F5F1;
+  --on-dark-2: rgba(240, 245, 241, .76);
+  --on-dark-3: rgba(240, 245, 241, .58);
+  --bd-card: #CADBCF;
+  --bd-field: #BED3C5;
+  --bd-check: #A8C2B0;
+  --bd-dark: #244C39;
+  --gantt-done: #C7D8CC;
+  --popover: #FFFFFF;
+  --accent-soft: rgba(62, 138, 99, .14);
+  --warning: #6E5A00;
+  --warning-soft: rgba(62, 138, 99, .14);
+  --sidebar: #FFFFFF;
+  --sidebar-accent: #E6F0E8;
+  --sidebar-border: #CADBCF;
+  --sidebar-ring: #3E8A63;
+  --bloom-1: #C7D8CC;
+  --bloom-2: #A8C2B0;
+  --bloom-3: #789E86;
+  --bloom-4: #557064;
+  --bloom-5: #245C43;
+  --bloom-6: #3E8A63;
+  --color-surface: #FFFFFF;
+  --color-soft: #E6F0E8;
+  --color-line: #CADBCF;
+}
+
+:root[data-theme="ocean"] {
+  --cream: #EFF5F8;
+  --cream-light: #E4EFF5;
+  --ink: #17364B;
+  --accent: #287CA8;
+  --accent-deep: #1C6388;
+  --accent-ink: #1F5F82;
+  --dark: #143247;
+  --card: #FFFFFF;
+  --text-2: #557286;
+  --text-3: #6E899A;
+  --on-dark: #EFF5F8;
+  --on-dark-2: rgba(239, 245, 248, .76);
+  --on-dark-3: rgba(239, 245, 248, .58);
+  --bd-card: #C8DAE5;
+  --bd-field: #BDD2DF;
+  --bd-check: #A8C3D1;
+  --bd-dark: #244C64;
+  --gantt-done: #C5D8E2;
+  --popover: #FFFFFF;
+  --accent-soft: rgba(40, 124, 168, .14);
+  --warning: #756000;
+  --warning-soft: rgba(40, 124, 168, .14);
+  --sidebar: #FFFFFF;
+  --sidebar-accent: #E4EFF5;
+  --sidebar-border: #C8DAE5;
+  --sidebar-ring: #287CA8;
+  --bloom-1: #C5D8E2;
+  --bloom-2: #A8C3D1;
+  --bloom-3: #759DAF;
+  --bloom-4: #557286;
+  --bloom-5: #1F5F82;
+  --bloom-6: #287CA8;
+  --color-surface: #FFFFFF;
+  --color-soft: #E4EFF5;
+  --color-line: #C8DAE5;
+}
+
+:root[data-theme="rose"] {
+  --cream: #F8F1F3;
+  --cream-light: #F4E7EB;
+  --ink: #482435;
+  --accent: #B74C70;
+  --accent-deep: #922E52;
+  --accent-ink: #8E3655;
+  --dark: #42202F;
+  --card: #FFFFFF;
+  --text-2: #7A5867;
+  --text-3: #927080;
+  --on-dark: #F8F1F3;
+  --on-dark-2: rgba(248, 241, 243, .76);
+  --on-dark-3: rgba(248, 241, 243, .58);
+  --bd-card: #E6CBD3;
+  --bd-field: #DEC0CA;
+  --bd-check: #D0A9B7;
+  --bd-dark: #663246;
+  --gantt-done: #E5CDD4;
+  --popover: #FFFFFF;
+  --accent-soft: rgba(183, 76, 112, .14);
+  --warning: #7B5900;
+  --warning-soft: rgba(183, 76, 112, .14);
+  --sidebar: #FFFFFF;
+  --sidebar-accent: #F4E7EB;
+  --sidebar-border: #E6CBD3;
+  --sidebar-ring: #B74C70;
+  --bloom-1: #E5CDD4;
+  --bloom-2: #D0A9B7;
+  --bloom-3: #B98093;
+  --bloom-4: #7A5867;
+  --bloom-5: #8E3655;
+  --bloom-6: #B74C70;
+  --color-surface: #FFFFFF;
+  --color-soft: #F4E7EB;
+  --color-line: #E6CBD3;
+}
+
 /* ── Base ───────────────────────────────────────────────────────────── */
 html, body { height: 100%; margin: 0; padding: 0; }
 html { background: var(--background); }
