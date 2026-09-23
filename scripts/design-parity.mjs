@@ -28,7 +28,7 @@ const METRICS = [
   { page: "/app", name: "页头眉题 .eyebrow", ref: [".main__head .eyebrow", ""], live: ["p.font-mono", "TODAY"], props: ["fontFamily", "fontSize", "letterSpacing", "fontWeight", "textTransform"] },
   { page: "/app", name: "统计卡 .stat", ref: [".stat", ""], live: ['[data-slot="stat"]', ""], props: ["backgroundColor", "borderRadius", "padding"] },
   { page: "/app", name: "统计数值 .stat b", ref: [".stat b", ""], live: ['[data-slot="stat-value"]', ""], props: ["fontSize", "fontWeight"] },
-  { page: "/app", name: "AI 深底卡", ref: [".ai-dark", ""], live: ['[data-slot="card"][data-tone="dark"]', ""], props: ["backgroundColor", "color", "borderRadius", "borderTopWidth", "borderTopColor"] },
+  { page: "/app", name: "AI 深底右栏", ref: [".rail", ""], live: ["#panel-right-container aside", ""], props: ["width", "backgroundColor", "color", "borderLeftColor"] },
   { page: "/app", name: "侧栏宽 232", ref: [".side", ""], live: ["aside", ""], props: ["width", "backgroundColor", "borderRightColor"] },
   // ── §3 屏幕二 · 任务详情（/task/parity-probe 用固定样例渲染同一块版面）──
   { page: "/task/parity-probe", name: "屏二 详情面板标题 .panel__title", ref: [".panel__title", ""], live: ["aside h3", ""], props: ["fontSize", "lineHeight", "fontWeight", "color"] },
@@ -90,8 +90,7 @@ for (const route of byPage) {
   const sub = wanted.filter((m) => m.page === route);
   // /app 首屏分多波到齐（RSC payload → hydrate → 客户端 fetch），dev 下 40s 量级。
   // 固定等 2.6s 会把统计卡误判成"实现缺"（其实只是还没渲染），所以逐条等它的
-  // 选择器真的出现再量；始终等不到的（如屏一右列深底卡，实现走 rail 变体）
-  // 才是真缺元素。
+  // 选择器真的出现再量；始终等不到的才是真缺元素。
   for (const m of sub) {
     await page.waitForSelector(m.live[0], { timeout: 90000 }).catch(() => {});
   }

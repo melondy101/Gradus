@@ -672,8 +672,8 @@ h3 .dot-accent{width:11px;height:11px}
 .stat--accent .label-mono{color:rgba(17,17,17,.72)}
 .stat--accent .stat__foot{color:rgba(17,17,17,.72)}
 
-/* ── 屏一 · 底部双列 ─────────────────────────────────── */
-.cols{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+/* ── 屏一 · 底部单列（AI 建议在外壳右栏 .rail，不在这里重复） ── */
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
 .list .card__head{margin-bottom:4px}
 .list .card__head .mono{font-size:10px}
 
@@ -705,10 +705,16 @@ h3 .dot-accent{width:11px;height:11px}
 .sub.is-live .box{border-color:var(--accent);position:relative}
 .sub.is-live .box::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
 
-/* ── AI 修订建议深色卡 ───────────────────────────────── */
-.ai-dark{background:var(--dark);border-color:var(--bd-dark);color:var(--on-dark)}
-.ai-dark .card__head{margin-bottom:10px}
-.ai-dark h3{font-size:17px;font-weight:700;color:var(--cream);margin-bottom:4px}
+/* ── AI 修订建议深底语言：卡片（.ai-dark）与外壳右栏（.rail）共用 ── */
+.ai-dark,.rail{background:var(--dark);border-color:var(--bd-dark);color:var(--on-dark)}
+.ai-dark .card__head,.rail .card__head{margin-bottom:10px}
+.ai-dark h3,.rail h3{font-size:17px;font-weight:700;color:var(--cream);margin-bottom:4px}
+/* 外壳右栏：通栏、无圆角，仅一条左侧分界线；可折叠至 36px */
+.rail{flex:none;width:350px;display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--bd-dark)}
+.rail__head{flex:none;display:flex;align-items:center;gap:8px;padding:13px 12px;border-bottom:1px solid var(--bd-dark)}
+.rail__t{flex:1;min-width:0;font-size:14px;font-weight:700;color:var(--cream);margin-top:4px}
+.rail__x{flex:none;width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--bd-dark);border-radius:8px;background:none;color:var(--on-dark);font-size:13px;cursor:pointer}
+.rail__body{flex:1;min-height:0;overflow-y:auto;padding:14px 16px}
 .sug{padding:10px 0;border-top:1px solid var(--bd-dark)}
 .sug__t{font-size:14px;font-weight:700;color:var(--cream)}
 .sug__b{font-size:13px;line-height:20px;color:var(--on-dark-2);margin-top:5px;max-width:300px}
@@ -1287,23 +1293,31 @@ h3 .dot-accent{width:11px;height:11px}
               <li class="sub" data-state="todo"><button class="box" aria-label="切换状态"></button><div class="sub__c"><b>听力：新闻语速适应训练</b><p>待开始 · 明日 08:00</p></div><span class="tag">L2 理解</span><span class="mono sub__t">45min</span></li>
             </ul>
           </div>
-          <div class="card ai-dark">
-            <div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div>
-            <h3>修订建议 2 条</h3>
-            <div class="sug">
-              <p class="sug__t">把「听力训练」后移一天</p>
-              <p class="sug__b">明天 08:00 与你的工作日的深工作时段冲突，后移一天可让该子任务落在 20:30 的空槽。</p>
-              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
-            </div>
-            <div class="sug">
-              <p class="sug__t">「被动与使役」的认知层级偏低</p>
-              <p class="sug__b">该子任务后紧跟 L5 评价级的真题模考，建议插入一级 L4.5 的对比练习，避免跨度 1.8 层。</p>
-              <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
-            </div>
-            <p class="ai-dark__foot mono">VALIDATE 评分 82 / 100 · Bloom 跨度检查通过 4 / 5</p>
-          </div>
         </section>
       </div>
+      <aside class="rail">
+        <div class="rail__head">
+          <div style="flex:1;min-width:0">
+            <p class="eyebrow eyebrow--accent">AI Review</p>
+            <div class="rail__t">AI 分析面板</div>
+          </div>
+          <button class="rail__x" aria-label="收起面板">‹</button>
+        </div>
+        <div class="rail__body">
+          <h3>修订建议 2 条</h3>
+          <div class="sug">
+            <p class="sug__t">把「听力训练」后移一天</p>
+            <p class="sug__b">明天 08:00 与你的工作日的深工作时段冲突，后移一天可让该子任务落在 20:30 的空槽。</p>
+            <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+          </div>
+          <div class="sug">
+            <p class="sug__t">「被动与使役」的认知层级偏低</p>
+            <p class="sug__b">该子任务后紧跟 L5 评价级的真题模考，建议插入一级 L4.5 的对比练习，避免跨度 1.8 层。</p>
+            <div class="sug__act"><button class="btn btn--accent btn--xs">应用</button><button class="btn btn--on-dark btn--xs">稍后</button></div>
+          </div>
+          <p class="ai-dark__foot mono">VALIDATE 评分 82 / 100 · Bloom 跨度检查通过 4 / 5</p>
+        </div>
+      </aside>
     </div>
   </div></div></div>
 </section>
@@ -1475,11 +1489,21 @@ h3 .dot-accent{width:11px;height:11px}
               <li class="sub is-live"><button class="box"></button><div class="sub__c"><b>N4 语法收尾：被动与使役</b><p>进行中 · 预计今天 21:00 前</p></div><span class="tag">L4 分析</span><span class="mono sub__t">90min</span></li>
             </ul>
           </div>
-          <div class="card ai-dark"><div class="card__head"><p class="eyebrow eyebrow--accent">AI Review</p></div><h3>修订建议 2 条</h3>
-            <div class="sug"><p class="sug__t">把「听力训练」后移一天</p><p class="sug__b">明天 08:00 与你的深工作时段冲突，后移一天可落在 20:30 的空槽。</p></div>
-          </div>
         </section>
       </div>
+      <aside class="rail">
+        <div class="rail__head">
+          <div style="flex:1;min-width:0">
+            <p class="eyebrow eyebrow--accent">AI Review</p>
+            <div class="rail__t">AI 分析面板</div>
+          </div>
+          <button class="rail__x" aria-label="收起面板">‹</button>
+        </div>
+        <div class="rail__body">
+          <h3>修订建议 2 条</h3>
+          <div class="sug"><p class="sug__t">把「听力训练」后移一天</p><p class="sug__b">明天 08:00 与你的深工作时段冲突，后移一天可落在 20:30 的空槽。</p></div>
+        </div>
+      </aside>
     </div>
 
     <!-- overlay + modal -->
