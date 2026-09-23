@@ -217,7 +217,7 @@
         <aside class="gh-card">
           <p class="eyebrow eyebrow--accent">Open Source</p>
           <h3>整个项目<br>是开源的<i class="dot-accent"></i></h3>
-          <p>Next.js + Drizzle + PostgreSQL，一条命令部署到你自己的服务器上。没有平台账号，没有厂商锁定。</p>
+          <p>Next.js + Drizzle + PostgreSQL，配好数据库与模型端点就能部署到你自己的服务器上。没有平台账号，没有厂商锁定。</p>
           <code class="mono">github.com/huang-yi-dae/TalkTask</code>
           <div class="gh-card__star"><span>★</span><b>1.2k</b><em>Stars</em></div>
           <button class="btn btn--cream">在 GitHub 上查看</button>
@@ -263,7 +263,7 @@
         <h2 class="h-sec sm rev">你的学习数据，<br>只属于你和你的服务器<i class="dot-accent"></i></h2>
         <div class="priv-grid">
           <div class="card priv"><h4>BYOK</h4><p>自带模型密钥。<code>AI_PROVIDER_API_KEY</code> 在你自己的环境变量里，我们不代持、不经转售。</p></div>
-          <div class="card priv"><h4>自托管</h4><p>已从平台解耦，<code>package.json</code> 里没有任何厂商 SDK。Docker 或 Vercel 一键起。</p></div>
+          <div class="card priv"><h4>自托管</h4><p>已从平台解耦，<code>package.json</code> 里没有任何厂商 SDK。配好数据库与模型端点即可上线。</p></div>
           <div class="card priv"><h4>数据可导出</h4><p>任务、子任务、排期都是你自己库里的表结构，Drizzle schema 就是契约。</p></div>
           <div class="card priv"><h4>无行为追踪</h4><p>不做学习行为画像，不埋营销事件。Analytics 只有一个页面计数，可关。</p></div>
         </div>
@@ -280,7 +280,7 @@
         <button class="btn btn--ghost">先看演示数据</button>
         <button class="btn btn--ghost">自托管部署</button>
       </div>
-      <p class="hero-foot">部署只需 <code>DATABASE_URL</code> 与一个模型密钥。</p>
+      <p class="hero-foot">部署需要一个 Postgres 库、一个 OpenAI 兼容模型端点，以及 Tavily 检索密钥。</p>
     </section>
 
     <!-- 8 Footer -->

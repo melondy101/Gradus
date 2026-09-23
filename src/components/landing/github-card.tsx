@@ -1,4 +1,3 @@
-import { Star } from "lucide-react";
 import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { Heading } from "@/components/ui/heading";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 
-import { CopyCommandButton } from "./copy-command-button";
 import { REPO_LABEL, REPO_URL } from "./links";
 
 /**
@@ -39,24 +37,12 @@ export function GithubCard({ className }: { className?: string }) {
       </Heading>
 
       <p className="text-[14.5px] leading-[24px] text-on-dark-2">
-        Next.js + Drizzle + PostgreSQL，一条命令部署到你自己的服务器上。没有平台账号，没有厂商锁定。
+        Next.js + Drizzle + PostgreSQL，配好数据库与模型端点就能部署到你自己的服务器上。没有平台账号，没有厂商锁定。
       </p>
 
       <code className="block break-all rounded-[8px] border border-accent/26 bg-accent/10 px-3 py-2.5 text-[11.5px] tracking-[.02em] text-accent">
         {REPO_LABEL}
       </code>
-
-      <div className="flex items-baseline gap-2 pt-1.5 pb-0.5">
-        <Star
-          size={15}
-          aria-hidden
-          className="shrink-0 self-center fill-accent text-accent"
-        />
-        <b className="text-[20px] font-black">1.2k</b>
-        <em className="font-mono text-[11px] font-medium tracking-[.05em] text-on-dark-3 not-italic">
-          Stars
-        </em>
-      </div>
 
       <Link
         href={REPO_URL}
@@ -66,7 +52,6 @@ export function GithubCard({ className }: { className?: string }) {
       >
         在 GitHub 上查看
       </Link>
-      <CopyCommandButton />
     </Card>
   );
 }

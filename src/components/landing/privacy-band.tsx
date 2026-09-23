@@ -30,7 +30,7 @@ const CARDS: readonly PrivacyEntry[] = [
     body: (
       <>
         已从平台解耦，<code>package.json</code>{" "}
-        里没有任何厂商 SDK。Docker 或 Vercel 一键起。
+        里没有任何厂商 SDK。配好数据库与模型端点即可上线。
       </>
     ),
   },

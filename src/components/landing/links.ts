@@ -14,7 +14,3 @@ export const REPO_URL = "https://github.com/melondy101/Gradus";
 
 /** 仓库地址的展示文案 */
 export const REPO_LABEL = "github.com/melondy101/Gradus";
-
-/** What's New 深色卡「复制部署命令」写入剪贴板的内容 */
-export const DEPLOY_COMMAND =
-  "git clone https://github.com/melondy101/Gradus.git && cd Gradus && bun install && bun run db:migrate && bun run dev";

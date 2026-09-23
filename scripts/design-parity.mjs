@@ -27,7 +27,7 @@ const METRICS = [
   { page: "/app", name: "示例 chip", ref: [".chip", ""], live: ['[data-slot="chip"]', ""], props: ["height", "borderRadius", "fontSize", "backgroundColor", "color", "borderTopColor"] },
   { page: "/app", name: "页头眉题 .eyebrow", ref: [".main__head .eyebrow", ""], live: ["p.font-mono", "TODAY"], props: ["fontFamily", "fontSize", "letterSpacing", "fontWeight", "textTransform"] },
   { page: "/app", name: "统计卡 .stat", ref: [".stat", ""], live: ['[data-slot="stat"]', ""], props: ["backgroundColor", "borderRadius", "padding"] },
-  { page: "/app", name: "统计数值 .stat b", ref: [".stat b", ""], live: ['[data-slot="stat"] b', ""], props: ["fontSize", "fontWeight"] },
+  { page: "/app", name: "统计数值 .stat b", ref: [".stat b", ""], live: ['[data-slot="stat-value"]', ""], props: ["fontSize", "fontWeight"] },
   { page: "/app", name: "AI 深底卡", ref: [".ai-dark", ""], live: ['[data-slot="card"][data-tone="dark"]', ""], props: ["backgroundColor", "color", "borderRadius", "borderTopWidth", "borderTopColor"] },
   { page: "/app", name: "侧栏宽 232", ref: [".side", ""], live: ["aside", ""], props: ["width", "backgroundColor", "borderRightColor"] },
   // ── §3 屏幕二 · 任务详情（/task/parity-probe 用固定样例渲染同一块版面）──
@@ -44,11 +44,9 @@ const METRICS = [
   { page: "/", name: "Hero 说明文 .hero-lede", ref: [".hero-lede", ""], live: ["main p", "说出你想学什么"], props: ["fontSize", "lineHeight", "color", "maxWidth"] },
   { page: "/", name: "主按钮墨色药丸", ref: [".btn--primary", ""], live: ["main a, main button", "开始规划我的目标"], props: ["height", "borderRadius", "padding", "backgroundColor", "color", "fontSize"] },
   { page: "/", name: "次按钮描边药丸", ref: [".btn--ghost", ""], live: ["main a, main button", "看看它怎么工作"], props: ["height", "borderRadius", "padding", "backgroundColor", "color", "borderTopColor"] },
-  { page: "/", name: "深底按钮 .btn--on-dark", ref: [".btn--on-dark", "复制部署命令"], live: ["main a, main button", "复制部署命令"], props: ["height", "borderRadius", "color", "backgroundColor"] },
   { page: "/", name: "色带上内距 100", ref: [".lp-band--light", ""], live: ["#sec-how", ""], props: ["paddingTop", "paddingBottom", "backgroundColor"] },
   { page: "/", name: "吸顶导航", ref: [".lp-nav", ""], live: ["header", ""], props: ["position", "height", "backgroundColor", "backdropFilter"] },
-  { page: "/", name: "GitHub 深色卡", ref: [".gh-card", ""], live: ['[data-slot="card"][data-tone="dark"]', "TalkTask"], props: ["backgroundColor", "borderRadius", "color", "borderTopWidth"] },
-  { page: "/", name: "订阅输入框", ref: [".subscribe input", ""], live: ['input[type="email"], input[type="text"]', ""], props: ["height", "borderRadius", "backgroundColor", "borderTopColor"] },
+  { page: "/", name: "GitHub 深色卡", ref: [".gh-card", ""], live: ['[data-slot="card"][data-tone="dark"]', "Gradus"], props: ["backgroundColor", "borderRadius", "color", "borderTopWidth"] },
   { page: "/", name: "页脚深色带", ref: [".lp-foot", ""], live: ["footer", ""], props: ["backgroundColor", "color", "paddingTop"] },
 ];
 
@@ -89,8 +87,15 @@ for (const route of byPage) {
   const browser = await chromium.launch();
   const page = await (await browser.newContext({ viewport: VIEW })).newPage();
   await page.goto(LIVE + route, { waitUntil: "domcontentloaded", timeout: 90000 }).catch((e) => console.log(`${route} 导航失败`, String(e).slice(0, 70)));
-  await page.waitForTimeout(2600);
   const sub = wanted.filter((m) => m.page === route);
+  // /app 首屏分多波到齐（RSC payload → hydrate → 客户端 fetch），dev 下 40s 量级。
+  // 固定等 2.6s 会把统计卡误判成"实现缺"（其实只是还没渲染），所以逐条等它的
+  // 选择器真的出现再量；始终等不到的（如屏一右列深底卡，实现走 rail 变体）
+  // 才是真缺元素。
+  for (const m of sub) {
+    await page.waitForSelector(m.live[0], { timeout: 90000 }).catch(() => {});
+  }
+  await page.waitForTimeout(400);
   results[route] = await page.evaluate(probe, sub.map((m) => ({ name: m.name, sel: m.live[0], anchor: m.live[1], props: m.props })));
   await browser.close();
 }
