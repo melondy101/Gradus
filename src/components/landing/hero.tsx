@@ -1,20 +1,20 @@
 import { Diamond } from "lucide-react";
 import Link from "next/link";
 
-import { AiPill } from "@/components/ui/ai-pill";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
+import { HeroAiStatus } from "./hero-ai-status";
 import { HeroMock } from "./mock";
 import { APP_URL } from "./links";
 
 /**
  * 2 · Hero —— 《品牌与产品设计说明》§2.2
  * 左文（更新徽章 / 图标标语行 / 三行 64px 大标题 + 黄句号 / 说明文 / 三按钮 / 脚注）
- * 右图（产品界面 mockup 白卡 + 悬浮 AI pill）。
+ * 右图（产品界面 mockup 白卡，卡内在四个视图间循环 + 悬浮 AI 状态 pill 循环四阶段）。
  * 1180px 以下两列堆叠、视觉稿收成 560px 上限。
  */
 export function LandingHero() {
@@ -75,11 +75,7 @@ export function LandingHero() {
 
         <div className="relative pb-[26px] min-[1180px]:max-w-[560px]">
           <HeroMock />
-          <AiPill
-            label="AI 正在生成计划"
-            stage="阶段 2 / 4"
-            className="absolute -bottom-4 -left-[34px]"
-          />
+          <HeroAiStatus />
         </div>
       </div>
     </section>
