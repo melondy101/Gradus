@@ -90,8 +90,6 @@ git push -u origin main
 
 ---
 
----
-
 ## 部署前必做
 
 两条环境变量漏了不会让 `next build` 失败，但线上一定坏，粘贴时务必确认已填：
@@ -188,7 +186,10 @@ WATCHA_CLIENT_ID / SECRET Watcha OAuth 登录
 - 注册 / 登录接口只有限流，没有 CAPTCHA。
 
 另外，middleware 会给每个无 cookie 的访客自动建临时账号，所以公开部署的库里会持续累积
-匿名账号及其演示任务。
+匿名账号及其演示任务。`/api/cron/cleanup` 本来该收掉它们，但两条都拦着：
+**一是**它的删除条件是「名下零任务」，而建号即播种的演示任务让这个条件永远不成立；
+**二是**`vercel.json` 的 `crons` 只排了 `daily-digest`，从没排过 `cleanup`。
+所以临时账号目前**只增不减**，需要时手动请求一次（带 `Bearer ${CRON_SECRET}`）或直接删库。
 
 结论：够单人自托管和演示用，**别当多租户生产产品**部署——尤其别把 `DATABASE_URL`
 指向存放真实用户数据的库。

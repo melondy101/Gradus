@@ -77,8 +77,6 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 
 > 设计保真四道闸门 `audit:tokens / audit:design / audit:parity / audit:modals` 见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
 
-> ⚠️ 旧的 `bun run cleanup:demo` 已在 2026-08-14 删除（指向不存在的脚本），当前 `package.json` 已不再声明该命令。
-
 ---
 
 ## 5. 环境变量
@@ -186,7 +184,9 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 
 ### 11.1 三层鉴权边界
 
-1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（见 §15 日历导出待办），别以为它已经存在。
+1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（README 路线图里那条「导出到系统日历」还没做），别以为它已经存在。
+   - **幽灵会话防线**：JWT 合法 ≠ 账号还在。cookie 里的 sub 指向已被删账号时，中间件必须查一次库再决定放行，否则 `requireAuth` 只能 401，访客看到一片空面板且要手动清 cookie 才能恢复。`userExists()` 用进程内缓存把开销压到「同一账号每 TTL 一次往返」，两个 TTL **故意不对称**：正结果 60s（账号在此期间被删，最坏仍由 `requireAuth` 返回 401，不会写错数据），负结果 5s（自愈不能被缓存拖住——账号刚被 cron 删掉，访客下一个请求就该拿到新账号）。
+   - **配套不变量**：`getUserById` / `getUserByEmail` / `getUserByEmailLower` 查不到行时**必须返回 `undefined`**，不能拿 `memStore` 顶包。memStore 是写穿缓存，账号删了旧条目还在，顶包会让「已删除的用户」继续以 200 通过鉴权，而 tasks 等关联查询走 DB 返回空。memStore 只在 `catch` 里当「DB 真的不可达」的离线兜底。
 2. **`requireAuth(request)`（`src/lib/auth/index.ts`）** — 解析 cookie → `verifySession` → 查 users → 返回 `{ ok, user, userId }` 或抛 401。**所有受保护路由 handler 第一行 await。**
 3. **RSC `<UserProvider>`（`src/lib/auth/user-provider.tsx` + `src/app/layout.tsx`）** — 根布局在 RSC 阶段直接调 `getCurrentUser()` 解出 user，作为 props 注入 `<UserProvider user={user}>`，客户端 `useEazo()` 读 Context，**首屏零闪烁**。
 
@@ -206,7 +206,10 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 - **创建时机**：middleware 检测到 `/api/*` 请求缺 cookie 自动建。`name="访客 {4 位 hex}"`，`email="temp-{uuid}@anon.local"`。
 - **建号即播种演示数据**：`createTempAccount()` 成功后 `await seedDemoDataForUser(user.id)`（见 §12）——访客点进产品即可看到多日学习进度。播种失败只 `console.warn`，**绝不影响账号创建**。
 - **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务（含演示任务）无缝转移。
-- **过期清理**：由 `/api/cron/cleanup` 负责 —— 删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。注意：演示任务也算"任务"，因此带着演示数据的访客 14 天内不会被清。
+- **过期清理**：`/api/cron/cleanup` 的代码逻辑是删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。⚠️ 两个现实让它基本跑不到：
+  1. **建号即播种**（见 §12）让每个临时账号都带着一个演示任务，"名下零任务"这条永远不成立——除非访客手动删掉演示任务。
+  2. **`vercel.json` 的 `crons` 只排了 `daily-digest`，从来没有排过 `cleanup`**（`git log -p -- vercel.json` 可证）。也就是说生产上这个端点只会在被手动请求时跑。
+  结论：公开部署的库里临时账号**只增不减**，运维上靠人工请求 `/api/cron/cleanup`（带 `Bearer ${CRON_SECRET}`）或直接删库。要改这个行为，先决定「演示任务算不算占用」。
 
 ### 11.4 限流机制
 
@@ -255,7 +258,7 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 - 设计保真有四道实测闸门，全部对着 `output/拾级Gradus-设计预览.html`（设计真源）量浏览器里的 computed 值，不靠肉眼比对：
   - `bun run audit:tokens` — 设计稿 `:root` 的 21 条色彩/字体/圆角令牌 vs 实现同名属性的计算值（两侧都涂到白底取像素，避免 `#F5C518` 与 `oklab()` 字符串对不上）。
   - `bun run audit:design` — 4 条路由 × 桌面/移动两视口 × 今日/天梯/全部/甘特四视图：底色、字体加载、横向溢出、逐元素文字溢出、WCAG 对比度、落地页 8 段结构。
-  - `bun run audit:parity` — 设计稿元素与实现元素逐件对表（卡片/输入框/按钮/chip/眉题/统计卡/深底卡/侧栏/甘特/详情面板）。
+  - `bun run audit:parity` — 设计稿元素与实现元素逐件对表（卡片/输入框/按钮/chip/眉题/统计卡/AI 深底右栏/侧栏/甘特/详情面板）。
   - `bun run audit:modals` — 需要交互才出现的 10 组浮层（新建目标 / ⌘K / 会员 / 屏三流水线两态 / 删除确认 / 升级 / 结业 / 子任务详情）的 §3 弹层语言。
 - 无本地 `DATABASE_URL` 时 `/api/*` 会挂起后 401，屏一/屏二的真实数据态量不了；`/task/parity-probe`（`?ritual=<phase>` / `?overlay=<name>`）用固定样例渲染同一套版面，是这些版面的实测入口。
 
@@ -264,7 +267,6 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 ## 15. 已知遗留 / 待清理
 
 - 界面文案：22 个组件已走 `t()`，其余仍是硬编码中文；`en-US` / `zh-CN` 两个 locale 都在，但英文条目覆盖不全，切英文会露出中文。
-- 无本地 `DATABASE_URL` 时数据屏只能渲染空态（见 §14 探针入口）。
 
 ### 15.1 认证 / 账号系统 TODO（不在 v1 范围）
 
