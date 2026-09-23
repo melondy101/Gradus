@@ -11,8 +11,6 @@ export interface SideTagFilterProps {
   selectedTag: string | null;
   onSelectTag?: (tag: string | null) => void;
   totalPlansCount: number;
-  /** 侧栏部件收起时只保留标题行与已选标签摘要 */
-  compact?: boolean;
 }
 
 /** 单行筛选项：30px 高 / radius 10 / 选中态铺一层淡黄 */
@@ -30,7 +28,6 @@ export function SideTagFilter({
   selectedTag,
   onSelectTag,
   totalPlansCount,
-  compact = false,
 }: SideTagFilterProps) {
   const rowClass = (selected: boolean) =>
     cn(
@@ -69,53 +66,46 @@ export function SideTagFilter({
         )}
       </div>
 
-      {/* 部件收起时也要看清当前过滤条件 */}
-      {compact && selectedTag ? <Mono className="text-ink">{selectedTag}</Mono> : null}
+      <button
+        type="button"
+        id="tag-filter-all"
+        onClick={() => onSelectTag?.(null)}
+        title="查看全部任务"
+        className={rowClass(selectedTag === null)}
+      >
+        <span className="min-w-0 truncate">全部任务</span>
+        <span className={COUNT}>{totalPlansCount}</span>
+      </button>
 
-      {compact ? null : (
-        <>
-          <button
-            type="button"
-            id="tag-filter-all"
-            onClick={() => onSelectTag?.(null)}
-            title="查看全部任务"
-            className={rowClass(selectedTag === null)}
-          >
-            <span className="min-w-0 truncate">全部任务</span>
-            <span className={COUNT}>{totalPlansCount}</span>
-          </button>
-
-          {availableTags.length > 0 ? (
-            availableTags.map(({ tag, count }) => {
-              const isSelected = selectedTag === tag;
-              const dot = getTagColor(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  id={`tag-filter-${tag}`}
-                  onClick={() => onSelectTag?.(isSelected ? null : tag)}
-                  title={`按标签「${tag}」筛选`}
-                  className={rowClass(isSelected)}
-                >
-                  <span className="flex min-w-0 items-center gap-[7px]">
-                    <span
-                      aria-hidden
-                      className="size-[7px] shrink-0 rounded-full"
-                      style={{ background: dot }}
-                    />
-                    <span className="min-w-0 truncate">{tag}</span>
-                  </span>
-                  <span className={COUNT}>{count}</span>
-                </button>
-              );
-            })
-          ) : (
-            <p className="px-0.5 pb-0.5 pt-1.5 text-[11px] leading-[1.5] text-text-2">
-              新建任务时打上『编程』『文学』『理科』等标签，即可在此分类过滤
-            </p>
-          )}
-        </>
+      {availableTags.length > 0 ? (
+        availableTags.map(({ tag, count }) => {
+          const isSelected = selectedTag === tag;
+          const dot = getTagColor(tag);
+          return (
+            <button
+              key={tag}
+              type="button"
+              id={`tag-filter-${tag}`}
+              onClick={() => onSelectTag?.(isSelected ? null : tag)}
+              title={`按标签「${tag}」筛选`}
+              className={rowClass(isSelected)}
+            >
+              <span className="flex min-w-0 items-center gap-[7px]">
+                <span
+                  aria-hidden
+                  className="size-[7px] shrink-0 rounded-full"
+                  style={{ background: dot }}
+                />
+                <span className="min-w-0 truncate">{tag}</span>
+              </span>
+              <span className={COUNT}>{count}</span>
+            </button>
+          );
+        })
+      ) : (
+        <p className="px-0.5 pb-0.5 pt-1.5 text-[11px] leading-[1.5] text-text-2">
+          新建任务时打上『编程』『文学』『理科』等标签，即可在此分类过滤
+        </p>
       )}
     </section>
   );

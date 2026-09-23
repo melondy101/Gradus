@@ -10,6 +10,8 @@ interface SideNavProps {
   onSelectView: (view: NavView) => void;
   todayPendingCount: number;
   totalPlansCount: number;
+  /** 侧栏折叠为图标栏时：隐藏 MENU 眉题与文字，角标改为右上角小圆点 */
+  compact?: boolean;
 }
 
 /**
@@ -24,12 +26,15 @@ export function SideNav({
   onSelectView,
   todayPendingCount,
   totalPlansCount,
+  compact = false,
 }: SideNavProps) {
   return (
     <>
-      <Eyebrow kind="label" className="mb-1.5 px-1.5">
-        MENU
-      </Eyebrow>
+      {compact ? null : (
+        <Eyebrow kind="label" className="mb-1.5 px-1.5">
+          MENU
+        </Eyebrow>
+      )}
       <nav id="nav-rail-group" className="flex flex-col gap-0.5" aria-label="主导航">
         {NAV_ITEMS.map((item) => {
           const active = currentView === item.id;
@@ -45,30 +50,40 @@ export function SideNav({
               id={`nav-item-${item.id}`}
               href={`#${item.id}`}
               title={item.label}
+              aria-label={item.label}
               aria-current={active ? "page" : undefined}
               onClick={(event) => {
                 event.preventDefault();
                 onSelectView(item.id);
               }}
               className={cn(
-                "flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-medium",
+                "relative rounded-[10px] text-sm font-medium",
                 "transition-[background-color,color] duration-[.16s] ease-out",
                 active
                   ? "bg-ink font-bold text-cream"
-                  : "text-text-2 hover:bg-cream-light hover:text-ink"
+                  : "text-text-2 hover:bg-cream-light hover:text-ink",
+                compact
+                  ? "flex h-10 items-center justify-center"
+                  : "flex items-center gap-[11px] px-3 py-2.5"
               )}
             >
               <span
                 className={cn(
-                  "grid w-[15px] shrink-0 place-items-center text-center transition-colors duration-[.16s]",
+                  "grid shrink-0 place-items-center text-center transition-colors duration-[.16s]",
+                  compact ? "" : "w-[15px]",
                   active ? "text-accent" : "text-text-3"
                 )}
               >
                 <Icon size={15} strokeWidth={active ? 2.2 : 1.8} />
               </span>
-              <span>{item.label}</span>
-              {badge !== undefined && (
+              {compact ? null : <span>{item.label}</span>}
+              {badge !== undefined && !compact && (
                 <Mono className="ml-auto text-[10px] font-bold opacity-70">{badge}</Mono>
+              )}
+              {badge !== undefined && compact && (
+                <span className="absolute right-0.5 top-0.5 grid h-[15px] min-w-[15px] place-items-center rounded-full bg-accent px-[3px] font-mono text-[9px] font-bold text-ink">
+                  {badge}
+                </span>
               )}
             </a>
           );

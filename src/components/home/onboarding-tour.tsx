@@ -105,6 +105,8 @@ export function OnboardingTour({
 
   const step = TOUR_STEPS[currentStepIndex];
 
+  const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
+
   const handleSkip = useCallback(() => {
     try {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
@@ -261,8 +263,11 @@ export function OnboardingTour({
     };
   };
 
+  // 连点「下一步」会在同一批次里排下多个 setCurrentStepIndex(prev => prev + 1)，
+  // 索引可能被顶到 TOUR_STEPS 之外；越界时 step 为 undefined，读 step.icon 会崩掉整页。
+  if (!isOpen || !step) return null;
+
   const IconComponent = step.icon;
-  const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
 
   return (
     <div className="onboarding-tour-root">

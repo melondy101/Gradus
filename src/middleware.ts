@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { createTempAccount } from "@/lib/auth/temp-account";
 import { signSession, verifySession } from "@/lib/auth/jwt";
 import { readSessionCookieFromRequest, buildSetSessionCookie } from "@/lib/auth/cookie";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/env";
+
+/**
+ * 把刚签发的 session 写回「即将转发给 handler 的请求」的 Cookie 头。
+ *
+ * 没有这一步，中间件只是在**响应**上 Set-Cookie，而 handler 里的
+ * `requireAuth(request)` 读的是**进来的请求**——于是新访客的第一个
+ * `/api/*` 请求必然 401，要等浏览器把 cookie 存下来、第二个请求才通，
+ * 首屏因此闪一下空状态。转发时带上 cookie 即可让首个请求直接可用。
+ */
+function forwardWithSession(request: NextRequest, token: string): { headers: Headers } {
+  const headers = new Headers(request.headers);
+  headers.set("cookie", `${AUTH_COOKIE_NAME}=${token}`);
+  return { headers };
+}
 
 /**
  * Edge / Server Middleware —— 鉴权兜底。
@@ -29,6 +44,10 @@ export const config = {
   matcher: [
     // 受保护的 API：除了 auth/register|login、notifications/cron/* 与 calendar/subscribe 之外的所有 /api/*
     "/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)",
+    // 产品页本身也要走一遍：根布局在 RSC 阶段读 cookie 解 user，
+    // 而访客的第一个请求是导航到 /app（还没有 cookie）。少了这条，
+    // 首屏拿到的 user 是 null，今日面板渲染成空状态，要等刷新才有数据。
+    "/app",
   ],
 };
 
@@ -53,7 +72,7 @@ export async function middleware(request: NextRequest) {
       name: user.name ?? "访客",
       email: user.email ?? "",
     });
-    const res = NextResponse.next();
+    const res = NextResponse.next({ request: forwardWithSession(request, newToken) });
     res.headers.append("set-cookie", buildSetSessionCookie(newToken));
     return res;
   } catch (err) {
