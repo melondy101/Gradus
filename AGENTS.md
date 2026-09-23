@@ -39,10 +39,10 @@
 ```
 src/app/            page.tsx → Landing；/app 产品壳（HomePage）；/task/[id]；/history；
                     /task/parity-probe（固定样例渲染屏二/屏三与浮层，供闸门实测，noindex）
-  api/              25 个 route.ts，清单见 §7
+  api/              24 个 route.ts，清单见 §7
 src/components/     ui/（原子件，见 §13）、home/、task/、landing/、layout/、auth/、
                     membership/、share/、history/、errors/、user-profile/、i18n/
-src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ mcp/ + scheduler.ts tavily.ts
+src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ demo/ + scheduler.ts tavily.ts
                     resource-validator.ts url-fetcher.ts growth.ts task-tags.ts safe-url.ts
                     eazo-shim.ts eazo-ai-billing.ts（平台解耦兼容层，见 §2）
 src/app/globals.css 品牌令牌（@theme）+ keyframes + iOS 输入字号兜底。**不放组件样式**
@@ -69,8 +69,11 @@ bun run db:generate      # 生成迁移
 bun run db:migrate       # 执行迁移
 bun run db:push          # 直接同步 schema
 bun run db:studio        # Drizzle Studio
-bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 DATABASE_URL）
+bun run db:seed-demo     # 灌演示数据（scripts/seed-demo-data.ts，需 DATABASE_URL）
+bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.ts，需 DATABASE_URL）
 ```
+
+> `db:migrate-demo` 是**清理**脚本（删 `demo@autotask.app` 老账号、把其任务转给保留账号），不是灌数据；灌数据用 `db:seed-demo`。两者都幂等。
 
 > 设计保真四道闸门 `audit:tokens / audit:design / audit:parity / audit:modals` 见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
 
@@ -93,7 +96,7 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 | 资源检索 | `src/lib/tavily.ts`（resolveResources）、`src/lib/resource-validator.ts`、`src/lib/url-fetcher.ts`、`src/lib/fetchers/*` |
 | 排期 | `src/lib/scheduler.ts`（`computeNewTaskStartDate` / `findNextAvailableDay` / `validateBloomSequence` / `suggestReviewNodes` / `registerDailySlot`） |
 | 数据库 | `src/lib/db/schema/*`、`src/lib/db/queries/*`、`src/lib/db/client.ts`、`src/lib/db/migrate.ts`、`src/lib/db/migrations/` |
-| MCP | `src/lib/mcp/server.ts`、`src/app/api/mcp/route.ts` |
+| 演示数据 | `src/lib/demo/demo-data.ts`（`buildDemoPlan` / `seedDemoDataForUser`）、`scripts/seed-demo-data.ts` |
 | 国际化 | `src/components/i18n/*`、`src/lib/i18n/*` |
 | 前端仪表板 | `src/components/home/*`、`src/components/task/*`、`src/components/history/*` |
 
@@ -118,7 +121,6 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 | `GET` | `/api/subtasks` | 全量子任务 JOIN 大任务 | 已登录 |
 | `GET` | `/api/user/profile` | 当前用户（已登录） | 已登录 |
 | `GET` | `/api/user/stats` | 统计 | 已登录 |
-| `GET/POST/DELETE` | `/api/mcp` | MCP Streamable HTTP | 已登录 |
 | `GET` | `/api/notifications/cron/daily-digest` | 每日推送（Cron） | `Bearer ${CRON_SECRET}` |
 | `GET` | `/api/notifications/test` | 测试推送 | 已登录 |
 | `GET` | `/api/auth/config` | 前端可用的登录方式开关 | 公开 |
@@ -202,8 +204,9 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 ### 11.3 临时账号生命周期
 
 - **创建时机**：middleware 检测到 `/api/*` 请求缺 cookie 自动建。`name="访客 {4 位 hex}"`，`email="temp-{uuid}@anon.local"`。
-- **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务无缝转移。
-- **过期清理**：由 `/api/cron/cleanup` 负责 —— 删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。
+- **建号即播种演示数据**：`createTempAccount()` 成功后 `await seedDemoDataForUser(user.id)`（见 §12）——访客点进产品即可看到多日学习进度。播种失败只 `console.warn`，**绝不影响账号创建**。
+- **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务（含演示任务）无缝转移。
+- **过期清理**：由 `/api/cron/cleanup` 负责 —— 删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。注意：演示任务也算"任务"，因此带着演示数据的访客 14 天内不会被清。
 
 ### 11.4 限流机制
 
@@ -220,9 +223,16 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 
 ---
 
-## 12. MCP 服务
+## 12. 演示数据
 
-`src/lib/mcp/server.ts` 用 `@modelcontextprotocol/sdk` 的 Web Standard Streamable HTTP Transport 定义任务 CRUD 工具；`src/app/api/mcp/route.ts` 处理 GET/POST/DELETE。**无状态模式**（每请求独立），便于 serverless。经 `requireAuth` 鉴权，按调用方 userId 严格过滤数据。
+`src/lib/demo/demo-data.ts`：一份「已学习多日的 Python 数据分析计划」，让访客点进产品就能看到真实的学习进度。
+
+- `buildDemoPlan(now)` — 纯函数，返回计划（1 个任务 + 15 个子任务）；`seedDemoDataForUser(userId, now)` — 落库，**幂等**（名下已有任务直接返回 `false`）。
+- **只种 1 个任务**：免费档 `maxTasks = 2`，必须留一个槽位给访客创建自己的目标。
+- **时间锚定东八区**：`completedAt` 全部写成显式 `+08:00` 的 ISO 串，`startDate` 取东八区正午，与服务器时区无关——连击天数（`/api/user/stats`）在任何部署环境都稳定。
+- **完成时间需回溯到过去**：`SubtaskInsert` 带可选的 `completed` / `completedAt`，`createSubtasks` 会原样落库；`toggleSubtask` 只能写「现在」，历史打卡只能在建号播种时随 INSERT 一起写。
+- 效果：过去 8 天每天各有一次完成、今天 09:30 也完成一次（连击从今天起算）→ 今日面板有已完成也有待办，未来 12 天有排期（甘特三态齐全）。
+- 已存在账号补种：`bun run db:seed-demo`（`scripts/seed-demo-data.ts`，遍历 users 表，幂等）。
 
 ---
 
