@@ -282,6 +282,39 @@ export async function updateTaskTotalDays(
   }
 }
 
+/**
+ * 一次性写回任务的四个可变字段。
+ *
+ * 只为演示数据播种这类「建完立刻补字段」的场景存在：逐字段 update 会在
+ * 建号的关键路径上多出三次往返（远端库每次 ~几百毫秒），而这几列本来
+ * 就该在同一条语句里落地。
+ */
+export async function updateTaskSeedFields(
+  id: string,
+  fields: { title: string; rawInput: string; startDate: Date; totalDays: number }
+): Promise<void> {
+  const { title, rawInput, startDate, totalDays } = fields;
+  try {
+    await withDbRetry(() =>
+      db
+        .update(tasks)
+        .set({ title, rawInput, startDate, totalDays, updatedAt: new Date() })
+        .where(eq(tasks.id, id))
+    );
+    const existing = memStore.tasks.get(id);
+    if (existing) {
+      existing.title = title;
+      existing.rawInput = rawInput;
+      existing.startDate = startDate;
+      existing.totalDays = totalDays;
+      existing.updatedAt = new Date();
+    }
+  } catch (err) {
+    console.error("[tasks] updateTaskSeedFields FATAL DB ERROR:", { id, error: err });
+    throw err;
+  }
+}
+
 export async function updateTaskStatus(
   id: string,
   status: string
@@ -390,6 +423,8 @@ export type SubtaskInsert = {
   keywords?: string | null;  // JSON string[]
   bloomLevel?: number | null;     // 1-6 Bloom 认知层级
   deepWorkHours?: number | null;  // 预计深度学习时长（小时）
+  completed?: boolean;            // 建号播种用：直接落「已完成」
+  completedAt?: Date | null;      // 建号播种用：回填历史完成时刻
 };
 
 export async function createSubtasks(
@@ -404,14 +439,16 @@ export async function createSubtasks(
     description: s.description ?? null,
     durationDays: s.durationDays,
     startDay: s.startDay,
-    completed: false,
+    // 与 toggleSubtask 的同一条不变量：有完成时刻就一定是已完成。
+    // 调用方（演示数据）只写 completedAt，不必再重复一个 completed: true。
+    completed: s.completed ?? s.completedAt != null,
     sortOrder: s.sortOrder,
     resources: s.resources ?? null,
     topic: s.topic ?? null,
     urgency: s.urgency ?? null,
     importance: s.importance ?? null,
     keywords: s.keywords ?? null,
-    completedAt: null,
+    completedAt: s.completedAt ?? null,
     bloomLevel: s.bloomLevel ?? null,
     deepWorkHours: s.deepWorkHours ?? null,
     createdAt: new Date(),

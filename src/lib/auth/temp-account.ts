@@ -1,5 +1,6 @@
 import { getUserById, upsertUser } from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
+import { seedDemoDataForUser } from "@/lib/demo/demo-data";
 
 /**
  * 创建一个**临时账号**（匿名访客）。
@@ -9,6 +10,8 @@ import type { User } from "@/lib/db/schema";
  *   - email 用 `temp-{uuid}@anon.local` 形式，UUID 保证唯一性；邮箱唯一约束不会撞。
  *   - emailLower 与 email 同值（已经是小写）。
  *   - name = "访客 {4 位 hex}"：以 userName 显示，让用户感知到"我是个临时身份"。
+ *   - 建号即灌入演示数据（一份已学习多日的 Python 数据分析计划），
+ *     让访客「点进去就直接能看」；播种失败只告警，绝不影响账号创建。
  *
  * 调用方：middleware 在缺 cookie 时调用。
  */
@@ -26,6 +29,9 @@ export async function createTempAccount(): Promise<User> {
   });
 
   if (user) {
+    await seedDemoDataForUser(user.id).catch((err) => {
+      console.warn("[temp-account] demo seed skipped:", err);
+    });
     return user;
   }
 
