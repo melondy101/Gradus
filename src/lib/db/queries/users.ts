@@ -12,10 +12,15 @@ export async function getUserById(id: string): Promise<User | undefined> {
       memStore.users.set(rows[0].id, rows[0]);
       return rows[0];
     }
+    // 查不到行就是真没有。这里不能拿 memStore 顶包——memStore 是写穿缓存，
+    // 账号被删后旧条目还在，顶包会让「已删除的用户」继续以 200 通过鉴权，
+    // 而 tasks 等关联查询走 DB 返回空，最终呈现为一片空面板。
+    return undefined;
   } catch (err) {
+    // 只有 DB 真的不可达时才降级到内存态（本地无库运行的兜底）。
     console.error("[users] getUserById DB query failed:", { id, err });
+    return memStore.users.get(id);
   }
-  return memStore.users.get(id);
 }
 
 /** 按 email 查（精确匹配）。注册时主查使用 emailLower。 */
@@ -26,10 +31,11 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
       memStore.users.set(rows[0].id, rows[0]);
       return rows[0];
     }
+    return undefined; // 库里没有就是没有，不拿 memStore 顶包（见 getUserById）
   } catch (err) {
     console.error("[users] getUserByEmail DB query failed:", { email, err });
+    return Array.from(memStore.users.values()).find((u) => u.email === email);
   }
-  return Array.from(memStore.users.values()).find((u) => u.email === email);
 }
 
 /** 按小写邮箱查。登录/注册唯一性检查统一走这里。 */
@@ -44,10 +50,11 @@ export async function getUserByEmailLower(emailLower: string): Promise<User | un
       memStore.users.set(rows[0].id, rows[0]);
       return rows[0];
     }
+    return undefined; // 库里没有就是没有，不拿 memStore 顶包（见 getUserById）
   } catch (err) {
     console.error("[users] getUserByEmailLower DB query failed:", { emailLower, err });
+    return Array.from(memStore.users.values()).find((u) => u.emailLower === emailLower);
   }
-  return Array.from(memStore.users.values()).find((u) => u.emailLower === emailLower);
 }
 
 export async function upsertUser(data: {
