@@ -86,7 +86,7 @@ export function TagEditor({
               }}
               placeholder="标签名"
               maxLength={20}
-              className="w-[90px] border-0 bg-transparent text-[12px] text-ink outline-none"
+              className="w-[90px] border-0 bg-transparent text-body-sm text-ink outline-none"
             />
             <button type="button" onClick={() => handleAddCustom(inputVal)} aria-label="添加标签">
               <Plus size={12} />

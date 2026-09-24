@@ -21,7 +21,7 @@
   - `EazoProvider`：纯 passthrough（直接返回 children）。
   - `auth`：单例。`login(mode?)` 触发全局 `<AuthModal>`（注册/登录弹窗），不再直接发网络请求；`logout()` 调 `/api/auth/logout` 并清本地 user；`refresh()` 重新拉 `/api/auth/me` 同步 user。
   - `memory`：`reportAction()` 为 no-op（平台长期记忆在站外不可用）。
-  - `useEazo(selector)`：从 `<UserProvider>` 注入的模块级 store 读真实 user。`adaptUser` 按 `id/email/name` **缓存同一对象引用**，所以 `useEazo(s => s.auth.user)` 在同用户下返回稳定引用。⚠️ 把 `user` 对象直接放进 `useEffect` 依赖数组仍是大忌——务必依赖 `user?.id`（稳定字符串），否则任一上下文 hook 返回新引用都会触发无限重拉循环（history/home/task-detail 均已踩过）。
+  - `useEazo(selector)`：从 `<UserProvider>` 注入的模块级 store 读真实 user。`adaptUser` 按 `id/email/name` **缓存同一对象引用**，所以 `useEazo(s => s.auth.user)` 在同用户下返回稳定引用。⚠️ 把 `user` 对象直接放进 `useEffect` 依赖数组仍是大忌——务必依赖 `user?.id`（稳定字符串），否则任一上下文 hook 返回新引用都会触发无限重拉循环（home/task-detail 均已踩过）。
   - **真实登录态**：每个访客都是 JWT cookie 解析出的独立 user；没有 cookie 时由 middleware 兜底建临时账号。
 - **`src/lib/auth/index.ts`** — 替换 `@eazo/sdk/server` 的 `requireAuth`：解析 `__Host-session` cookie → JWT 校验 → 查 users → 返回 `{ ok, user, userId }`。所有受保护路由第一行调用 `await requireAuth(request)`。
 - **`src/lib/eazo-ai-billing.ts`** — `appAi.chat()` 客户端，两种模式：
@@ -37,18 +37,18 @@
 逐文件清单读代码即可，此处只留边界与真相源：
 
 ```
-src/app/            page.tsx → Landing；/app 产品壳（HomePage）；/task/[id]；/history；
+src/app/            page.tsx → Landing；/app 产品壳（HomePage，?view=today|plans|steps|timeline）；/task/[id]；
                     /task/parity-probe（固定样例渲染屏二/屏三与浮层，供闸门实测，noindex）
-  api/              24 个 route.ts，清单见 §7
+  api/              25 个 route.ts，清单见 §7
 src/components/     ui/（原子件，见 §13）、home/、task/、landing/、layout/、auth/、
-                    membership/、share/、history/、errors/、user-profile/、i18n/
-src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ demo/ + scheduler.ts tavily.ts
+                    membership/、share/、errors/、user-profile/、i18n/
+src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ mcp/ + scheduler.ts tavily.ts
                     resource-validator.ts url-fetcher.ts growth.ts task-tags.ts safe-url.ts
                     eazo-shim.ts eazo-ai-billing.ts（平台解耦兼容层，见 §2）
 src/app/globals.css 品牌令牌（@theme）+ keyframes + iOS 输入字号兜底。**不放组件样式**
 src/middleware.ts   兜底建临时账号 + 滑动续期（matcher 见 §11.1）
 output/             设计真源（见 §14），已随 test(design) commit 入库；改界面前先读它，别凭记忆
-scripts/            四道设计闸门脚本（见 §14）
+scripts/            五道设计闸门脚本（见 §14）
 docs/               PRD.md · ANDROID_PACKAGING.md · plans/
 ```
 
@@ -64,18 +64,17 @@ bun dev
 bun run build
 bun start
 bun run lint
-bun run test             # node --test
+bun run test             # bun test（含 src/lib/design-token-parity.test.ts 令牌镜像一致性）
 bun run db:generate      # 生成迁移
 bun run db:migrate       # 执行迁移
 bun run db:push          # 直接同步 schema
 bun run db:studio        # Drizzle Studio
-bun run db:seed-demo     # 灌演示数据（scripts/seed-demo-data.ts，需 DATABASE_URL）
-bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.ts，需 DATABASE_URL）
+bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 DATABASE_URL）
 ```
 
-> `db:migrate-demo` 是**清理**脚本（删 `demo@autotask.app` 老账号、把其任务转给保留账号），不是灌数据；灌数据用 `db:seed-demo`。两者都幂等。
+> 设计保真五道闸门 `audit:tokens / audit:design / audit:parity / audit:modals / audit:colors`（外加 `bun test` 里的令牌镜像一致性测试）见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
 
-> 设计保真四道闸门 `audit:tokens / audit:design / audit:parity / audit:modals` 见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
+> ⚠️ 旧的 `bun run cleanup:demo` 已在 2026-08-14 删除（指向不存在的脚本），当前 `package.json` 已不再声明该命令。
 
 ---
 
@@ -94,9 +93,9 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 | 资源检索 | `src/lib/tavily.ts`（resolveResources）、`src/lib/resource-validator.ts`、`src/lib/url-fetcher.ts`、`src/lib/fetchers/*` |
 | 排期 | `src/lib/scheduler.ts`（`computeNewTaskStartDate` / `findNextAvailableDay` / `validateBloomSequence` / `suggestReviewNodes` / `registerDailySlot`） |
 | 数据库 | `src/lib/db/schema/*`、`src/lib/db/queries/*`、`src/lib/db/client.ts`、`src/lib/db/migrate.ts`、`src/lib/db/migrations/` |
-| 演示数据 | `src/lib/demo/demo-data.ts`（`buildDemoPlan` / `seedDemoDataForUser`）、`scripts/seed-demo-data.ts` |
+| MCP | `src/lib/mcp/server.ts`、`src/app/api/mcp/route.ts` |
 | 国际化 | `src/components/i18n/*`、`src/lib/i18n/*` |
-| 前端仪表板 | `src/components/home/*`、`src/components/task/*`、`src/components/history/*` |
+| 前端仪表板 | `src/components/home/*`、`src/components/task/*`（历史页已并入 home 的 plans 视图，`/history` 由 next.config 308 重定向） |
 
 ---
 
@@ -119,6 +118,7 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 | `GET` | `/api/subtasks` | 全量子任务 JOIN 大任务 | 已登录 |
 | `GET` | `/api/user/profile` | 当前用户（已登录） | 已登录 |
 | `GET` | `/api/user/stats` | 统计 | 已登录 |
+| `GET/POST/DELETE` | `/api/mcp` | MCP Streamable HTTP | 已登录 |
 | `GET` | `/api/notifications/cron/daily-digest` | 每日推送（Cron） | `Bearer ${CRON_SECRET}` |
 | `GET` | `/api/notifications/test` | 测试推送 | 已登录 |
 | `GET` | `/api/auth/config` | 前端可用的登录方式开关 | 公开 |
@@ -184,9 +184,7 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 
 ### 11.1 三层鉴权边界
 
-1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（README 路线图里那条「导出到系统日历」还没做），别以为它已经存在。
-   - **幽灵会话防线**：JWT 合法 ≠ 账号还在。cookie 里的 sub 指向已被删账号时，中间件必须查一次库再决定放行，否则 `requireAuth` 只能 401，访客看到一片空面板且要手动清 cookie 才能恢复。`userExists()` 用进程内缓存把开销压到「同一账号每 TTL 一次往返」，两个 TTL **故意不对称**：正结果 60s（账号在此期间被删，最坏仍由 `requireAuth` 返回 401，不会写错数据），负结果 5s（自愈不能被缓存拖住——账号刚被 cron 删掉，访客下一个请求就该拿到新账号）。
-   - **配套不变量**：`getUserById` / `getUserByEmail` / `getUserByEmailLower` 查不到行时**必须返回 `undefined`**，不能拿 `memStore` 顶包。memStore 是写穿缓存，账号删了旧条目还在，顶包会让「已删除的用户」继续以 200 通过鉴权，而 tasks 等关联查询走 DB 返回空。memStore 只在 `catch` 里当「DB 真的不可达」的离线兜底。
+1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（见 §15 日历导出待办），别以为它已经存在。
 2. **`requireAuth(request)`（`src/lib/auth/index.ts`）** — 解析 cookie → `verifySession` → 查 users → 返回 `{ ok, user, userId }` 或抛 401。**所有受保护路由 handler 第一行 await。**
 3. **RSC `<UserProvider>`（`src/lib/auth/user-provider.tsx` + `src/app/layout.tsx`）** — 根布局在 RSC 阶段直接调 `getCurrentUser()` 解出 user，作为 props 注入 `<UserProvider user={user}>`，客户端 `useEazo()` 读 Context，**首屏零闪烁**。
 
@@ -204,12 +202,8 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 ### 11.3 临时账号生命周期
 
 - **创建时机**：middleware 检测到 `/api/*` 请求缺 cookie 自动建。`name="访客 {4 位 hex}"`，`email="temp-{uuid}@anon.local"`。
-- **建号即播种演示数据**：`createTempAccount()` 成功后 `await seedDemoDataForUser(user.id)`（见 §12）——访客点进产品即可看到多日学习进度。播种失败只 `console.warn`，**绝不影响账号创建**。
-- **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务（含演示任务）无缝转移。
-- **过期清理**：`/api/cron/cleanup` 的代码逻辑是删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。⚠️ 两个现实让它基本跑不到：
-  1. **建号即播种**（见 §12）让每个临时账号都带着一个演示任务，"名下零任务"这条永远不成立——除非访客手动删掉演示任务。
-  2. **`vercel.json` 的 `crons` 只排了 `daily-digest`，从来没有排过 `cleanup`**（`git log -p -- vercel.json` 可证）。也就是说生产上这个端点只会在被手动请求时跑。
-  结论：公开部署的库里临时账号**只增不减**，运维上靠人工请求 `/api/cron/cleanup`（带 `Bearer ${CRON_SECRET}`）或直接删库。要改这个行为，先决定「演示任务算不算占用」。
+- **合并**：用户从临时状态注册时，**同事务**执行 `UPDATE tasks SET user_id = new WHERE user_id = temp` → `DELETE FROM users WHERE id = temp`，临时账号下的任务无缝转移。
+- **过期清理**：由 `/api/cron/cleanup` 负责 —— 删 `passwordHash = ''` **且名下零任务**、`createdAt` 早于 **14 天**前的临时访客（不是"30 天未访问"），同时清 `auth_attempts`（1 天）与过期 `email_verifications`。
 
 ### 11.4 限流机制
 
@@ -226,16 +220,9 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 
 ---
 
-## 12. 演示数据
+## 12. MCP 服务
 
-`src/lib/demo/demo-data.ts`：一份「已学习多日的 Python 数据分析计划」，让访客点进产品就能看到真实的学习进度。
-
-- `buildDemoPlan(now)` — 纯函数，返回计划（1 个任务 + 15 个子任务）；`seedDemoDataForUser(userId, now)` — 落库，**幂等**（名下已有任务直接返回 `false`）。
-- **只种 1 个任务**：免费档 `maxTasks = 2`，必须留一个槽位给访客创建自己的目标。
-- **时间锚定东八区**：`completedAt` 全部写成显式 `+08:00` 的 ISO 串，`startDate` 取东八区正午，与服务器时区无关——连击天数（`/api/user/stats`）在任何部署环境都稳定。
-- **完成时间需回溯到过去**：`SubtaskInsert` 带可选的 `completed` / `completedAt`，`createSubtasks` 会原样落库；`toggleSubtask` 只能写「现在」，历史打卡只能在建号播种时随 INSERT 一起写。
-- 效果：过去 8 天每天各有一次完成、今天 09:30 也完成一次（连击从今天起算）→ 今日面板有已完成也有待办，未来 12 天有排期（甘特三态齐全）。
-- 已存在账号补种：`bun run db:seed-demo`（`scripts/seed-demo-data.ts`，遍历 users 表，幂等）。
+`src/lib/mcp/server.ts` 用 `@modelcontextprotocol/sdk` 的 Web Standard Streamable HTTP Transport 定义任务 CRUD 工具；`src/app/api/mcp/route.ts` 处理 GET/POST/DELETE。**无状态模式**（每请求独立），便于 serverless。经 `requireAuth` 鉴权，按调用方 userId 严格过滤数据。
 
 ---
 
@@ -255,11 +242,12 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 - 不要深入 `@eazo/sdk` 内部（自托管下根本不存在该依赖）。
 - AI 只在服务端 `src/app/api/` 调用。
 - 发布前：`bun run lint` && `bun run build` 必须通过。
-- 设计保真有四道实测闸门，全部对着 `output/拾级Gradus-设计预览.html`（设计真源）量浏览器里的 computed 值，不靠肉眼比对：
+- 设计保真有五道闸门（前四道对着浏览器量 computed 值，第五道是静态扫描），全部对着 `output/拾级Gradus-设计预览.html`（设计真源），不靠肉眼比对：
   - `bun run audit:tokens` — 设计稿 `:root` 的 21 条色彩/字体/圆角令牌 vs 实现同名属性的计算值（两侧都涂到白底取像素，避免 `#F5C518` 与 `oklab()` 字符串对不上）。
   - `bun run audit:design` — 4 条路由 × 桌面/移动两视口 × 今日/天梯/全部/甘特四视图：底色、字体加载、横向溢出、逐元素文字溢出、WCAG 对比度、落地页 8 段结构。
-  - `bun run audit:parity` — 设计稿元素与实现元素逐件对表（卡片/输入框/按钮/chip/眉题/统计卡/AI 深底右栏/侧栏/甘特/详情面板）。
+  - `bun run audit:parity` — 设计稿元素与实现元素逐件对表（卡片/输入框/按钮/chip/眉题/统计卡/深底卡/侧栏/甘特/详情面板）。
   - `bun run audit:modals` — 需要交互才出现的 10 组浮层（新建目标 / ⌘K / 会员 / 屏三流水线两态 / 删除确认 / 升级 / 结业 / 子任务详情）的 §3 弹层语言。
+  - `bun run audit:colors` — 静态闸：`src/components/**` 里硬编码十六进制色的**存量棘轮**（基线 `scripts/color-baseline.json`）。数量增加或出现基线外新文件即失败；`var(--x, #hex)` 回退与 `design-tokens/opengraph/manifest` 不计。债务清零后用 `node scripts/color-audit.mjs --write-baseline` 收紧。令牌镜像本身的一致性由 `bun test` 的 `src/lib/design-token-parity.test.ts` 把关（design-tokens.ts / theme-config.ts 逐条对 `:root`）。
 - 无本地 `DATABASE_URL` 时 `/api/*` 会挂起后 401，屏一/屏二的真实数据态量不了；`/task/parity-probe`（`?ritual=<phase>` / `?overlay=<name>`）用固定样例渲染同一套版面，是这些版面的实测入口。
 
 ---
@@ -267,6 +255,7 @@ bun run db:migrate-demo  # 清理遗留 demo 账号（scripts/migrate-demo-data.
 ## 15. 已知遗留 / 待清理
 
 - 界面文案：22 个组件已走 `t()`，其余仍是硬编码中文；`en-US` / `zh-CN` 两个 locale 都在，但英文条目覆盖不全，切英文会露出中文。
+- 无本地 `DATABASE_URL` 时数据屏只能渲染空态（见 §14 探针入口）。
 
 ### 15.1 认证 / 账号系统 TODO（不在 v1 范围）
 

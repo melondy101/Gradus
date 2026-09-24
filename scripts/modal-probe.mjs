@@ -78,7 +78,9 @@ const browser = await chromium.launch();
 let failures = 0;
 
 for (const vp of VIEWPORTS) {
-  const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+  const ctx = await browser.newContext({
+    viewport: { width: vp.width, height: vp.height },
+  });
   // 新手指引会盖住首屏并吃掉点击，量弹层前先标记为已完成
   await ctx.addInitScript(() => {
     try {
@@ -106,7 +108,9 @@ for (const vp of VIEWPORTS) {
     }
   }
   if (!openedBy) {
-    console.log(`\n── 新建目标对话框 @${vp.name}  ✗ 三条入口都点不开（${OPENERS.join(" / ")}）`);
+    console.log(
+      `\n── 新建目标对话框 @${vp.name}  ✗ 三条入口都点不开（${OPENERS.join(" / ")}）`,
+    );
     failures++;
   } else {
     await page.waitForTimeout(500);
@@ -145,38 +149,45 @@ for (const vp of VIEWPORTS) {
       };
     })()`);
     console.log(
-      `\n── 新建目标对话框 @${vp.name}（${openedBy} → 面板 ${r.panelW}px，贴边 ${r.fitsViewport ? "OK" : "溢出"}）`
+      `\n── 新建目标对话框 @${vp.name}（${openedBy} → 面板 ${r.panelW}px，贴边 ${r.fitsViewport ? "OK" : "溢出"}）`,
     );
     if (r.miss) {
       console.log(`   ✗ ${r.miss}`);
       failures++;
     } else {
       const errs = [
-        r.veilBg !== WANT.veilRGB && `遮罩底色 ${r.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
+        r.veilBg !== WANT.veilRGB &&
+          `遮罩底色 ${r.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
         r.veilBlur !== WANT.veilBlur && `遮罩模糊 ${r.veilBlur} ≠ blur(2px)`,
-        r.panelRadius !== WANT.panelRadius && `面板圆角 ${r.panelRadius} ≠ 20px`,
+        r.panelRadius !== WANT.panelRadius &&
+          `面板圆角 ${r.panelRadius} ≠ 20px`,
         r.panelBg !== WANT.panelRGB && `面板底色 ${r.panelBg} ≠ 255,255,255`,
         !(r.panelShadow || "").includes(WANT.panelShadow) &&
           `面板投影缺 §3 大投影「${WANT.panelShadow}」`,
         r.headSize !== WANT.headTitleSize && `页头 h3 ${r.headSize} ≠ 17px`,
-        r.headWeight !== WANT.headTitleWeight && `页头 h3 字重 ${r.headWeight} ≠ 900`,
+        r.headWeight !== WANT.headTitleWeight &&
+          `页头 h3 字重 ${r.headWeight} ≠ 900`,
         r.eyebrowSize !== WANT.eyebrowSize && `眉题 ${r.eyebrowSize} ≠ 9.5px`,
         r.footBg !== WANT.footRGB && `底栏底色 ${r.footBg} ≠ cream-light`,
-        r.footBorder !== WANT.footBorder && `底栏描边 ${r.footBorder} ≠ 1px bd-card`,
+        r.footBorder !== WANT.footBorder &&
+          `底栏描边 ${r.footBorder} ≠ 1px bd-card`,
         r.overflowX > 0 && `页面横向溢出 ${r.overflowX}px`,
         !r.fitsViewport && "面板超出视口",
       ].filter(Boolean);
       for (const b of r.buttons) {
         if (b.radius !== WANT.btnRadius)
-          errs.push(`底栏按钮「${b.text}」圆角 ${b.radius} ≠ ${WANT.btnRadius}`);
-        if (b.h !== WANT.btnHeight) errs.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
+          errs.push(
+            `底栏按钮「${b.text}」圆角 ${b.radius} ≠ ${WANT.btnRadius}`,
+          );
+        if (b.h !== WANT.btnHeight)
+          errs.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
       }
       const prim = r.buttons.find((b) => b.bg === WANT.btnPrimaryRGB);
       if (!prim) errs.push("底栏缺墨色主按钮（§1.2 primary = 墨底奶油字）");
       else if (prim.color !== WANT.btnPrimaryTextRGB)
         errs.push(`主按钮字色 ${prim.color} ≠ cream 245,242,234`);
       console.log(
-        `   页头「${r.headText}」/ 眉题「${r.eyebrowText}」/ 底栏 ${r.buttons.map((b) => `${b.text}=${b.h}h/${b.radius}`).join("  ")}`
+        `   页头「${r.headText}」/ 眉题「${r.eyebrowText}」/ 底栏 ${r.buttons.map((b) => `${b.text}=${b.h}h/${b.radius}`).join("  ")}`,
       );
       if (errs.length) {
         failures += errs.length;
@@ -207,16 +218,20 @@ for (const vp of VIEWPORTS) {
   })()`);
   console.log(
     `\n── 指令面板 @${vp.name}  ${
-      pal.miss ? `⚠ ${pal.miss}` : `遮罩 ${pal.veilBg}/${pal.veilBlur}，面板 radius ${pal.panelRadius}`
-    }`
+      pal.miss
+        ? `⚠ ${pal.miss}`
+        : `遮罩 ${pal.veilBg}/${pal.veilBlur}，面板 radius ${pal.panelRadius}`
+    }`,
   );
   if (pal.miss) {
     failures++;
   } else {
     const palErrs = [
-      pal.veilBg !== WANT.veilRGB && `遮罩底色 ${pal.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
+      pal.veilBg !== WANT.veilRGB &&
+        `遮罩底色 ${pal.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
       pal.veilBlur !== WANT.veilBlur && `遮罩模糊 ${pal.veilBlur} ≠ blur(2px)`,
-      pal.panelRadius !== WANT.panelRadius && `面板圆角 ${pal.panelRadius} ≠ 20px`,
+      pal.panelRadius !== WANT.panelRadius &&
+        `面板圆角 ${pal.panelRadius} ≠ 20px`,
       pal.overflowX > 0 && `页面横向溢出 ${pal.overflowX}px`,
       !pal.fitsViewport && "面板超出视口",
     ].filter(Boolean);
@@ -232,38 +247,55 @@ for (const vp of VIEWPORTS) {
   let openedMem = false;
   for (const sel of ["#nav-btn-membership", '[aria-label="会员中心"]']) {
     openedMem = await page
-      .click(sel, { timeout: 3000 })
+      .click(sel, { timeout: 1500 })
       .then(() => true)
       .catch(() => false);
     if (openedMem) break;
   }
+  if (!openedMem) {
+    // 品牌改版后侧栏不再挂 #nav-btn-membership，会员入口搬进 ⌘K 指令面板
+    // （command-palette.tsx 的 action-membership，唯一命中「配额」的命令标题）
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.waitForTimeout(300);
+    await page.keyboard.type("配额");
+    await page.waitForTimeout(300);
+    openedMem = await page.keyboard
+      .press("Enter")
+      .then(() => true)
+      .catch(() => false);
+  }
   await page.waitForTimeout(700);
   const mem = await page.evaluate(`(() => {${HELPERS}
-    const veil = document.querySelector('[role="dialog"][aria-modal="true"]');
-    if (!veil) return { miss: '会员弹窗未打开' };
-    const panel = veil.firstElementChild;
-    const rect = panel ? panel.getBoundingClientRect() : null;
+    // 会员弹窗已迁到 <Modal>：面板即 [role=dialog]，遮罩是其前一个兄弟节点
+    const panel = document.querySelector('[role="dialog"][aria-modal="true"]');
+    if (!panel) return { miss: '会员弹窗未打开' };
+    const veil = panel.previousElementSibling;
+    const rect = panel.getBoundingClientRect();
     const vs = getComputedStyle(veil);
     return {
       veilBg: ow(vs.backgroundColor),
       veilBlur: vs.backdropFilter,
-      panelRadius: panel ? getComputedStyle(panel).borderTopLeftRadius : undefined,
-      panelShadow: panel ? getComputedStyle(panel).boxShadow : undefined,
-      panelW: rect ? Math.round(rect.width) : 0,
-      fitsViewport: rect ? rect.left >= -0.5 && rect.right <= innerWidth + 0.5 : false,
+      panelRadius: getComputedStyle(panel).borderTopLeftRadius,
+      panelShadow: getComputedStyle(panel).boxShadow,
+      panelW: Math.round(rect.width),
+      fitsViewport: rect.left >= -0.5 && rect.right <= innerWidth + 0.5,
       overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
   })()`);
   if (!openedMem && mem.miss) {
-    console.log(`\n── 会员弹窗 @${vp.name}  ⚠ #nav-btn-membership 点不开或弹窗未渲染（跳过）`);
+    console.log(
+      `\n── 会员弹窗 @${vp.name}  ⚠ #nav-btn-membership 点不开或弹窗未渲染（跳过）`,
+    );
   } else {
     console.log(
-      `\n── 会员弹窗 @${vp.name}  遮罩 ${mem.veilBg}/${mem.veilBlur}，面板 ${mem.panelW}px radius ${mem.panelRadius}`
+      `\n── 会员弹窗 @${vp.name}  遮罩 ${mem.veilBg}/${mem.veilBlur}，面板 ${mem.panelW}px radius ${mem.panelRadius}`,
     );
     const memErrs = [
-      mem.veilBg !== WANT.veilRGB && `遮罩底色 ${mem.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
+      mem.veilBg !== WANT.veilRGB &&
+        `遮罩底色 ${mem.veilBg} ≠ ${WANT.veilRGB}（§3 45% 墨）`,
       mem.veilBlur !== WANT.veilBlur && `遮罩模糊 ${mem.veilBlur} ≠ blur(2px)`,
-      mem.panelRadius !== WANT.panelRadius && `面板圆角 ${mem.panelRadius} ≠ 20px`,
+      mem.panelRadius !== WANT.panelRadius &&
+        `面板圆角 ${mem.panelRadius} ≠ 20px`,
       !(mem.panelShadow || "").includes(WANT.panelShadow) && "面板缺 §3 大投影",
       mem.overflowX > 0 && `页面横向溢出 ${mem.overflowX}px`,
       !mem.fitsViewport && "面板超出视口",
@@ -276,10 +308,12 @@ for (const vp of VIEWPORTS) {
 
   // ④ 屏三 AI 规划弹层：/task/parity-probe?ritual=<phase> 直接把纯展示组件压上来量
   for (const stage of ["plan", "done"]) {
-    await page.goto(`${BASE}/task/parity-probe?ritual=${stage}`, {
-      waitUntil: "domcontentloaded",
-      timeout: 90000,
-    }).catch(() => {});
+    await page
+      .goto(`${BASE}/task/parity-probe?ritual=${stage}`, {
+        waitUntil: "domcontentloaded",
+        timeout: 90000,
+      })
+      .catch(() => {});
     await page.waitForTimeout(1200);
 
     const r3 = await page.evaluate(`(() => {${HELPERS}
@@ -327,7 +361,7 @@ for (const vp of VIEWPORTS) {
 
     const label = stage === "done" ? "完成态" : "进行中";
     console.log(
-      `\n── 屏三 AI 弹层 · ${label} @${vp.name}  面板 ${r3.panelW ?? "?"}px${r3.fitsViewport ? "" : " ⚠ 超出视口"}`
+      `\n── 屏三 AI 弹层 · ${label} @${vp.name}  面板 ${r3.panelW ?? "?"}px${r3.fitsViewport ? "" : " ⚠ 超出视口"}`,
     );
     if (r3.miss) {
       console.log(`   ✗ ${r3.miss}`);
@@ -337,47 +371,59 @@ for (const vp of VIEWPORTS) {
     const e3 = [
       r3.veilBg !== WANT.veilRGB && `遮罩底色 ${r3.veilBg} ≠ ${WANT.veilRGB}`,
       r3.veilBlur !== WANT.veilBlur && `遮罩模糊 ${r3.veilBlur} ≠ blur(2px)`,
-      r3.panelRadius !== WANT.panelRadius && `面板圆角 ${r3.panelRadius} ≠ 20px`,
+      r3.panelRadius !== WANT.panelRadius &&
+        `面板圆角 ${r3.panelRadius} ≠ 20px`,
       !(r3.panelShadow || "").includes(WANT.panelShadow) && "面板缺 §3 大投影",
       r3.headSize !== WANT.headTitleSize && `页头 h3 ${r3.headSize} ≠ 17px`,
-      r3.headWeight !== WANT.headTitleWeight && `页头 h3 字重 ${r3.headWeight} ≠ 900`,
+      r3.headWeight !== WANT.headTitleWeight &&
+        `页头 h3 字重 ${r3.headWeight} ≠ 900`,
       r3.eyebrowSize !== WANT.eyebrowSize && `眉题 ${r3.eyebrowSize} ≠ 9.5px`,
       r3.overflowX > 0 && `页面横向溢出 ${r3.overflowX}px`,
       !r3.fitsViewport && "面板超出视口",
-      vp.name === "desktop" && r3.panelW !== 720 && `面板宽 ${r3.panelW}px ≠ §3 .modal 720px`,
+      vp.name === "desktop" &&
+        r3.panelW !== 720 &&
+        `面板宽 ${r3.panelW}px ≠ §3 .modal 720px`,
     ].filter(Boolean);
 
     if (stage === "plan") {
       // §3 .pnode：36 正圆、等宽 13、done 墨底反白、live 黄底、idle 白底描边
       const want = [WANT.inkRGB, WANT.inkRGB, WANT.accentRGB, WANT.panelRGB];
-      if (r3.nodes.length !== 4) e3.push(`流水线节点 ${r3.nodes.length} 个 ≠ 4`);
+      if (r3.nodes.length !== 4)
+        e3.push(`流水线节点 ${r3.nodes.length} 个 ≠ 4`);
       r3.nodes.forEach((n, i) => {
-        if (n.w !== 36 || n.h !== 36) e3.push(`节点${i + 1} ${n.w}×${n.h} ≠ 36×36`);
+        if (n.w !== 36 || n.h !== 36)
+          e3.push(`节点${i + 1} ${n.w}×${n.h} ≠ 36×36`);
         if (n.border !== WANT.nodeBorder)
           e3.push(`节点${i + 1} 描边 ${n.border} ≠ ${WANT.nodeBorder}`);
-        if (n.bg !== want[i]) e3.push(`节点${i + 1} 底色 ${n.bg} ≠ ${want[i]}（§3 三态）`);
+        if (n.bg !== want[i])
+          e3.push(`节点${i + 1} 底色 ${n.bg} ≠ ${want[i]}（§3 三态）`);
       });
       const live = r3.nodes[2];
       if (live && !live.shadow.includes("rgba(245, 197, 24, 0.2)"))
         e3.push(`进行中节点缺 5px 黄光晕（实测 ${live.shadow || "无投影"}）`);
-      if (live && live.color !== WANT.btnPrimaryRGB) e3.push(`进行中节点字色 ${live.color} ≠ ink`);
+      if (live && live.color !== WANT.btnPrimaryRGB)
+        e3.push(`进行中节点字色 ${live.color} ≠ ink`);
     } else if (!r3.doneMark) {
       e3.push("完成态缺 78px 黄圈 <.done-in__mark>");
     } else {
       if (r3.doneMark.w !== 78) e3.push(`完成态黄圈 ${r3.doneMark.w}px ≠ 78px`);
       if (r3.doneMark.bg !== WANT.doneMarkRGB)
-        e3.push(`完成态黄圈底色 ${r3.doneMark.bg} ≠ ${WANT.doneMarkRGB}（accent 16%）`);
+        e3.push(
+          `完成态黄圈底色 ${r3.doneMark.bg} ≠ ${WANT.doneMarkRGB}（accent 16%）`,
+        );
     }
     for (const b of r3.footButtons) {
-      if (b.radius !== WANT.btnRadius) e3.push(`底栏按钮「${b.text}」圆角 ${b.radius} ≠ 999px`);
-      if (b.h !== WANT.btnHeight) e3.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
+      if (b.radius !== WANT.btnRadius)
+        e3.push(`底栏按钮「${b.text}」圆角 ${b.radius} ≠ 999px`);
+      if (b.h !== WANT.btnHeight)
+        e3.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
     }
     if (e3.length) {
       failures += e3.length;
       for (const e of e3) console.log(`   ✗ ${e}`);
     } else {
       console.log(
-        `   ✓ ${stage === "done" ? "黄圈 78px + 弹层语言" : `四节点 ${r3.nodes.map((n) => n.bg).join(" / ")}`} 全部命中设计真值`
+        `   ✓ ${stage === "done" ? "黄圈 78px + 弹层语言" : `四节点 ${r3.nodes.map((n) => n.bg).join(" / ")}`} 全部命中设计真值`,
       );
     }
   }
@@ -437,14 +483,18 @@ for (const vp of VIEWPORTS) {
       !o.fitsViewport && "面板超出视口",
     ].filter(Boolean);
     for (const b of o.footButtons) {
-      if (b.radius !== WANT.btnRadius) oe.push(`底栏按钮「${b.text}」圆角 ${b.radius} ≠ 999px`);
-      if (b.h !== WANT.btnHeight) oe.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
+      if (b.radius !== WANT.btnRadius)
+        oe.push(`底栏按钮「${b.text}」圆角 ${b.radius} ≠ 999px`);
+      if (b.h !== WANT.btnHeight)
+        oe.push(`底栏按钮「${b.text}」高 ${b.h} ≠ 38`);
     }
     if (oe.length) {
       failures += oe.length;
       for (const e of oe) console.log(`   ✗ ${e}`);
     } else {
-      console.log(`   ✓ 「${o.headText}」与 <Modal> 同一套弹层语言（底栏 ${o.footButtons.length} 个按钮）`);
+      console.log(
+        `   ✓ 「${o.headText}」与 <Modal> 同一套弹层语言（底栏 ${o.footButtons.length} 个按钮）`,
+      );
     }
   }
 
@@ -452,5 +502,7 @@ for (const vp of VIEWPORTS) {
 }
 
 await browser.close();
-console.log(`\n════ 弹层对等结论：${failures ? `${failures} 项偏差` : "全部通过"} ════`);
+console.log(
+  `\n════ 弹层对等结论：${failures ? `${failures} 项偏差` : "全部通过"} ════`,
+);
 process.exit(failures ? 1 : 0);

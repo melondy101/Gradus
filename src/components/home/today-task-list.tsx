@@ -50,7 +50,7 @@ export function TodayTaskList({
     <Card className="gap-0 px-[18px] pt-4 pb-2.5">
       <CardHeader className="mb-1">
         <CardTitle>{section.label}</CardTitle>
-        <Mono className="text-[10px] text-text-3">
+        <Mono className="text-micro text-text-3">
           {rows.length} 项{metrics.todayHours > 0 ? ` · ${metrics.todayHours} 小时` : ""}
         </Mono>
       </CardHeader>

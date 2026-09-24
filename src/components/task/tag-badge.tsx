@@ -16,7 +16,7 @@ interface TagBadgeProps {
 const SIZE = {
   xs: "text-[9px] px-[6px] py-[2px]",
   sm: "",
-  md: "text-[11.5px] px-[11px] py-[5px]",
+  md: "text-caption px-[11px] py-[5px]",
 } as const;
 
 /**

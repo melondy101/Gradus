@@ -22,11 +22,6 @@ const FEED = [
     title: "自动核查修订",
     body: "计划生成后跑一遍 VALIDATE，Bloom 层级跳跃或评分不足时自动重排。",
   },
-  {
-    date: "2026.08.26",
-    title: "间隔复习节点",
-    body: "依据遗忘曲线在排期中插入复习提醒点。",
-  },
 ] as const;
 
 /**

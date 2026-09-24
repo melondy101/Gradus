@@ -62,7 +62,7 @@ export function MilestoneUnlockModal({
         </>
       }
     >
-      <p className="text-[13.5px] leading-[1.7] text-text-2">{t("milestone.encourage")}</p>
+      <p className="text-body leading-[1.7] text-text-2">{t("milestone.encourage")}</p>
     </Modal>
   );
 }

@@ -157,6 +157,7 @@
     "toast": {
       "markDoneFailed": "标记完成失败，已撤回，请重试",
       "markUndoneFailed": "取消完成失败，已撤回，请重试",
+      "taskStatusFailed": "任务状态更新失败，请稍后重试",
       "postponeFailed": "延迟失败，请重试",
       "postponed": "已延迟到明天，「{{title}}」移到次日",
       "undoFailed": "撤销失败，请重试",
@@ -451,7 +452,6 @@
     "needAuth": "需要登录",
     "signIn": "登录",
     "notFound": "任务未找到",
-    "historyTasks": "← 历史任务",
     "loading": "加载中…",
     "planSummary": "{{days}}天计划 · {{date}} · {{done}}/{{total}} 完成"
   },
@@ -504,16 +504,5 @@
     "running": "分析中…",
     "start": "开始分析",
     "signInToSave": "登录以保存历史"
-  },
-  "history": {
-    "signInPrompt": "登录后可查看历史任务",
-    "signIn": "登录",
-    "empty": "还没有任务记录，回首页创建第一个吧 →",
-    "recentTasks": "最近任务",
-    "completed": "{{done}}/{{total}} 已完成",
-    "days": "{{count}}天",
-    "delete": "删除",
-    "brand": "← 拾级",
-    "loading": "加载中…"
   }
 }

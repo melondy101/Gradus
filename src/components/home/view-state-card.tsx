@@ -48,8 +48,8 @@ export function ViewStateCard({ kind, onRetry }: Props) {
       >
         {isError ? <CircleAlert size={22} /> : <Sprout size={22} />}
       </span>
-      <h3 className="text-[17px] font-black text-ink">{copy.title}</h3>
-      <p className="mt-1.5 text-[13px] leading-[1.7] text-text-2">{copy.body}</p>
+      <h3 className="text-title-sm font-black text-ink">{copy.title}</h3>
+      <p className="mt-1.5 text-body leading-[1.7] text-text-2">{copy.body}</p>
       {copy.action && onRetry && (
         <Button className="mt-3.5" size="sm" onClick={onRetry}>
           {copy.action}

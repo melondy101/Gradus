@@ -11,7 +11,7 @@ export function Kbd({ className, children }: { className?: string; children: Rea
   return (
     <kbd
       className={cn(
-        "rounded-[4px] border border-bd-card bg-white px-1 font-mono text-[9px] leading-[1.5] text-text-2",
+        "rounded-chip-sm border border-bd-card bg-white px-1 font-mono text-[9px] leading-[1.5] text-text-2",
         className
       )}
     >

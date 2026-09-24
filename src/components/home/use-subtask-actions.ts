@@ -2,17 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { SubtaskWithTask } from "@/lib/api/tasks";
 import {
-  deleteTask,
-} from "@/lib/api/tasks";
-import type { SubtaskWithTask, TaskWithSubtasks } from "@/lib/api/tasks";
-import { useSubtaskPostpone } from "./use-subtask-postpone";
+  deleteTaskMutation,
+  postponeSubtaskMutation,
+} from "@/features/tasks/mutations";
+import { useSubtaskRows, useTaskList } from "@/features/tasks/use-tasks";
 
 interface Deps {
-  tasksList: TaskWithSubtasks[];
-  subtaskRows: SubtaskWithTask[];
-  setTasksList: React.Dispatch<React.SetStateAction<TaskWithSubtasks[]>>;
-  setSubtaskRows: React.Dispatch<React.SetStateAction<SubtaskWithTask[]>>;
   /** 从分析流水线里摘掉这个任务的条目 */
   removeEntry: (taskId: string) => void;
   showToast: (message: string, actionLabel?: string, onAction?: () => void) => void;
@@ -25,34 +22,29 @@ interface DeleteTarget {
 }
 
 /**
- * 子任务的「改期 / 跳过 / 删除」写侧：乐观更新 → 失败回滚 → 可撤销提示。
- * 三者都只动 subtaskRows / tasksList 这一层本地镜像，所以整组连同
- * 待确认状态（postponeTarget、deleteTarget、isDeletingTask）一起收在这儿，
- * 今日面板只管渲染与传数据，不再自己编排这些回调。
+ * 子任务的「改期 / 跳过 / 删除」编排：写侧统一走 features/tasks/mutations
+ * （乐观 → 回滚 → 撤销 → toast），数据变更由 tasks store 单点广播到所有视图；
+ * 这里只保留待确认目标（postponeTarget、deleteTarget）等纯 UI 状态。
  */
-export function useSubtaskActions({
-  tasksList,
-  subtaskRows,
-  setTasksList,
-  setSubtaskRows,
-  removeEntry,
-  showToast,
-}: Deps) {
+export function useSubtaskActions({ removeEntry, showToast }: Deps) {
   const { t } = useTranslation();
+  const tasksList = useTaskList();
+  const subtaskRows = useSubtaskRows();
   const [postponeTarget, setPostponeTarget] = useState<SubtaskWithTask | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isDeletingTask, setIsDeletingTask] = useState(false);
 
-  /**
-   * 顺延一天并给撤销入口；失败则把 startDay 改回去。skip 与 postpone 共用这一段。
-   * 三段文案逐个传入：原实现里两条路径的 undoFailed 兜底串并不相同，
-   * 合并时不能顺手把它们统一掉。
-   */
-  const postponeWithUndo = useSubtaskPostpone({
-    setRows: setSubtaskRows,
-    showToast,
-    undoLabel: t("home.toast.undo"),
-  });
+  /** 顺延一天并给撤销入口；skip 与 postpone 共用。 */
+  const postponeWithUndo = useCallback(
+    (row: SubtaskWithTask, done: string, failed: string, undoFailed: string) =>
+      postponeSubtaskMutation({
+        taskId: row.taskId,
+        subtaskId: row.id,
+        notify: showToast,
+        messages: { done, failed, undoFailed, undoLabel: t("home.toast.undo") },
+      }),
+    [showToast, t]
+  );
 
   const confirmPostpone = useCallback(
     async (row: SubtaskWithTask) => {
@@ -83,7 +75,7 @@ export function useSubtaskActions({
 
   const handleRequestDelete = useCallback(
     (taskId: string, title?: string, subtaskCount?: number) => {
-      const taskInList = tasksList.find((t) => t.id === taskId);
+      const taskInList = tasksList.find((x) => x.id === taskId);
       const rowsInList = subtaskRows.filter((s) => s.taskId === taskId);
       const taskTitle = title || taskInList?.title || rowsInList[0]?.taskTitle || "未命名计划";
       const count = subtaskCount ?? taskInList?.subtasks?.length ?? rowsInList.length;
@@ -95,19 +87,16 @@ export function useSubtaskActions({
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
     setIsDeletingTask(true);
-    try {
-      await deleteTask(deleteTarget.id);
-      setTasksList((prev) => prev.filter((x) => x.id !== deleteTarget.id));
-      setSubtaskRows((prev) => prev.filter((s) => s.taskId !== deleteTarget.id));
+    const res = await deleteTaskMutation(deleteTarget.id);
+    if (res.ok) {
       removeEntry(deleteTarget.id);
       showToast(`已删除计划「${deleteTarget.title}」`);
       setDeleteTarget(null);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "删除失败，请稍后再试");
-    } finally {
-      setIsDeletingTask(false);
+    } else {
+      showToast(res.message);
     }
-  }, [deleteTarget, removeEntry, setSubtaskRows, setTasksList, showToast]);
+    setIsDeletingTask(false);
+  }, [deleteTarget, removeEntry, showToast]);
 
   return {
     postponeTarget,
@@ -121,3 +110,5 @@ export function useSubtaskActions({
     handleConfirmDelete,
   };
 }
+
+export type SubtaskActions = ReturnType<typeof useSubtaskActions>;

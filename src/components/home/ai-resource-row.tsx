@@ -29,10 +29,10 @@ export function AiResourceRow({ res }: { res: Resource }) {
       >
         {res.title}
       </button>
-      <p className="mt-[5px] flex flex-wrap items-center gap-2 text-[13px] leading-[20px] text-on-dark-2">
+      <p className="mt-[5px] flex flex-wrap items-center gap-2 text-body leading-[20px] text-on-dark-2">
         <AiTrustTag res={res} />
-        {res.platform && <span className="font-mono text-[11px] tracking-[.05em]">{res.platform}</span>}
-        {res.author && <span className="font-mono text-[11px] tracking-[.05em]">{res.author}</span>}
+        {res.platform && <span className="font-mono text-caption tracking-[.05em]">{res.platform}</span>}
+        {res.author && <span className="font-mono text-caption tracking-[.05em]">{res.author}</span>}
       </p>
     </li>
   );

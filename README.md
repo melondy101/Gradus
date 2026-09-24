@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./src/app/icon.svg" width="108" height="108" alt="拾级 Gradus Logo" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(245, 197, 24, 0.28);" />
+<img src="./src/app/icon.svg" width="108" height="108" alt="拾级 Gradus Logo" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(79, 70, 229, 0.25);" />
 
-# 拾级 · Gradus
+# 拾级 · Gradus (TalkTask)
 
 **面向自主学习者的认知级 AI 任务规划与全局排期系统**
 
@@ -17,8 +17,10 @@
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Bun Runtime](https://img.shields.io/badge/Bun-1.3+-F472B6?style=flat-square&logo=bun&logoColor=white)](https://bun.sh/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_+_Drizzle-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://orm.drizzle.team/)
+[![Model Context Protocol](https://img.shields.io/badge/Protocol-MCP_Streamable_HTTP-8B5CF6?style=flat-square)](https://modelcontextprotocol.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](./LICENSE)
 
-[🌐 在线体验](https://talk-task.vercel.app/) · [📜 服务条款](https://talk-task.vercel.app/terms) · [📖 产品设计 (PRD)](./docs/PRD.md) · [🛠️ 开发者指南 (AGENTS)](./AGENTS.md) · [🚀 20分钟快速部署 (DEPLOY)](./DEPLOY.md)
+[🌐 在线体验](https://talk-task.vercel.app/) · [📖 产品设计 (PRD)](./docs/PRD.md) · [🛠️ 开发者指南 (AGENTS)](./AGENTS.md) · [🚀 20分钟快速部署 (DEPLOY)](./DEPLOY.md)
 
 </div>
 
@@ -52,7 +54,7 @@
 └─────────────────────────────────────────────────────────────┘
           │
           ▼
-   交互式甘特图 & 任务仪表盘
+   交互式甘特图 & 任务仪表盘 (支持 MCP 供外部 Agent 同步)
 ```
 
 ### 1. 🧠 布鲁姆认知阶梯（Bloom's Taxonomy Staircase）
@@ -70,7 +72,11 @@
 - **每日槽位交错学习**：同主题每日容量上限控制，跨领域平滑穿插，保持每日认知负荷均衡。
 - **艾宾浩斯间隔复习节点（Spaced Repetition）**：关键里程碑自动生成阶段复习触发点，实现知识闭环巩固。
 
-### 4. 👥 免登录即用 + 注册无缝接管（Guest-First Auth）
+### 4. 🔌 原生支持 MCP（Model Context Protocol）
+- 提供标准 `/api/mcp` Streamable HTTP 端点，支持无状态认证。
+- 可作为工具直接接入 **Cursor / Windsurf / Claude Desktop / OpenDevin** 等任意支持 MCP 的 AI Agent，让外部智能体直接理解你的学习计划并协同打卡。
+
+### 5. 👥 免登录即用 + 注册无缝接管（Guest-First Auth）
 - 访客进入首屏自动通过轻量 JWT Cookie 签发独立临时沙箱，无需注册即可秒级试用。
 - 用户决定注册正式账号时，数据库在**单一事务**内原子化转移所有关联任务数据，平滑无感。
 
@@ -88,6 +94,7 @@
 | **数据库 & ORM** | PostgreSQL + Drizzle ORM | 强类型数据建模，Serverless 连接池优化 |
 | **AI 客户端** | 自托管 `appAi`（OpenAI 兼容 / BYOK） | 零平台锁定，支持 DeepSeek、Moonshot、GPT-4o 等 |
 | **资源检索引擎** | Tavily Search API + 自研抓取器 | 权威技术域名白名单过滤与实时可信度验证 |
+| **开放协议** | `@modelcontextprotocol/sdk` (MCP) | 标准化 Agent 工具协议集成 |
 | **定时任务** | Vercel Cron | 每日学习进度与复习节点自动推送 |
 
 ---
@@ -170,10 +177,6 @@ bun dev
 
 浏览器访问 `http://localhost:3000` 即可开始使用！🎉
 
-> 💡 **访客自带演示数据**：新访客进站会自动获得一份「已连续学习 9 天的 Python 数据分析计划」（含历史打卡记录、今日待办与未来排期），打开产品即可看到完整的学习进度；免费档会为访客预留一个任务槽位，随时可以创建自己的目标。
->
-> 若你的数据库在演示数据功能上线前就已存在账号，可用 `bun run db:seed-demo` 为所有**零任务账号**补种（幂等，已有任务的账号自动跳过）。
-
 ---
 
 ## 💻 常用开发指令
@@ -187,7 +190,6 @@ bun run db:generate   # 根据 Schema 生成 Drizzle SQL 迁移文件
 bun run db:migrate    # 执行待处理的数据库迁移
 bun run db:push       # 将 TypeScript Schema 直接同步至数据库
 bun run db:studio     # 启动可视化 Drizzle Studio 数据库管理界面
-bun run db:seed-demo  # 给所有零任务账号灌入演示数据（幂等）
 
 # 设计保真闸门（对着 output/拾级Gradus-设计预览.html 量浏览器 computed 值，非肉眼比对）
 bun run audit:tokens  # 设计稿 :root 21 条令牌 vs 实现同名属性
@@ -198,7 +200,7 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 
 ---
 
-## 📡 API 接口速览
+## 📡 API 与 MCP 接口速览
 
 ### 核心 REST API
 
@@ -212,6 +214,23 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 | `PATCH` | `/api/tasks/:id/subtasks/:sid` | 切换指定子任务的完成打卡状态 | 自动 Session |
 | `GET` | `/api/user/stats` | 获取用户专注时长、打卡连击与认知分布统计 | 自动 Session |
 
+### MCP 协议集成
+
+任何支持 Model Context Protocol 的客户端均可直接对接拾级服务：
+
+```json
+{
+  "mcpServers": {
+    "gradus-tasks": {
+      "url": "https://your-domain.com/api/mcp",
+      "headers": {
+        "Cookie": "__Host-session=YOUR_JWT_TOKEN"
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## 🗺️ 演进路线（Roadmap）
@@ -221,6 +240,7 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 - [x] Tavily 两阶段防编造真实资源检索与可信度评级
 - [x] 全局认知负荷排期与动态甘特图
 - [x] 访客即时体验与注册事务级合并
+- [x] 原生 MCP (Model Context Protocol) 接口
 - [x] 暗色模式深度适配与多套主题切换
 - [ ] 导出到系统日历（iCal / Google Calendar / 飞书日历）
 - [ ] 基于艾宾浩斯复习曲线的主动桌面通知与微信机器人推送
@@ -237,4 +257,8 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 4. 推送分支：`git push origin feature/amazing-feature`
 5. 提交 Pull Request
 
-使用本产品即表示你已阅读并接受[服务条款](https://talk-task.vercel.app/terms)。
+---
+
+## 📄 开源许可证
+
+本项目基于 [MIT License](./LICENSE) 协议开源。

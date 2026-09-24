@@ -26,7 +26,7 @@ export function RitualDoneState({ goal, actionLabel, onAction }: RitualDoneState
       <p className="max-w-[380px] text-[14px] leading-[23px] text-text-2">
         四个阶段跑完，子任务已按 Bloom 层级递进排入日程；回到今日面板即可查看排期与资源。
       </p>
-      <Mono className="text-[10px] text-text-3">
+      <Mono className="text-micro text-text-3">
         目标「{goal}」 · INTENT → RESOURCE → PLAN → VALIDATE
       </Mono>
       {onAction ? (

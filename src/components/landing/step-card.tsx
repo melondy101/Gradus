@@ -28,8 +28,8 @@ export function StepCard({ no, title, body }: StepCardProps) {
       )}
     >
       <Mono className="block text-text-3">{no}</Mono>
-      <h4 className="mt-3.5 mb-2 text-[19px] font-bold">{title}</h4>
-      <p className="text-[14.5px] leading-[24px] text-text-2">{body}</p>
+      <h4 className="mt-3.5 mb-2 text-title font-bold">{title}</h4>
+      <p className="text-body-lg leading-[24px] text-text-2">{body}</p>
     </Card>
   );
 }

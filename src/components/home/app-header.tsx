@@ -24,7 +24,6 @@ interface Props {
   onClearTag: () => void;
   onOpenPalette: () => void;
   showLevelBadge: boolean;
-  streakTick: number;
 }
 
 const VIEW_LABEL: Record<NavView, string> = {
@@ -35,7 +34,7 @@ const VIEW_LABEL: Record<NavView, string> = {
 };
 
 export function AppHeader({
-  currentView, selectedTag, onClearTag, onOpenPalette, showLevelBadge, streakTick,
+  currentView, selectedTag, onClearTag, onOpenPalette, showLevelBadge,
 }: Props) {
   return (
     <header className="flex h-[52px] flex-none items-center justify-between gap-2 border-b border-bd-card bg-card px-3.5">
@@ -46,7 +45,7 @@ export function AppHeader({
           aria-label="拾级 Gradus 首页"
         >
           <GradusLogo size={26} />
-          <span className="text-[15px] font-black tracking-[.02em] text-ink">拾级</span>
+          <span className="text-body-lg font-black tracking-[.02em] text-ink">拾级</span>
         </Link>
 
         <Eyebrow kind="label" className="mb-0">{VIEW_LABEL[currentView]}</Eyebrow>
@@ -68,14 +67,14 @@ export function AppHeader({
 
         {showLevelBadge && (
           <span className="hidden md:inline-flex">
-            <LevelBadge refreshTick={streakTick} />
+            <LevelBadge />
           </span>
         )}
       </div>
 
       {/* 移动端顶栏快捷操作 */}
       <div className="flex items-center gap-1 shrink-0 sm:hidden">
-        <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-[10px]">
+        <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-icon">
           <Search size={18} />
         </IconButton>
         <NotificationCenter />

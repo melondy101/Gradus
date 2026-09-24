@@ -26,14 +26,14 @@ export function ProgressBar({ percent, label, className, barClassName }: Progres
       aria-valuenow={clamped}
       aria-label={label}
       className={cn(
-        "h-2 overflow-hidden rounded-[4px] border border-bd-card bg-cream",
+        "h-2 overflow-hidden rounded-chip-sm border border-bd-card bg-cream",
         className
       )}
     >
       <span
         style={{ width: `${clamped}%` }}
         className={cn(
-          "block h-full rounded-[4px] bg-accent transition-[width] duration-500 ease-[cubic-bezier(.4,0,.2,1)]",
+          "block h-full rounded-chip-sm bg-accent transition-[width] duration-500 ease-[cubic-bezier(.4,0,.2,1)]",
           barClassName
         )}
       />

@@ -12,8 +12,8 @@ export function SubtaskActionList({ items }: SubtaskActionListProps) {
   return (
     <ol className="flex flex-col gap-[9px]">
       {items.map((a, i) => (
-        <li key={`${a}-${i}`} className="flex gap-2.5 text-[13.5px] leading-[21px] text-text-2">
-          <span className="shrink-0 pt-[3px] font-mono text-[10px] font-bold tracking-[.05em] text-text-3">
+        <li key={`${a}-${i}`} className="flex gap-2.5 text-body leading-[21px] text-text-2">
+          <span className="shrink-0 pt-[3px] font-mono text-micro font-bold tracking-[.05em] text-text-3">
             {String(i + 1).padStart(2, "0")}
           </span>
           {a}

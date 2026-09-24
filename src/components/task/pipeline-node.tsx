@@ -21,7 +21,7 @@ export function PipelineNode({ index, state, name, eyebrow }: PipelineNodeProps)
     <div className="flex w-[96px] shrink-0 flex-col items-center gap-1.5 text-center">
       <i
         className={cn(
-          "grid h-9 w-9 place-items-center rounded-full hairline font-mono text-[13px] font-bold not-italic",
+          "grid h-9 w-9 place-items-center rounded-full hairline font-mono text-body font-bold not-italic",
           "transition-[background-color,border-color,color,box-shadow] duration-300 ease-out",
           state === "todo" && "border-bd-check bg-white text-text-3",
           state === "done" && "border-ink bg-ink text-cream",
@@ -33,7 +33,7 @@ export function PipelineNode({ index, state, name, eyebrow }: PipelineNodeProps)
       </i>
       <b
         className={cn(
-          "text-[12.5px] font-bold transition-colors duration-300",
+          "text-body-sm font-bold transition-colors duration-300",
           state === "todo" ? "text-text-3" : "text-ink"
         )}
       >

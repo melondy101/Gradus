@@ -25,8 +25,8 @@ export function FeedItem({ date, title, body }: FeedItemProps) {
       )}
     >
       <Mono className="mb-[7px] block text-text-3">{date}</Mono>
-      <h4 className="mb-[5px] text-[17px] font-bold">{title}</h4>
-      <p className="max-w-[600px] text-[14.5px] leading-[24px] text-text-2">
+      <h4 className="mb-[5px] text-title-sm font-bold">{title}</h4>
+      <p className="max-w-[600px] text-body-lg leading-[24px] text-text-2">
         {body}
       </p>
     </li>

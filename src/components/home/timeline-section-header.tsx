@@ -31,11 +31,11 @@ export function TimelineSectionHeader({ label, sublabel, tone, pendingCount }: S
       <span className="flex items-center gap-1">
         <span aria-hidden className={cn("h-[18px] w-[3.5px] shrink-0 rounded-[2px]", sectionBarClass(tone))} />
         <CardTitle>{label}</CardTitle>
-        <Mono className="text-[12px] font-normal tracking-normal text-text-3">{sublabel}</Mono>
+        <Mono className="text-body-sm font-normal tracking-normal text-text-3">{sublabel}</Mono>
       </span>
 
       {pendingCount > 0 && (
-        <Tag className="rounded-pill bg-accent-soft px-2 py-[2px] text-[11px] text-accent-ink">
+        <Tag className="rounded-pill bg-accent-soft px-2 py-[2px] text-caption text-accent-ink">
           {t("timelineCard.pendingCount", { count: pendingCount })}
         </Tag>
       )}

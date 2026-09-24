@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { GradusLogo } from "@/components/ui/gradus-logo";
 import { Mono } from "@/components/ui/eyebrow";
 import { cn } from "@/utils/utils";
@@ -7,6 +5,7 @@ import { cn } from "@/utils/utils";
 import { BandWrap, wrapClass } from "./band-wrap";
 import { FootCol } from "./foot-col";
 import { FootSocial } from "./foot-social";
+import { SubscribeForm } from "./subscribe-form";
 import type { FootLink } from "./foot-anchor";
 import { APP_URL, appViewUrl, REPO_URL } from "./links";
 
@@ -17,6 +16,7 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
       { text: "今日面板", href: APP_URL },
       { text: "甘特视图", href: appViewUrl("timeline") },
       { text: "资源校验", href: "#sec-cap" },
+      { text: "MCP 服务", href: `${REPO_URL}#mcp-协议集成`, external: true },
     ],
   },
   {
@@ -41,18 +41,18 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
     links: [
       { text: "品牌标识", href: `${REPO_URL}/tree/main/output`, external: true },
       { text: "设计说明", href: `${REPO_URL}/tree/main/output`, external: true },
-      { text: "开源协议", href: REPO_URL, external: true },
+      { text: "开源协议", href: `${REPO_URL}#-开源许可证`, external: true },
       { text: "联系方式", href: `${REPO_URL}/issues`, external: true },
     ],
   },
 ];
 
 const LEGAL_LINK_CLASS =
-  "text-[12.5px] text-on-dark-3 transition-colors duration-[.16s] hover:text-on-dark";
+  "text-body-sm text-on-dark-3 transition-colors duration-[.16s] hover:text-on-dark";
 
 /**
  * 8 · Footer（深色带）—— 《品牌与产品设计说明》§2.8
- * Logo + 标语 + 三列链接两端分布 / 底栏版权、法条与社交图标。
+ * Logo + 标语 + 邮件订阅 / 三列链接两端分布 / 底栏版权、法条与社交图标。
  */
 export function LandingFooter() {
   return (
@@ -61,11 +61,12 @@ export function LandingFooter() {
         <div>
           <GradusLogo size={18} onDark />
           <p className="mt-4 flex items-baseline gap-2.5 text-[22px] font-black">
-            拾级 <Mono className="text-[10px] tracking-[.24em] text-on-dark-3">GRADUS</Mono>
+            拾级 <Mono className="text-micro tracking-[.24em] text-on-dark-3">GRADUS</Mono>
           </p>
           <p className="mt-3 max-w-[340px] text-[14px] leading-[24px] text-on-dark-2">
             面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。
           </p>
+          <SubscribeForm />
         </div>
 
         <div className="grid grid-cols-3 gap-8 pt-1.5">
@@ -87,9 +88,9 @@ export function LandingFooter() {
           <a href="#sec-privacy" className={LEGAL_LINK_CLASS}>
             隐私政策
           </a>
-          <Link href="/terms" className={LEGAL_LINK_CLASS}>
-            服务条款
-          </Link>
+          <span className={LEGAL_LINK_CLASS} title="服务条款尚未发布">
+            服务条款（筹备中）
+          </span>
         </nav>
         <FootSocial />
       </div>

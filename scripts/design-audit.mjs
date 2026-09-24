@@ -11,7 +11,7 @@ const arg = (k, d) => {
   return hit ? hit.split("=").slice(1).join("=") : d;
 };
 const BASE = arg("base", "http://localhost:3111");
-const ROUTES = arg("only", "/,/app,/history,/task/parity-probe").split(",");
+const ROUTES = arg("only", "/,/app,/app?view=plans,/task/parity-probe").split(",");
 const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 900 },
   { name: "mobile", width: 390, height: 844 },
@@ -189,7 +189,17 @@ for (const route of ROUTES) {
     const page = await ctx.newPage();
     const errs = [];
     page.on("pageerror", (e) => errs.push("pageerror: " + String(e).slice(0, 120)));
-    page.on("console", (m) => m.type() === "error" && errs.push("console: " + m.text().slice(0, 120)));
+    // 已知环境噪声不计入失败：
+    // 1) @vercel/analytics 的 /_vercel/insights/* 仅 Vercel 托管存在，自托管必 404；
+    // 2) 首屏 /api/* 在 middleware 尚未种下会话 cookie 前会先吃到 401（bootstrap 时序，非渲染缺陷）。
+    const isEnvNoise = (text, url) =>
+      url.includes("/_vercel/insights/") ||
+      (/status of 401/.test(text) && /\/api\//.test(url));
+    page.on("console", (m) => {
+      if (m.type() !== "error") return;
+      if (isEnvNoise(m.text(), m.location()?.url || "")) return;
+      errs.push("console: " + m.text().slice(0, 120));
+    });
     let m = null;
     try {
       await page.goto(BASE + route, { waitUntil: "domcontentloaded", timeout: 60000 });

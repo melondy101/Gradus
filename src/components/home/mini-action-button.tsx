@@ -17,7 +17,7 @@ export function MiniActionButton({ label, onClick, children }: {
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="size-6 rounded-field text-[12px]"
+      className="size-6 rounded-field text-body-sm"
     >
       {children}
     </IconButton>

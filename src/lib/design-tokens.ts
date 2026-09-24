@@ -17,7 +17,7 @@ export function tokens() {
     muted:       get("--text-2") || "#5E5B53",
     subtle:      get("--text-3") || "#6E6B62",
     accent:      get("--accent") || "#F5C518",
-    accentSoft:  get("--accent-soft") || "rgba(245, 197, 24, 0.14)",
+    accentSoft:  get("--accent-soft") || "rgba(245, 197, 24, 0.16)",
     band:        get("--dark") || "#0E0D0B",
     success:     get("--success") || "#3F6B2F",
     warning:     get("--warning") || "#8A6200",
@@ -43,7 +43,7 @@ export const STATIC_TOKENS = {
   muted: "#5E5B53",
   subtle: "#6E6B62",
   accent: "#F5C518",
-  accentSoft: "rgba(245, 197, 24, 0.14)",
+  accentSoft: "rgba(245, 197, 24, 0.16)",
   band: "#0E0D0B",
   success: "#3F6B2F",
   warning: "#8A6200",
@@ -82,9 +82,9 @@ export const T = {
   accent:      "var(--accent, #F5C518)",
   accentDeep:  "var(--accent-deep, #E3B40F)",
   accentInk:   "var(--accent-ink, #7A5F00)",
-  accentSoft:  "var(--accent-soft, rgba(245,197,24,.14))",
-  accentHover: "var(--color-accent-hover, #E3B40F)",
-  highlight:   "var(--accent-soft, rgba(245,197,24,.14))",
+  accentSoft:  "var(--accent-soft, rgba(245,197,24,.16))",
+  accentHover: "var(--accent-deep, #E3B40F)",
+  highlight:   "var(--accent-soft, rgba(245,197,24,.16))",
 
   // 描边三态
   lineField: "var(--bd-field, #E1DCCF)",
@@ -97,18 +97,8 @@ export const T = {
   info:    "var(--text-2, #5E5B53)",
 
   // 甘特条三态（灰=已完成 / 黄=进行中 / 描边=计划）
-  ganttDone: "#D8D3C4",
+  ganttDone: "var(--gantt-done, #D8D3C4)",
   ganttLive: "var(--accent, #F5C518)",
-
-  // 迁移期别名：历史代码里的旧命名统一收敛到品牌值
-  paper:   "var(--cream-light, #FAF8F3)",
-  sage:    "var(--ink, #111111)",
-  lavender: "var(--accent, #F5C518)",
-  purple:  "var(--ink, #111111)",
-  blue:    "var(--accent, #F5C518)",
-  orange:  "var(--accent-deep, #E3B40F)",
-  yellow:  "var(--accent, #F5C518)",
-  green:   "var(--success, #3F6B2F)",
 } as const;
 
 // ─── Bloom 认知层级：暖灰阶梯递进到顶点黄 ──────────────────────────────

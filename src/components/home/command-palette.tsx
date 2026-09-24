@@ -47,14 +47,10 @@ export function CommandPalette({
     }
   }, [open]);
 
-  // Handle global Cmd+K or Ctrl+K shortcut
+  // ⌘K/Ctrl+K 的开关（toggle）归父级 home-page 统一处理；
+  // 这里曾重复监听并对两个分支都调 onClose()，与父级 toggle 互相覆盖导致键盘打不开面板。
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        if (open) onClose();
-        else onClose(); // parent handles toggle
-      }
       if (e.key === "Escape" && open) {
         onClose();
       }

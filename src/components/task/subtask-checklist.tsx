@@ -36,7 +36,7 @@ export function SubtaskChecklist({
       <CardHeader className="mb-1">
         <CardTitle>子任务清单</CardTitle>
         <CardAction>
-          <Mono className="text-[10px] text-text-3">点击行查看详情</Mono>
+          <Mono className="text-micro text-text-3">点击行查看详情</Mono>
         </CardAction>
       </CardHeader>
 
@@ -74,7 +74,7 @@ export function SubtaskChecklist({
               >
                 <span
                   className={cn(
-                    "block truncate text-[14.5px] leading-[1.4] font-bold",
+                    "block truncate text-body-lg leading-[1.4] font-bold",
                     // 窄屏把换行让给标题：20+1fr+排期列在这个宽度下必然截断标题，
                     // 而排期是不可缺的信息，只能牺牲单行。
                     "max-sm:overflow-visible max-sm:whitespace-normal",
@@ -85,10 +85,10 @@ export function SubtaskChecklist({
                 >
                   {v.subtask.title}
                 </span>
-                <span className="mt-0.5 block text-[12px] text-text-3">{meta}</span>
+                <span className="mt-0.5 block text-body-sm text-text-3">{meta}</span>
               </button>
 
-              <Mono className="text-right text-[10px] text-text-3">{v.schedule}</Mono>
+              <Mono className="text-right text-micro text-text-3">{v.schedule}</Mono>
             </li>
           );
         })}

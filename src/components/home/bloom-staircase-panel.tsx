@@ -36,10 +36,10 @@ export function BloomStaircasePanel({
     <Card className={cn("gap-2", size === "lg" ? "p-4" : "p-3")}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-[13px] font-bold text-ink">认知阶梯攀登</span>
-          <Mono className="text-[11px] font-normal tracking-normal text-text-3">Bloom Ascent</Mono>
+          <span className="text-body font-bold text-ink">认知阶梯攀登</span>
+          <Mono className="text-caption font-normal tracking-normal text-text-3">Bloom Ascent</Mono>
         </div>
-        <Tag className="rounded-pill bg-accent-soft px-2 py-[2px] text-[11px] text-accent-ink">
+        <Tag className="rounded-pill bg-accent-soft px-2 py-[2px] text-caption text-accent-ink">
           {doneTotal} / {levelTotal} 阶达成
         </Tag>
       </div>
@@ -68,14 +68,14 @@ export function BloomStaircasePanel({
                 {st.done}/{st.total}
               </Mono>
             )}
-            <span className={cn("text-[10px] font-semibold", st.hasTasks ? "text-ink" : "text-text-3")}>
+            <span className={cn("text-micro font-semibold", st.hasTasks ? "text-ink" : "text-text-3")}>
               L{st.level}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-between pt-1 text-[10px] text-text-3">
+      <div className="flex justify-between pt-1 text-micro text-text-3">
         <span>L1 识记 (基础)</span>
         <span>L6 创造 (精通)</span>
       </div>

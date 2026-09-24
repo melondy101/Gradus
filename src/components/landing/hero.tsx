@@ -1,20 +1,20 @@
 import { Diamond } from "lucide-react";
 import Link from "next/link";
 
+import { AiPill } from "@/components/ui/ai-pill";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
-import { HeroAiStatus } from "./hero-ai-status";
 import { HeroMock } from "./mock";
 import { APP_URL } from "./links";
 
 /**
  * 2 · Hero —— 《品牌与产品设计说明》§2.2
  * 左文（更新徽章 / 图标标语行 / 三行 64px 大标题 + 黄句号 / 说明文 / 三按钮 / 脚注）
- * 右图（产品界面 mockup 白卡，卡内在四个视图间循环 + 悬浮 AI 状态 pill 循环四阶段）。
+ * 右图（产品界面 mockup 白卡 + 悬浮 AI pill）。
  * 1180px 以下两列堆叠、视觉稿收成 560px 上限。
  */
 export function LandingHero() {
@@ -24,7 +24,7 @@ export function LandingHero() {
         <div>
           <Badge
             state="plan"
-            className="self-auto gap-[9px] border-bd-card bg-white pt-[7px] pr-[15px] pb-[7px] pl-3 text-[11px] font-normal tracking-[.04em]"
+            className="self-auto gap-[9px] border-bd-card bg-white pt-[7px] pr-[15px] pb-[7px] pl-3 text-caption font-normal tracking-[.04em]"
           >
             <span
               aria-hidden
@@ -33,7 +33,7 @@ export function LandingHero() {
             v2.4 · 全局接续排期已上线
           </Badge>
 
-          <p className="mt-[26px] flex items-center gap-[9px] text-[13px] tracking-[.02em] text-text-2">
+          <p className="mt-[26px] flex items-center gap-[9px] text-body tracking-[.02em] text-text-2">
             <Diamond size={14} aria-hidden className="shrink-0 text-accent" />
             面向自主学习者的 AI 学习任务规划器
           </p>
@@ -59,7 +59,7 @@ export function LandingHero() {
             </a>
             <a
               href="#sec-cap"
-              className="group inline-flex items-center gap-[7px] px-1 py-2 text-[14.5px] font-bold text-ink"
+              className="group inline-flex items-center gap-[7px] px-1 py-2 text-body-lg font-bold text-ink"
             >
               了解 Bloom 递进设计
               <span className="transition-transform duration-200 group-hover:translate-x-1">
@@ -68,14 +68,18 @@ export function LandingHero() {
             </a>
           </div>
 
-          <p className="mt-[26px] font-mono text-[11px] tracking-[.03em] text-text-3">
+          <p className="mt-[26px] font-mono text-caption tracking-[.03em] text-text-3">
             无需信用卡 · BYOK 接入你自己的模型 · 数据留在你自己的库里
           </p>
         </div>
 
         <div className="relative pb-[26px] min-[1180px]:max-w-[560px]">
           <HeroMock />
-          <HeroAiStatus />
+          <AiPill
+            label="AI 正在生成计划"
+            stage="阶段 2 / 4"
+            className="absolute -bottom-4 -left-[34px]"
+          />
         </div>
       </div>
     </section>

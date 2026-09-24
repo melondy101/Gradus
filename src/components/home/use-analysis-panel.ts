@@ -2,7 +2,7 @@
 import { useCallback, useState } from "react";
 import { createTask } from "@/lib/api/tasks";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
-import { INIT_STREAM, type AnalysisEntry, type Phase, type Resource, type StreamState } from "./analysis-types";
+import { INIT_STREAM, type AnalysisEntry, type Phase } from "./analysis-types";
 import { useAnalysisRunner } from "./use-analysis-runner";
 export type { AnalysisEntry, Phase, Resource, StreamState } from "./analysis-types";
 export { getEtaLabel, isRunningPhase, PIPELINE_STAGES, stageIndexOf } from "./analysis-pipeline";
@@ -32,3 +32,5 @@ export function useAnalysisPanel() {
   const patchSubtaskCompleted = useCallback((taskId: string, subtaskId: string, completed: boolean) => setEntries((items) => items.map((item) => item.taskId !== taskId || !item.task ? item : { ...item, task: { ...item.task, subtasks: item.task.subtasks.map((subtask) => subtask.id === subtaskId ? { ...subtask, completed } : subtask) } })), []);
   return { entries, focusedId, setFocusedId, startAnalysis, regenAnalysis, removeEntry, hydrateFromDB, focusTask, patchSubtaskCompleted };
 }
+
+export type AnalysisPanel = ReturnType<typeof useAnalysisPanel>;

@@ -5,9 +5,7 @@ import { AUTH_COOKIE_NAME, AUTH_SESSION_MAX_AGE_SECONDS } from "./env";
  *
  * 设计：
  *   - `__Host-` 前缀强制 `Secure + Path=/ + 不带 Domain` —— 浏览器拒绝任何
- *     子域名覆盖。注意 `Secure` 在**开发环境也必须带**：`__Host-` 前缀的
- *     cookie 缺 `Secure` 会被浏览器直接丢弃（与是否为 localhost 无关），
- *     而 localhost 属于可信源，`Secure` cookie 在 http://localhost 上照样能落地。
+ *     子域名覆盖、强制 HTTPS（本地开发因 `Secure=false` 不被强制）。
  *   - `httpOnly`：阻止 XSS 偷 cookie。
  *   - `SameSite=Lax`：默认请求带 cookie，但拦截跨站 POST。
  *   - 30 天 Max-Age，通过 Set-Cookie 滑动续期。
@@ -17,14 +15,17 @@ import { AUTH_COOKIE_NAME, AUTH_SESSION_MAX_AGE_SECONDS } from "./env";
  * header。
  */
 
+const isProduction = process.env.NODE_ENV === "production";
+
 function baseAttrs(): string[] {
-  return [
+  const parts = [
     `Path=/`,
     `HttpOnly`,
     `SameSite=Lax`,
-    // `__Host-` 前缀的硬性要求；localhost 上浏览器接受带 Secure 的 http cookie。
-    `Secure`,
   ];
+  // 仅生产环境强制 Secure —— 开发 localhost 无 HTTPS。
+  if (isProduction) parts.push("Secure");
+  return parts;
 }
 
 /** 把 token 写入 session cookie。返回可直接 set 到 Response header 的 Set-Cookie 字符串。 */

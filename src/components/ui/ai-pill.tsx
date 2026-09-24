@@ -31,7 +31,7 @@ export function AiPill({
       className={cn(
         "inline-flex items-center gap-2.5 rounded-pill",
         "border border-bd-dark bg-band-dark px-[18px] py-3 pl-3.5",
-        "text-[13px] font-bold text-on-dark",
+        "text-body font-bold text-on-dark",
         "shadow-[0_22px_46px_-18px_rgba(14,13,11,.55)]",
         className
       )}

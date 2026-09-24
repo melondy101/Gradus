@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   fetchManagedCodes,
   generateNewCodes,
@@ -59,6 +60,7 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
   const [filterTier, setFilterTier] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [deletingCode, setDeletingCode] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadCodes();
@@ -134,10 +136,7 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
   }
 
   async function handleDelete(code: string) {
-    if (!confirm(`确定要删除/作废激活码「${code}」吗？已兑换的用户权益不受影响。`)) {
-      return;
-    }
-
+    setPendingDelete(null);
     setDeletingCode(code);
     try {
       const res = await deleteManagedCode(code);
@@ -640,7 +639,7 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
                   )}
 
                   <button
-                    onClick={() => handleDelete(item.code)}
+                    onClick={() => setPendingDelete(item.code)}
                     disabled={deletingCode === item.code}
                     className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                     title="删除/作废此激活码"
@@ -672,6 +671,23 @@ export function CodeManagerTab({ onUseCodeInRedeemTab }: Props) {
           </li>
         </ul>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) handleDelete(pendingDelete);
+        }}
+        title="确认删除/作废该激活码？"
+        message={
+          pendingDelete
+            ? `激活码「${pendingDelete}」将被删除，已兑换的用户权益不受影响。`
+            : undefined
+        }
+        hint="DELETE · 不可恢复"
+        confirmLabel="确认删除"
+        destructive
+      />
     </div>
   );
 }

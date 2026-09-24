@@ -18,6 +18,10 @@ export interface SubtaskWithTask extends Subtask {
   taskStartDate: string | null;  // ISO string from JSON，大任务开始日期
   taskStatus: string;
   taskCreatedAt: string;   // ISO string from JSON
+  /** 由 tasks store 派生（taskStartDate + startDay 偏移）；跨任务时间轴布局的唯一真相源 */
+  absoluteStart?: string | null;
+  /** 由 tasks store 派生（absoluteStart + durationDays - 1） */
+  absoluteEnd?: string | null;
 }
 
 export async function getTasks(): Promise<TaskWithProgress[]> {
@@ -28,12 +32,6 @@ export async function getTasks(): Promise<TaskWithProgress[]> {
 
 export async function getTasksWithSubtasks(): Promise<TaskWithSubtasks[]> {
   const res = await request("/api/tasks?withSubtasks=1");
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-export async function getSubtasksWithTask(): Promise<SubtaskWithTask[]> {
-  const res = await request("/api/subtasks");
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }

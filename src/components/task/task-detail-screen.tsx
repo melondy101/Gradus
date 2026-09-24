@@ -75,7 +75,7 @@ export function TaskDetailScreen({
     .join(" · ");
 
   return (
-    <BrandPageShell railLabel="历史任务" railHref="/history">
+    <BrandPageShell railLabel="学习计划库" railHref="/app?view=plans">
       <BrandBackLink href="/app?view=plans">返回我的任务</BrandBackLink>
 
       <div className="grid grid-cols-[minmax(0,1fr)_380px] items-start gap-3.5 pb-[58px] max-lg:grid-cols-1">

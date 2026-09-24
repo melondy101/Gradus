@@ -46,7 +46,7 @@ export function PostponeDialog({ row, onCancel, onConfirm }: Props) {
         </>
       }
     >
-      <p className="text-[13.5px] leading-[1.7] text-text-2">
+      <p className="text-body leading-[1.7] text-text-2">
         确定将「<b className="text-ink">{row.title}</b>」延后 1 天执行吗？
         系统将自动智能重排接续计划。
       </p>

@@ -20,11 +20,11 @@ export function PrivacyCard({ title, body }: PrivacyCardProps) {
         "gap-0 border-bd-dark bg-[rgba(245,242,234,.035)]",
         "transition-[background-color,border-color] duration-200 ease-out",
         "hover:border-on-dark-3 hover:bg-[rgba(245,242,234,.075)]",
-        "[&_code]:rounded-[4px] [&_code]:bg-[rgba(245,242,234,.09)]",
-        "[&_code]:px-[5px] [&_code]:py-px [&_code]:text-[12px] [&_code]:text-on-dark",
+        "[&_code]:rounded-chip-sm [&_code]:bg-[rgba(245,242,234,.09)]",
+        "[&_code]:px-[5px] [&_code]:py-px [&_code]:text-body-sm [&_code]:text-on-dark",
       )}
     >
-      <h4 className="mb-3 font-mono text-[13px] font-bold tracking-[.08em] text-accent">
+      <h4 className="mb-3 font-mono text-body font-bold tracking-[.08em] text-accent">
         {title}
       </h4>
       <p className="text-[14px] leading-[23px] text-on-dark-2">{body}</p>

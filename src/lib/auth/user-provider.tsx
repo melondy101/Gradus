@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import type { CurrentUserView } from "./current-user";
+
 /**
  * 客户端"当前用户" store。
  *
@@ -63,17 +64,6 @@ export function updateCurrentUser(user: CurrentUserView | null): void {
 // 还是用 useCurrentUser()（订阅模块级 store）。
 const HasUserContext = createContext(false);
 
-/**
- * RSC 阶段注入的 user，只作为 `useCurrentUser()` 的 getServerSnapshot 用。
- *
- * 为什么需要它：模块级 `moduleUser` 在服务端永远是 null（不能按请求写模块
- * 状态，那会跨请求串号）。于是 SSR 渲染出"未登录"态，而客户端 hydrate 时
- * `UserProvider` 在 render 期把 moduleUser 补上，渲染出"已登录"态——
- * `<UserBadge>` 这种直接读 user 的组件立刻 hydration mismatch。
- * 让 SSR 和 hydrate 都读注入值即可两边一致，首屏也不再闪一下未登录。
- */
-const InjectedUserContext = createContext<CurrentUserView | null>(null);
-
 export function UserProvider({
   user,
   children,
@@ -103,18 +93,15 @@ export function UserProvider({
   }, []);
 
   return (
-    <InjectedUserContext.Provider value={user}>
-      <HasUserContext.Provider value={user !== null}>
-        {children}
-      </HasUserContext.Provider>
-    </InjectedUserContext.Provider>
+    <HasUserContext.Provider value={user !== null}>
+      {children}
+    </HasUserContext.Provider>
   );
 }
 
 /** 读取当前 user（首屏由 RSC 注入；之后由 updateCurrentUser() 驱动）。 */
 export function useCurrentUser(): CurrentUserView | null {
-  const injected = useContext(InjectedUserContext);
-  return useSyncExternalStore(subscribe, getSnapshot, () => injected);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /** 仅判断"有没有 user"——避免在 React 18 streaming 中误读。 */

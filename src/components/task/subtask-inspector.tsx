@@ -34,7 +34,7 @@ export function SubtaskInspector({ view, onToggle, onClear }: SubtaskInspectorPr
       <aside className="sticky top-0">
         <Card className="gap-0 p-[22px]" aria-label="子任务详情">
           <Eyebrow kind="label">子任务详情</Eyebrow>
-          <p className="text-[13.5px] leading-[23px] text-text-2">
+          <p className="text-body leading-[23px] text-text-2">
             从左侧清单点击任意一行，这里会显示它的排期、认知层级、学习资源与行动项。
           </p>
         </Card>
@@ -51,12 +51,12 @@ export function SubtaskInspector({ view, onToggle, onClear }: SubtaskInspectorPr
     <aside className="sticky top-0">
       <Card className="gap-0 p-[22px]" aria-label="子任务详情">
         <Badge state={view.state}>{badge}</Badge>
-        <h3 className="mt-3 mb-4 text-[19px] leading-[28px] font-black">{subtask.title}</h3>
+        <h3 className="mt-3 mb-4 text-title leading-[28px] font-black">{subtask.title}</h3>
 
         <SubtaskMetaGrid view={view} />
 
         {subtask.description && (
-          <p className="mt-4 mb-[18px] text-[13.5px] leading-[23px] text-text-2">
+          <p className="mt-4 mb-[18px] text-body leading-[23px] text-text-2">
             {subtask.description}
           </p>
         )}

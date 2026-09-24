@@ -5,16 +5,22 @@ import { useTranslation } from "react-i18next";
 import { auth, memory, useEazo } from "@/lib/eazo-shim";
 import {
   getTask,
-  toggleSubtask,
-  updateTaskStatusApi,
   updateTaskTagsApi,
+  updateTaskStatusApi,
 } from "@/lib/api/tasks";
-import type { TaskWithSubtasks } from "@/lib/api/tasks";
+import { toggleSubtaskMutation } from "@/features/tasks/mutations";
+import {
+  getTaskRecord,
+  patchTask,
+  upsertTaskWithSubtasks,
+} from "@/features/tasks/store";
+import { useTaskById } from "@/features/tasks/use-tasks";
 import { BrandPageShell } from "./brand-page-shell";
 import { DetailNotice } from "./detail-notice";
 import { TaskDetailScreen } from "./task-detail-screen";
 import { todayOffsetOf } from "./task-dates";
 import { buildSubtaskViews, type SubtaskView } from "./subtask-view-model";
+import { useToast } from "@/components/home/use-toast";
 
 interface TaskDetailPageProps {
   taskId: string;
@@ -28,10 +34,10 @@ interface TaskDetailPageProps {
 export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
   const { t } = useTranslation();
   const user = useEazo((s) => s.auth.user);
-  const loading = useEazo((s) => s.auth.loading);
-  const [task, setTask] = useState<TaskWithSubtasks | null>(null);
+  const task = useTaskById(taskId);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
   // 选中项：id 为 null 且未关闭时自动跟随「今天在进行中」的子任务；
   // 记 taskId 以便换任务时自然回落默认值，无需在 effect 里重置。
   const [sel, setSel] = useState<{ taskId: string; id: string | null; dismissed: boolean }>({
@@ -49,7 +55,7 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
     if (!userId) return;
     let cancelled = false;
     getTask(taskId)
-      .then((data) => { if (!cancelled) { setFetching(false); setTask(data); } })
+      .then((data) => { if (!cancelled) { setFetching(false); upsertTaskWithSubtasks(data); } })
       .catch((e) => { if (!cancelled) { setFetching(false); setError(e.message); } });
     return () => { cancelled = true; };
   }, [taskId, userId]);
@@ -68,66 +74,67 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
 
   const handleToggle = useCallback(
     async (subtaskId: string, current: boolean) => {
-      if (!task) return;
       const next = !current;
-
-      // 乐观更新本地状态
-      const updatedSubtasks = task.subtasks.map((s) =>
-        s.id === subtaskId ? { ...s, completed: next } : s
-      );
-      setTask((prev) => (prev ? { ...prev, subtasks: updatedSubtasks } : prev));
-
-      await toggleSubtask(taskId, subtaskId, next).catch(() => {});
-
-      // 全部完成后，将任务状态标记为 done
-      const allDone =
-        next &&
-        updatedSubtasks.length > 0 &&
-        updatedSubtasks.every((s) => s.completed);
-      if (allDone) {
-        await updateTaskStatusApi(taskId, "done").catch(() => {});
-        setTask((prev) => (prev ? { ...prev, status: "done" } : prev));
-      } else if (!next && task.status === "done") {
-        // 取消勾选后回退状态
-        await updateTaskStatusApi(taskId, "active").catch(() => {});
-        setTask((prev) => (prev ? { ...prev, status: "active" } : prev));
-      }
+      // 打卡统一走 features/tasks/mutations：乐观 + 回滚 + 任务状态级联 + stats 增量，
+      // store 广播即刷新本页甘特/清单/详情面板。
+      const outcome = await toggleSubtaskMutation({
+        taskId,
+        subtaskId,
+        current,
+        notify: showToast,
+        messages: {
+          markDoneFailed: t("home.toast.markDoneFailed", "标记完成失败，已恢复原状态"),
+          markUndoneFailed: t("home.toast.markUndoneFailed", "取消完成失败，已恢复原状态"),
+          taskStatusFailed: t("home.toast.taskStatusFailed", "任务状态更新失败，已恢复原状态"),
+        },
+      });
+      if (!outcome.ok) return;
 
       memory
         .reportAction({
-          content: `User ${next ? "completed" : "uncompleted"} subtask in task "${task.title}"`,
+          content: `User ${next ? "completed" : "uncompleted"} subtask in task "${task?.title ?? ""}"`,
           event_type: next ? "complete" : "update",
         })
         .catch(() => {});
     },
-    [task, taskId]
+    [taskId, task?.title, showToast, t]
   );
 
   const handleUpdateTags = useCallback(
     async (newTags: string[]) => {
-      if (!task) return;
-      const oldTags = task.tags;
+      const cur = getTaskRecord(taskId);
+      if (!cur) return;
+      const oldTags = cur.tags;
       // 乐观更新
-      setTask((prev) => (prev ? { ...prev, tags: JSON.stringify(newTags) } : prev));
+      patchTask(taskId, { tags: JSON.stringify(newTags) });
       try {
         await updateTaskTagsApi(taskId, newTags);
       } catch {
         // 失败回滚
-        setTask((prev) => (prev ? { ...prev, tags: oldTags } : prev));
+        patchTask(taskId, { tags: oldTags });
+        showToast("标签保存失败，已恢复原标签");
       }
     },
-    [task, taskId]
+    [taskId, showToast]
   );
 
   const handleMarkStatus = useCallback(
     async (status: "done" | "active") => {
-      await updateTaskStatusApi(taskId, status).catch(() => {});
-      setTask((prev) => (prev ? { ...prev, status } : prev));
+      const cur = getTaskRecord(taskId);
+      if (!cur) return;
+      const prevStatus = cur.status;
+      patchTask(taskId, { status });
+      try {
+        await updateTaskStatusApi(taskId, status);
+      } catch {
+        patchTask(taskId, { status: prevStatus });
+        showToast("任务状态更新失败，请重试");
+      }
     },
-    [taskId]
+    [taskId, showToast]
   );
 
-  if (loading || fetching) {
+  if (fetching) {
     return (
       <BrandPageShell>
         <DetailNotice title={t("taskDetail.loading", "加载中…")} text="正在读取任务与排期" />
@@ -160,17 +167,19 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
   }
 
   return (
-    <TaskDetailScreen
-      task={task}
-      views={views}
-      todayOffset={todayOffset}
-      selectedId={selectedView?.subtask.id ?? null}
-      onSelect={(id) => setSel({ taskId, id, dismissed: false })}
-      onClear={() => setSel({ taskId, id: null, dismissed: true })}
-      onToggle={handleToggle}
-      onMarkDone={() => handleMarkStatus("done")}
-      onReopen={() => handleMarkStatus("active")}
-      onUpdateTags={handleUpdateTags}
-    />
+    <>
+      <TaskDetailScreen
+        task={task}
+        views={views}
+        todayOffset={todayOffset}
+        selectedId={selectedView?.subtask.id ?? null}
+        onSelect={(id) => setSel({ taskId, id, dismissed: false })}
+        onClear={() => setSel({ taskId, id: null, dismissed: true })}
+        onToggle={handleToggle}
+        onMarkDone={() => handleMarkStatus("done")}
+        onReopen={() => handleMarkStatus("active")}
+        onUpdateTags={handleUpdateTags}
+      />
+    </>
   );
 }

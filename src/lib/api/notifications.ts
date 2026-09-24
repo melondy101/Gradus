@@ -1,4 +1,10 @@
-import { request } from "./request";
+"use client";
+
+// 统一 API 契约（Phase 3 #22）：走 apiFetch 返回可判别 ApiResult，
+// 服务端成功信封为 { ok: true, notifications, unreadCount }；
+// 失败按 HTTP 状态建模（401/500 → ApiResult.ok=false），不再吞成空列表。
+
+import { apiFetch, type ApiResult } from "./result";
 import type { Notification } from "@/lib/db/schema";
 
 export interface NotificationsResponse {
@@ -7,25 +13,22 @@ export interface NotificationsResponse {
   unreadCount: number;
 }
 
-export async function fetchNotifications(): Promise<NotificationsResponse> {
-  const res = await request("/api/notifications");
-  if (!res.ok) return { ok: false, notifications: [], unreadCount: 0 };
-  return (await res.json()) as NotificationsResponse;
+export async function fetchNotifications(): Promise<ApiResult<NotificationsResponse>> {
+  return apiFetch<NotificationsResponse>("/api/notifications");
 }
 
-export async function markNotificationRead(id?: string, all?: boolean): Promise<NotificationsResponse> {
-  const res = await request("/api/notifications", {
+export async function markNotificationRead(
+  id?: string,
+  all?: boolean,
+): Promise<ApiResult<NotificationsResponse>> {
+  return apiFetch<NotificationsResponse>("/api/notifications", {
     method: "PATCH",
     body: JSON.stringify({ id, all }),
   });
-  if (!res.ok) return { ok: false, notifications: [], unreadCount: 0 };
-  return (await res.json()) as NotificationsResponse;
 }
 
-export async function clearNotifications(): Promise<NotificationsResponse> {
-  const res = await request("/api/notifications", {
+export async function clearNotifications(): Promise<ApiResult<NotificationsResponse>> {
+  return apiFetch<NotificationsResponse>("/api/notifications", {
     method: "DELETE",
   });
-  if (!res.ok) return { ok: false, notifications: [], unreadCount: 0 };
-  return (await res.json()) as NotificationsResponse;
 }

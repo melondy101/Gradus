@@ -78,7 +78,7 @@ export function CongratulationsModal({
       </div>
 
       <div className="w-full rounded-field bg-cream-light px-4 py-3.5 text-left">
-        <div className="mb-2.5 text-[13px] font-semibold text-success">
+        <div className="mb-2.5 text-body font-semibold text-success">
           {t("congrats.learned")}
         </div>
         <ul className="flex flex-col gap-1.5">
@@ -86,14 +86,14 @@ export function CongratulationsModal({
             <li key={s.id} className="flex items-start gap-2">
               <Check size={13} className="mt-0.5 shrink-0 text-success" />
               <span className="min-w-0 flex-1">
-                <span className="block text-[13px] font-medium text-ink">{s.title}</span>
+                <span className="block text-body font-medium text-ink">{s.title}</span>
                 {s.description && (
-                  <span className="mt-0.5 block text-[11px] leading-snug text-text-2">
+                  <span className="mt-0.5 block text-caption leading-snug text-text-2">
                     {s.description}
                   </span>
                 )}
               </span>
-              <Mono className="shrink-0 text-[10px] text-text-3">
+              <Mono className="shrink-0 text-micro text-text-3">
                 {t("congrats.days", { count: s.durationDays })}
               </Mono>
             </li>
@@ -102,7 +102,7 @@ export function CongratulationsModal({
       </div>
 
       {data.subtasks[0]?.topic && (
-        <span className="rounded-pill border border-accent-deep bg-accent-soft px-3 py-1 text-[11px] font-semibold text-accent-ink">
+        <span className="rounded-pill border border-accent-deep bg-accent-soft px-3 py-1 text-caption font-semibold text-accent-ink">
           {t("congrats.topic", { topic: data.subtasks[0].topic })}
         </span>
       )}

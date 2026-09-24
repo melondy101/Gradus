@@ -1,48 +1,27 @@
 "use client";
 
-// ─── /api/user/stats 单一读取口（§3 屏一统计卡行的唯一数据源）───────────────
-// 旧版本里 AchievementPanel 与 LevelBadge 各自 fetch 一次；现在共用本 hook，
-// 由 home-page 调一次后把 stats 分发给统计卡行、等级徽章与周报分享卡。
+// ─── user stats 单一订阅口（§3 屏一统计卡行 / 等级徽章的唯一数据源）──────────
+// Phase 3 起本 hook 不再自行 fetch：全站共享 @/features/stats/store 的模块级
+// 快照，多组件同时挂载只发一次请求；打卡走 store.applyStatsDelta 本地增量。
+// 类型与 fetch 仍在 @/lib/api/user-stats（typed client，审计 §4.4）。
 
-import { useEffect, useState } from "react";
-import { request } from "@/lib/api/request";
+import { useEffect, useSyncExternalStore } from "react";
+import { useEazo } from "@/lib/eazo-shim";
+import { getStatsSnapshot, subscribeStats, syncStats } from "@/features/stats/store";
+import type { UserStats } from "@/lib/api/user-stats";
 
-export interface UserStats {
-  streak: number;
-  todayCount: number;
-  weekCount: number;
-  totalCompleted: number;
-  activeTaskCount: number;
-  learnDays: number;
-  totalGoals: number;
-}
+export type { UserStats };
+export { weekGoalOf } from "@/lib/api/user-stats";
 
-/** 本周目标数：沿用旧口径（每个进行中计划 3 项，下限 5 项） */
-export function weekGoalOf(stats: UserStats): number {
-  return Math.max(stats.activeTaskCount * 3, 5);
-}
-
-export function useUserStats(refreshTick = 0): UserStats | null {
-  const [stats, setStats] = useState<UserStats | null>(null);
+export function useUserStats(): UserStats | null {
+  const user = useEazo((s) => s.auth.user);
+  const userId = user?.id ?? null;
 
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const res = await request("/api/user/stats");
-        if (active && res.ok) {
-          const data = (await res.json()) as UserStats;
-          if (active) setStats(data);
-        }
-      } catch {
-        /* 静默：统计卡退化为骨架，不打断主流程 */
-      }
-    };
-    load();
-    return () => {
-      active = false;
-    };
-  }, [refreshTick]);
+    void syncStats(userId);
+  }, [userId]);
 
-  return stats;
+  const snapshot = useSyncExternalStore(subscribeStats, getStatsSnapshot, getStatsSnapshot);
+  // 快照属于他人（账号刚切换）视为未加载，避免旧账号数据闪现
+  return snapshot.userId === userId ? snapshot.stats : null;
 }

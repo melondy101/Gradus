@@ -25,7 +25,7 @@ export function CheckBox({
       }
       style={{ width: size, height: size }}
       className={cn(
-        "grid shrink-0 place-items-center rounded-[6px] hairline bg-white",
+        "grid shrink-0 place-items-center rounded-tag hairline bg-white",
         "transition-[background-color,border-color,transform] duration-[.16s] ease-out active:scale-90",
         state === "todo" && "border-bd-check hover:border-ink",
         state === "live" &&
@@ -36,7 +36,7 @@ export function CheckBox({
       {...props}
     >
       {state === "done" ? (
-        <span className="text-[11px] leading-none font-black text-cream">✓</span>
+        <span className="text-caption leading-none font-black text-cream">✓</span>
       ) : state === "live" ? (
         <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
       ) : null}
@@ -57,7 +57,7 @@ export function CheckMark({
   return (
     <span
       className={cn(
-        "grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black",
+        "grid h-5 w-5 shrink-0 place-items-center rounded-full text-caption font-black",
         state === "done" && "bg-ink text-cream",
         state === "live" && "border-2 border-accent bg-white text-ink",
         state === "todo" && "hairline border-bd-check bg-white text-text-3",

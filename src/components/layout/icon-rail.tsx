@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { GradusLogo } from "@/components/ui/gradus-logo";
-import { cn } from "@/utils/utils";
 import { MobileTabBar } from "./mobile-tab-bar";
 import type { NavView } from "./nav-items";
 import { SideFooter } from "./side-footer";
@@ -24,12 +23,13 @@ export type { NavView };
 /** 《品牌与产品设计说明》§3：232px 侧边栏，跨屏整体复制，仅切换导航激活态 */
 const SIDE_WIDTH = 232;
 
-/** 折叠后的图标栏宽度：容得下 15px 图标按钮 + 品牌标识 */
-const RAIL_WIDTH = 72;
-
 interface IconRailProps {
   currentView: NavView;
   onSelectView: (view: NavView) => void;
+  /**
+   * 侧栏「部件收展」信号（隐藏本周进度与标签列表）。
+   * 新设计为固定 232px，不再有折叠窄栏，宽度不随之变化。
+   */
   collapsed: boolean;
   onToggleCollapsed: () => void;
   todayPendingCount: number;
@@ -86,33 +86,19 @@ export function IconRail({
       {/* ── Desktop / Tablet 侧边栏（§3 共用外壳：232px 白底 + 1px 右描边） ── */}
       <div className="hidden h-full shrink-0 sm:flex" style={{ zIndex: 30 }}>
         <aside
-          style={{
-            width: collapsed ? RAIL_WIDTH : SIDE_WIDTH,
-            flex: `0 0 ${collapsed ? RAIL_WIDTH : SIDE_WIDTH}px`,
-          }}
-          className="flex h-full select-none flex-col overflow-hidden border-r border-bd-card bg-card transition-[width] duration-[250ms] ease-[cubic-bezier(.4,0,.2,1)]"
+          style={{ width: SIDE_WIDTH, flex: `0 0 ${SIDE_WIDTH}px` }}
+          className="flex h-full select-none flex-col overflow-hidden border-r border-bd-card bg-card"
         >
-          <div
-            className={cn(
-              "min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-4 pt-[18px] [scrollbar-width:thin]",
-              collapsed ? "px-2" : "px-3.5"
-            )}
-          >
-            {/* 品牌行：三级台阶标识 + 拾级 / GRADUS + 部件收展。
-                折叠态改为纵向堆叠的居中图标栏，宽度随动画收窄。 */}
-            <div
-              className={cn(
-                "pb-[18px]",
-                collapsed ? "flex flex-col items-center gap-2" : "flex items-center gap-[9px] px-1.5"
-              )}
-            >
-              <GradusLogo size={12} showText={!collapsed} />
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3.5 pb-4 pt-[18px] [scrollbar-width:thin]">
+            {/* 品牌行：三级台阶标识 + 拾级 / GRADUS + 部件收展 */}
+            <div className="flex items-center gap-[9px] px-1.5 pb-[18px]">
+              <GradusLogo size={12} showText />
               <IconButton
                 id="nav-btn-toggle-widgets"
                 onClick={onToggleCollapsed}
                 title={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
                 aria-label={collapsed ? "展开侧栏部件" : "收起侧栏部件"}
-                className={cn("size-7 rounded-[8px] bg-card", collapsed ? "" : "ml-auto")}
+                className="ml-auto size-7 rounded-[8px] bg-card"
               >
                 {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
               </IconButton>
@@ -124,14 +110,10 @@ export function IconRail({
               variant="app"
               onClick={onNewPlan}
               title="新建学习任务 (N)"
-              aria-label="新建学习任务 (N)"
-              className={cn(
-                "mb-4 h-[38px] text-[13.5px] font-bold",
-                collapsed ? "w-full justify-center px-0" : "w-full gap-2 px-3"
-              )}
+              className="mb-4 h-[38px] w-full gap-2 px-3 text-[13.5px] font-bold"
             >
-              <Plus size={16} strokeWidth={2.2} className={collapsed ? "" : "shrink-0"} />
-              {collapsed ? null : <span>新建计划</span>}
+              <Plus size={16} strokeWidth={2.2} />
+              <span>新建计划</span>
             </Button>
 
             {/* MENU 导航组（#nav-rail-group / #nav-item-<view> 为新手引导锚点） */}
@@ -140,32 +122,25 @@ export function IconRail({
               onSelectView={onSelectView}
               todayPendingCount={todayPendingCount}
               totalPlansCount={totalPlansCount}
-              compact={collapsed}
             />
 
-            {/* 本周进度（折叠为图标栏时整个部件隐藏） */}
+            {/* 本周进度 */}
             {collapsed ? null : <WeekProgressWidget model={progressModel} />}
 
-            {/* 标签筛选：窄栏下没有余量，折叠时整块隐藏 */}
-            {collapsed ? null : (
-              <SideTagFilter
-                availableTags={availableTags}
-                selectedTag={selectedTag}
-                onSelectTag={onSelectTag}
-                totalPlansCount={totalPlansCount}
-              />
-            )}
+            {/* 标签筛选（收起部件时只保留标题行与已选标签摘要） */}
+            <SideTagFilter
+              availableTags={availableTags}
+              selectedTag={selectedTag}
+              onSelectTag={onSelectTag}
+              totalPlansCount={totalPlansCount}
+              compact={collapsed}
+            />
           </div>
 
           {/* 固定底部功能簇：滚动内容不会挤走通知、会员、搜索与认证入口。 */}
-          <div
-            className={cn(
-              "flex flex-none flex-col gap-2 border-t border-bd-card bg-card pb-4 pt-3",
-              collapsed ? "px-2" : "px-3.5"
-            )}
-          >
-            <SideFooter onOpenCommandPalette={onOpenCommandPalette} compact={collapsed} />
-            <SideUserCard compact={collapsed} />
+          <div className="flex flex-none flex-col gap-2 border-t border-bd-card bg-card px-3.5 pb-4 pt-3">
+            <SideFooter onOpenCommandPalette={onOpenCommandPalette} />
+            <SideUserCard />
           </div>
         </aside>
       </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { GradusLogo } from "@/components/ui/gradus-logo";
@@ -10,7 +12,6 @@ import { RitualDoneState } from "./ritual-done-state";
 import { RitualPipeline } from "./ritual-pipeline";
 import { RitualStageCard } from "./ritual-stage-card";
 import { RitualStageList } from "./ritual-stage-list";
-import { RitualToast } from "./ritual-toast";
 
 interface AiGenerationRitualModalProps {
   isOpen?: boolean;
@@ -54,10 +55,18 @@ export function AiGenerationRitualModal({
     return () => clearInterval(timer);
   }, [isOpen]);
 
+  const done = phase === "done";
+
+  // 完成瞬间走全站唯一 toast 出口（原 RitualToast 副本已删）
+  useEffect(() => {
+    if (done) {
+      toast.success("规划流水线已完成 · 回到今日面板查看排期");
+    }
+  }, [done]);
+
   if (!isOpen) return null;
 
   const dismiss = onMinimize ?? onClose;
-  const done = phase === "done";
 
   return (
     <>
@@ -105,12 +114,10 @@ export function AiGenerationRitualModal({
             <Eyebrow kind="label" className="mt-3.5">
               认知科学视角
             </Eyebrow>
-            <p className="text-[13px] leading-[20px] text-text-2">{RITUAL_TIPS[tipIndex]}</p>
+            <p className="text-body leading-[20px] text-text-2">{RITUAL_TIPS[tipIndex]}</p>
           </>
         )}
       </Modal>
-
-      {done && <RitualToast text="规划流水线已完成 · 回到今日面板查看排期" />}
     </>
   );
 }

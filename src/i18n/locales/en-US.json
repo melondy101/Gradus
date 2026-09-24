@@ -157,6 +157,7 @@
     "toast": {
       "markDoneFailed": "Failed to mark complete, reverted. Please retry",
       "markUndoneFailed": "Failed to unmark, reverted. Please retry",
+      "taskStatusFailed": "Failed to update task status, please retry",
       "postponeFailed": "Failed to postpone, please retry",
       "postponed": "Postponed to tomorrow, “{{title}}” moved to the next day",
       "undoFailed": "Failed to undo, please retry",
@@ -451,7 +452,6 @@
     "needAuth": "Sign in required",
     "signIn": "Sign in",
     "notFound": "Task not found",
-    "historyTasks": "← History",
     "loading": "Loading…",
     "planSummary": "{{days}}-day plan · {{date}} · {{done}}/{{total}} done"
   },
@@ -504,16 +504,5 @@
     "running": "Analyzing…",
     "start": "Start analysis",
     "signInToSave": "Sign in to save history"
-  },
-  "history": {
-    "signInPrompt": "Sign in to view your task history",
-    "signIn": "Sign in",
-    "empty": "No tasks yet — go to home and create your first one →",
-    "recentTasks": "Recent tasks",
-    "completed": "{{done}}/{{total}} done",
-    "days": "{{count}}d",
-    "delete": "Delete",
-    "brand": "← Gradus",
-    "loading": "Loading…"
   }
 }

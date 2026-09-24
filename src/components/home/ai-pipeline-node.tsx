@@ -43,7 +43,7 @@ export function AiPipelineNode({ state, tone, size, label, hint, mark, hasLine =
       <div className={cn("flex flex-none flex-col items-center gap-1.5 text-center", NODE_WIDTH[size])}>
         <i
           className={cn(
-            "grid size-9 place-items-center rounded-full hairline font-mono text-[13px] font-bold",
+            "grid size-9 place-items-center rounded-full hairline font-mono text-body font-bold",
             "transition-[background-color,border-color,color,box-shadow] duration-300",
             state === "done" && "border-ink bg-ink text-cream",
             state === "live" && "border-accent bg-accent text-ink ring-[5px] ring-[rgba(245,197,24,.2)]",
@@ -57,8 +57,8 @@ export function AiPipelineNode({ state, tone, size, label, hint, mark, hasLine =
         </i>
         <b
           className={cn(
-            "text-[12.5px] font-bold transition-colors duration-300",
-            size !== "lg" && "text-[11.5px]",
+            "text-body-sm font-bold transition-colors duration-300",
+            size !== "lg" && "text-caption",
             state === "idle" ? (dark ? "text-on-dark-3" : "text-text-3") : "text-ink"
           )}
         >

@@ -40,16 +40,16 @@ export function AiPlanSubtaskRow({
       <div className="min-w-0">
         <b
           className={cn(
-            "block overflow-hidden text-ellipsis text-[14.5px] leading-[1.4] font-bold whitespace-nowrap",
+            "block overflow-hidden text-ellipsis text-body-lg leading-[1.4] font-bold whitespace-nowrap",
             completed ? "text-on-dark-3 line-through" : "text-on-dark"
           )}
         >
           {title}
         </b>
-        {description && <p className="mt-0.5 text-[12px] text-on-dark-2">{description}</p>}
+        {description && <p className="mt-0.5 text-body-sm text-on-dark-2">{description}</p>}
       </div>
 
-      <Mono className="text-[10px] whitespace-nowrap text-right text-on-dark-3">
+      <Mono className="text-micro whitespace-nowrap text-right text-on-dark-3">
         <button
           type="button"
           onClick={onJump}

@@ -30,7 +30,7 @@ export function LandingFinalCta() {
         今天想学点什么
       </Heading>
       <p className="mx-auto mt-[22px] max-w-[560px] text-[16px] leading-[27px] text-text-2">
-        把你的目标丢给拾级，三十秒后你会拿到一张带资源、带排期、带复习节点的甘特图。
+        把你的目标丢给拾级，三十秒后你会拿到一张带资源、带排期的甘特图。
       </p>
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
@@ -50,8 +50,12 @@ export function LandingFinalCta() {
         </a>
       </div>
 
-      <p className="mt-7 font-mono text-[11px] tracking-[.03em] text-text-3">
-        部署需要一个 Postgres 库、一个 OpenAI 兼容模型端点，以及 Tavily 检索密钥。
+      <p className="mt-7 font-mono text-caption tracking-[.03em] text-text-3">
+        部署只需{" "}
+        <code className="rounded-[5px] border border-bd-card bg-white px-[6px] py-0.5">
+          DATABASE_URL
+        </code>{" "}
+        与一个模型密钥。
       </p>
     </section>
   );

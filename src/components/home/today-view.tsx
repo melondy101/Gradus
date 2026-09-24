@@ -27,7 +27,6 @@ import type { TodayMetrics } from "./today-metrics";
 import type { UserStats } from "./use-user-stats";
 
 interface Props {
-  authLoading: boolean;
   fetching: boolean;
   loadError: boolean;
   onRetry: () => void;
@@ -59,7 +58,7 @@ interface Props {
 export function TodayView(props: Props) {
   const { t } = useTranslation();
   const {
-    authLoading, fetching, loadError, onRetry, stats, metrics, narrow,
+    fetching, loadError, onRetry, stats, metrics, narrow,
     todaySection, laterSections, totalRowCount, showOnlyPending, selectedTag,
     onToggleFilterPending, onClearTag, onOpen, onSelect, onToggle, onSkip, onPostpone,
     activeSubtaskId, focusedTaskId, highlightedSubtaskId,
@@ -68,7 +67,7 @@ export function TodayView(props: Props) {
 
   const rowHandlers = { onOpen, onSelect, onToggle, onSkip, onPostpone };
   const selection = { activeSubtaskId, focusedTaskId, highlightedSubtaskId };
-  const loading = authLoading || fetching;
+  const loading = fetching;
 
   return (
     <div id="today-task-area" className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -98,7 +97,7 @@ export function TodayView(props: Props) {
                 <Card className="gap-0 px-[18px] py-4">
                   <CardHeader className="mb-1">
                     <CardTitle>{todaySection.label}</CardTitle>
-                    <Mono className="text-[10px] text-text-3">{t("home.loading", "加载中…")}</Mono>
+                    <Mono className="text-micro text-text-3">{t("home.loading", "加载中…")}</Mono>
                   </CardHeader>
                   <ListSkeleton />
                 </Card>

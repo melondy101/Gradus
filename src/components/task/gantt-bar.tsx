@@ -44,7 +44,7 @@ export function GanttBar({
         } as CSSProperties
       }
       className={cn(
-        "block h-[21px] rounded-[6px] [grid-column:var(--s)/span_var(--c)]",
+        "block h-[21px] rounded-tag [grid-column:var(--s)/span_var(--c)]",
         "transition-[transform,filter] duration-[.16s] ease-out",
         "hover:scale-y-[1.12] hover:brightness-[1.04]",
         state === "done" && "bg-gantt-done",

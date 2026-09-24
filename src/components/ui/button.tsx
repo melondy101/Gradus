@@ -19,15 +19,15 @@ const buttonVariants = cva(
        */
       size: {
         default:
-          "h-11 gap-2 rounded-pill px-[26px] text-[15px] font-bold has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
+          "h-11 gap-2 rounded-pill px-[26px] text-body-lg font-bold has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
         xs: "h-[30px] gap-1 rounded-pill px-[15px] text-xs font-bold has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-[38px] gap-1.5 rounded-pill px-5 text-sm font-bold has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-14 gap-2.5 rounded-field px-[30px] text-base font-bold",
         icon: "size-10 rounded-field",
-        "icon-xs": "size-6 rounded-[8px] [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8 rounded-[10px] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-xs": "size-6 rounded-tile [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded-icon [&_svg:not([class*='size-'])]:size-3.5",
         "icon-lg": "size-11 rounded-field",
-        full: "w-full h-11 gap-2 rounded-pill px-[26px] text-[15px] font-bold",
+        full: "w-full h-11 gap-2 rounded-pill px-[26px] text-body-lg font-bold",
       },
       variant: {
         /** 墨色药丸 —— 全站主操作 */
@@ -45,7 +45,7 @@ const buttonVariants = cva(
           "border-error/20 bg-error/10 text-error hover:bg-error/20 focus-visible:outline-error",
         link: "border-transparent text-ink underline-offset-4 hover:underline",
         /** 点缀黄 —— 一个界面里最多出现一次 */
-        accent: "bg-accent text-ink border-accent-deep hover:bg-[#ffd740]",
+        accent: "bg-accent text-ink border-accent-deep hover:bg-accent-bright",
         /** App 内主按钮：radius 12、与 56 高输入框同高（靠 size 先声明才盖得住药丸角） */
         app: "border-ink bg-ink text-cream rounded-field hover:bg-black",
         /** 深底上的奶油按钮 */

@@ -63,7 +63,7 @@ export function DeletePlanModal({
         </>
       }
     >
-      <p className="text-[13.5px] leading-[1.7] text-text-2">
+      <p className="text-body leading-[1.7] text-text-2">
         您即将删除计划{" "}
         <strong className="text-ink [word-break:break-all]">「{taskTitle || "未命名计划"}」</strong>
         。
@@ -72,7 +72,7 @@ export function DeletePlanModal({
           : "该计划的所有分析数据与进度将被永久移除。"}
       </p>
 
-      <div className="flex items-center gap-2 rounded-field border border-warning/20 bg-warning-soft px-3 py-2 text-[12px] text-warning">
+      <div className="flex items-center gap-2 rounded-field border border-warning/20 bg-warning-soft px-3 py-2 text-body-sm text-warning">
         <AlertTriangle size={15} className="flex-none" />
         <span>此操作不可逆，删除后无法恢复已有的学习进度。</span>
       </div>

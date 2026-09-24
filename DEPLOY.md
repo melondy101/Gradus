@@ -4,9 +4,11 @@
 
 ---
 
-## 0. 本地自检
+## 0. 先确认改造已生效
 
-本仓库已从原平台解耦，可独立部署。动手前先跑一遍下面三条（应全部通过）：
+本仓库已从 Eazo 平台解耦，可独立部署。改动摘要见文末「改造说明」。
+
+本地自检（应全部通过）：
 
 ```bash
 bun install
@@ -49,7 +51,7 @@ DATABASE_URL=postgresql://...-pooler.../neondb?sslmode=require
 bun run db:migrate
 ```
 
-成功后表结构就建在 Neon 上了，共 **8 张表**：`users` / `tasks` / `subtasks` / `auth_attempts`（限流）/ `email_verifications`（邮箱验证码）/ `redemption_codes` + `redemption_records`（会员兑换）/ `notifications`（站内通知）。这一步只需做一次。
+成功后表结构（users / tasks / subtasks / auth_attempts）就建在 Neon 上了。这一步只需做一次。
 
 ---
 
@@ -82,30 +84,11 @@ bun run db:migrate
 ```bash
 git add -A
 git commit -m "chore: 适配 Vercel 独立部署"
-git remote add origin git@github.com:<你的账号>/Gradus.git
+git remote add origin git@github.com:<你的账号>/talk-task.git
 git push -u origin main
 ```
 
 `.env` 已在 `.gitignore` 中，不会泄露 key。
-
----
-
-## 部署前必做
-
-两条环境变量漏了不会让 `next build` 失败，但线上一定坏，粘贴时务必确认已填：
-
-| 变量 | 漏了的后果 |
-|---|---|
-| `AUTH_SECRET` | 惰性校验，构建期不报错；运行时首个要签发/校验 JWT 的请求直接 503。用 `openssl rand -hex 32` 生成，**≥ 32 字符** |
-| `EAZO_AI_PROVIDER_MODE` | 漏了会走已废弃的平台代理，分析时报 "BYOK AI provider is not configured" |
-
-**演示数据不用手动灌。** 每个新访客在建临时账号时就自动播种了一份「已学习多日」的任务，
-打开 `/app` 直接能看到进度、连续学习天数与今日待办。只有给**脚本运行前就已存在**的老账号
-补种时才需要跑一次：
-
-```bash
-bun run db:seed-demo
-```
 
 ---
 
@@ -124,19 +107,12 @@ AI_PROVIDER_BASE_URL      https://api.deepseek.com/v1
 AI_PROVIDER_API_KEY       sk-xxxx
 AI_PROVIDER_MODEL         deepseek-chat
 CRON_SECRET               <openssl rand -hex 32 生成的随机串>
-NEXT_PUBLIC_APP_TITLE     拾级 · Gradus
+NEXT_PUBLIC_APP_TITLE     拾级 · 学习规划智能体
 ```
 
-可选项（不配也能跑，配上功能更全）：
-
-```
-TAVILY_API_KEY            实时资源检索密钥；留空则资源降级为搜索引擎跳转
-QQ_EMAIL_USER / PASS      邮箱验证码（SMTP 授权码），不配则注册走无验证码模式
-WATCHA_CLIENT_ID / SECRET Watcha OAuth 登录
-```
-
-> 其中 `AUTH_SECRET` 与 `EAZO_AI_PROVIDER_MODE` 两条漏了不会让构建失败、但线上一定坏，
-> 原因见下一节。
+> `AUTH_SECRET` 与 `EAZO_AI_PROVIDER_MODE=byok` 两条**必填**。
+> `AUTH_SECRET` 是**惰性校验**：`next build` 即使没有它也能通过，但运行时缺失/过短会让签名相关请求 503；所以必须配。`EAZO_AI_PROVIDER_MODE` 漏了会走已废弃的平台代理并报
+> "BYOK AI provider is not configured"。
 
 5. Deploy → 等 2-3 分钟
 
@@ -176,20 +152,23 @@ WATCHA_CLIENT_ID / SECRET Watcha OAuth 登录
 
 ---
 
-## 演示版的边界
+## 改造说明（相对原平台版的差异）
 
-当前实现**没有**密码找回、JWT 撤销、验证码防护：
+| 项 | 原来 | 现在 |
+|---|---|---|
+| 登录 | Eazo 平台 OAuth | 每个访客自动获得临时账号；可选注册/登录正式账号（`src/lib/auth/*` + `src/proxy.ts`） |
+| 服务端鉴权 | `requireAuth` 验平台 token | JWT cookie（`__Host-session`，HS256）+ 临时账号兜底（`src/lib/auth/index.ts`） |
+| AI 分析 | SSE 逐字流式 | 缓冲式 JSON + 客户端阶段动画（规避代理层缓冲问题） |
+| AI 计费 | 走平台代理扣创作者额度 | BYOK 直连你自己的 OpenAI 兼容端点 |
+| 推送通知 | 平台 push 服务 | 端点保留但为空操作（平台能力不可用） |
+| 数据库 | 平台托管 PG | 外接 Neon，连接池按 Serverless 调优 |
+| 定时任务 | 平台调度 | `vercel.json#crons`，每天 17:00 UTC |
 
-- **登出只是清 cookie**，不维护撤销表。复制一份 cookie 在 30 天有效期内仍然可用。
-- **邮箱验证码取决于 SMTP 配置**：配了 `QQ_EMAIL_USER` / `QQ_EMAIL_PASS`，注册要走验证码；
-  没配则降级为无验证码直接注册。
-- 注册 / 登录接口只有限流，没有 CAPTCHA。
+认证详细模型见 [AGENTS.md §11](./AGENTS.md#11-认证模型自托管) 与 [AGENTS.md §15.1](./AGENTS.md#151-认证--账号系统-todo不在-v1-范围)；
+设计文档在 [docs/plans/2026-08-14-multi-user-isolation.md](./docs/plans/2026-08-14-multi-user-isolation.md)。
 
-另外，middleware 会给每个无 cookie 的访客自动建临时账号，所以公开部署的库里会持续累积
-匿名账号及其演示任务。`/api/cron/cleanup` 本来该收掉它们，但两条都拦着：
-**一是**它的删除条件是「名下零任务」，而建号即播种的演示任务让这个条件永远不成立；
-**二是**`vercel.json` 的 `crons` 只排了 `daily-digest`，从没排过 `cleanup`。
-所以临时账号目前**只增不减**，需要时手动请求一次（带 `Bearer ${CRON_SECRET}`）或直接删库。
+**部署前必做**：在 Vercel Environment Variables 里加 `AUTH_SECRET`（`openssl rand -hex 32` 生成）。校验是惰性的，构建期不报错，但运行时缺它会导致鉴权请求 503——务必配置。
+**Vercel 首次部署后**：跑一次 `bun run db:migrate-demo`，把遗留的 demo 用户数据迁到保留账号（演示版可能有过 `demo@autotask.app` 的旧任务）。
 
-结论：够单人自托管和演示用，**别当多租户生产产品**部署——尤其别把 `DATABASE_URL`
-指向存放真实用户数据的库。
+**注意**：演示版不做邮箱验证、密码找回、JWT 撤销、Turnstile —— 黑客松演示够用，
+但**别当多租户生产产品**用（见 AGENTS.md §15.1 TODO）。

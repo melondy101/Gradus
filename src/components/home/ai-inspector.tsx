@@ -76,7 +76,7 @@ export function AiInspector({
         </Mono>
       </CardHeader>
 
-      <h3 className="mb-1 text-[17px] leading-snug font-bold text-on-dark">
+      <h3 className="mb-1 text-title-sm leading-snug font-bold text-on-dark">
         {headline(focused, hints.length)}
       </h3>
 
@@ -96,7 +96,7 @@ export function AiInspector({
       {focused && <AiPipelineSteps stream={focused.stream} tone="dark" size={nodeSize} />}
 
       {focused?.stream.errorMsg && (
-        <p className="font-mono text-[13px] leading-[20px] text-error">
+        <p className="font-mono text-body leading-[20px] text-error">
           {focused.stream.errorMsg}
         </p>
       )}

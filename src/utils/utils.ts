@@ -9,11 +9,16 @@ import { extendTailwindMerge } from "tailwind-merge"
  *
  * 组名必须是 'rounded'（内置标度所在的那一组）；写成 'border-radius' 会另起一组，
  * 自定义角与 md/lg 之间仍然互相看不见。以后往 @theme 里加 --radius-* 也要同步这里。
+ *
+ * 'font-size' 组同理：@theme 的 --text-* 档位（text-body 等）默认会被贪婪的
+ * text-color 组吃掉——实测 twMerge('text-body text-text-2') 在扩展前会把
+ * text-body 裁掉，整元素回落 16px。以后加 --text-* 档位也要同步这里。
  */
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
-      rounded: [{ rounded: ["card", "field", "pill"] }],
+      rounded: [{ rounded: ["card", "field", "pill", "chip-sm", "tag", "tile", "icon", "popover"] }],
+      "font-size": [{ text: ["2xs", "micro", "caption", "body-sm", "body", "body-lg", "title-sm", "title"] }],
     },
   },
 })

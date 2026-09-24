@@ -163,7 +163,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
           {keywords.slice(0, 3).map((k, i) => <AttrPill key={i} icon="词" label={k} color="var(--text-2)" />)}
           <MetaTag label={t("subtaskDetail.durationLabel")} value={t("subtaskDetail.durationValue", { count: row.durationDays })} />
           {dateRange && <MetaTag label={t("subtaskDetail.dateLabel")} value={dateRange} />}
-          <MetaTag label={t("subtaskDetail.statusLabel")} value={row.completed ? t("subtaskDetail.statusDone") : t("subtaskDetail.statusDoing")} color={row.completed ? T.green : T.accent} />
+          <MetaTag label={t("subtaskDetail.statusLabel")} value={row.completed ? t("subtaskDetail.statusDone") : t("subtaskDetail.statusDoing")} color={row.completed ? T.success : T.accent} />
         </div>
 
         {/* Description */}
@@ -203,7 +203,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
             <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
               <span style={{ color: T.muted, fontSize: 11, fontWeight: 600, letterSpacing: "0.03em" }}>{t("subtaskDetail.recommendedRes")}</span>
               {hasVerified && (
-                <span style={{ fontSize: 9, fontWeight: 600, color: T.green, background: "var(--success-soft)", border: "1px solid var(--success-soft)", borderRadius: 4, padding: "1px 6px" }}>
+                <span style={{ fontSize: 9, fontWeight: 600, color: T.success, background: "var(--success-soft)", border: "1px solid var(--success-soft)", borderRadius: 4, padding: "1px 6px" }}>
                   {t("subtaskDetail.verifiedCount", { count: verifiedCount })}
                 </span>
               )}
@@ -337,11 +337,11 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
             {/* 可信度图例 */}
             <div style={{ display: "flex", gap: 8, paddingTop: 2, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.green, flexShrink: 0 }} />
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.success, flexShrink: 0 }} />
                 <span style={{ color: T.muted, fontSize: 10 }}>{t("subtaskDetail.legendAccessible")}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.orange, flexShrink: 0 }} />
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.accentDeep, flexShrink: 0 }} />
                 <span style={{ color: T.muted, fontSize: 10 }}>{t("subtaskDetail.legendSearch")}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>

@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     "任务拆解",
     "甘特图",
     "Bloom 认知层级",
-    "间隔复习",
     "自托管",
     "开源",
   ],

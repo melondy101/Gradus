@@ -47,8 +47,8 @@ export function GradusLogo({
       </svg>
       {showText ? (
         <span className={cn("flex items-baseline gap-[10px]", textClassName)}>
-          <b className="text-[17px] font-black tracking-[.02em]">拾级</b>
-          <span className="font-mono text-[10px] font-medium tracking-[.24em] opacity-60">
+          <b className="text-title-sm font-black tracking-[.02em]">拾级</b>
+          <span className="font-mono text-micro font-medium tracking-[.24em] opacity-60">
             GRADUS
           </span>
         </span>

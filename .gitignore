@@ -209,3 +209,8 @@ keys-dump.txt
 watcha_oauth2接入文档.md
 .tmp-*
 .style-bridge-backup/
+
+# 浏览器实测会话产物（playwright CLI/MCP 调试日志与快照）
+.playwright-cli/
+.playwright-mcp/
+output/playwright/

@@ -63,10 +63,10 @@ export function ViewPageHead({ title, eyebrow, onOpenPalette, onOpenReport }: Pr
           className="hidden h-10 items-center gap-2 rounded-field border border-bd-card bg-white px-[13px] text-left transition-[border-color,box-shadow] duration-[.16s] hover:border-ink focus-visible:border-ink focus-visible:shadow-[0_0_0_3px_rgba(245,197,24,.24)] focus-visible:outline-none md:flex md:w-[250px]"
         >
           <Search size={15} className="shrink-0 text-text-3" />
-          <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-3">
+          <span className="min-w-0 flex-1 truncate text-body text-text-3">
             搜索任务、子任务、资源
           </span>
-          <Tag className="px-[5px] py-px text-[10px]">⌘K</Tag>
+          <Tag className="px-[5px] py-px text-micro">⌘K</Tag>
         </button>
 
         <NotificationCenter />

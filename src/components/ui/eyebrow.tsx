@@ -11,11 +11,11 @@ const eyebrowVariants = cva(
     variants: {
       kind: {
         /** 章节眉题：11px / 700 / .16em */
-        eyebrow: "text-[11px] font-bold tracking-[.16em]",
+        eyebrow: "text-caption font-bold tracking-[.16em]",
         /** 卡片内标签：10px / 700 / .16em，自带下间距 */
-        label: "block text-[10px] font-bold tracking-[.16em] mb-[10px]",
+        label: "block text-micro font-bold tracking-[.16em] mb-[10px]",
         /** 行内元信息：11px / 500 / .05em，不强制大写 */
-        meta: "text-[11px] font-medium tracking-[.05em] normal-case",
+        meta: "text-caption font-medium tracking-[.05em] normal-case",
       },
       tone: {
         base: "",
@@ -46,7 +46,7 @@ export function Mono({
   return (
     <span
       className={cn(
-        "font-mono text-[11px] font-medium tracking-[.05em]",
+        "font-mono text-caption font-medium tracking-[.05em]",
         className
       )}
       {...props}

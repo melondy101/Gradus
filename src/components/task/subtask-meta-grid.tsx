@@ -27,7 +27,7 @@ export function SubtaskMetaGrid({ view }: SubtaskMetaGridProps) {
           <Eyebrow kind="label" className="mb-1.5">
             {c.label}
           </Eyebrow>
-          <b className="text-[13.5px] font-bold">{c.value}</b>
+          <b className="text-body font-bold">{c.value}</b>
         </div>
       ))}
     </div>

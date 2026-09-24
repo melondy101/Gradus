@@ -54,9 +54,9 @@ export function AiEntryDetail({
           <Eyebrow kind="label" className="mb-0 text-on-dark-3">Progress</Eyebrow>
           <Mono className="text-on-dark-2">{completed} / {subs.length} · {Math.round(pct * 100)}%</Mono>
         </div>
-        <div className="h-2 overflow-hidden rounded-[4px] border border-bd-dark bg-on-dark/[.08]">
+        <div className="h-2 overflow-hidden rounded-chip-sm border border-bd-dark bg-on-dark/[.08]">
           <div
-            className="h-full rounded-[4px] bg-accent transition-[width] duration-500 ease-[cubic-bezier(.4,0,.2,1)]"
+            className="h-full rounded-chip-sm bg-accent transition-[width] duration-500 ease-[cubic-bezier(.4,0,.2,1)]"
             style={{ width: `${Math.round(pct * 100)}%` }}
           />
         </div>
@@ -102,7 +102,7 @@ export function AiEntryDetail({
           onChange={(e) => onAdjustmentChange(e.target.value)}
           rows={2}
           placeholder="例：难度太高 / 专注某模块 / 增加实践内容"
-          className="resize-y border-bd-dark bg-on-dark/[.05] px-3 py-[9px] text-[13px] leading-[1.5] text-on-dark placeholder:text-on-dark-3 focus:border-on-dark-3"
+          className="resize-y border-bd-dark bg-on-dark/[.05] px-3 py-[9px] text-body leading-[1.5] text-on-dark placeholder:text-on-dark-3 focus:border-on-dark-3"
         />
         <div className="flex gap-2">
           <Button
@@ -119,7 +119,7 @@ export function AiEntryDetail({
         </div>
       </div>
 
-      <p className="mt-1 border-t border-bd-dark pt-2.5 font-mono text-[9.5px] tracking-[.04em] text-on-dark-3">
+      <p className="mt-1 border-t border-bd-dark pt-2.5 font-mono text-2xs tracking-[.04em] text-on-dark-3">
         子任务 {sum.subtaskCount} · 资源 {sum.resourceCount}（已校验 {sum.verifiedCount}）· 排期 {sum.totalDays} 天 · 深度工时 {sum.deepHours}H
       </p>
     </div>

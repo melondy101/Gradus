@@ -21,7 +21,7 @@ export function AiReviewHintRow({ hint, onJumpToSubtask, onFill, onDismiss }: Pr
   return (
     <li className="border-t border-bd-dark py-2.5 first:border-t-0 first:pt-0">
       <p className="text-[14px] font-bold text-on-dark">{hint.title}</p>
-      <p className="mt-[5px] text-[13px] leading-[20px] text-on-dark-2">{hint.body}</p>
+      <p className="mt-[5px] text-body leading-[20px] text-on-dark-2">{hint.body}</p>
       <div className="mt-2.5 flex gap-2">
         {canJump && (
           <Button variant="accent" size="xs" onClick={() => onJumpToSubtask?.(hint.subtaskId!)}>

@@ -38,13 +38,13 @@ export function RitualStageCard({ phase, elapsedSec }: RitualStageCardProps) {
 
       <ProgressBar percent={pct} label="当前阶段进度" />
 
-      <p className="mt-[9px] text-[13px] leading-[20px] text-text-2">{stage.desc}</p>
+      <p className="mt-[9px] text-body leading-[20px] text-text-2">{stage.desc}</p>
 
-      <div className="mt-[11px] grid grid-cols-3 gap-px overflow-hidden rounded-[10px] border border-bd-field bg-bd-field">
+      <div className="mt-[11px] grid grid-cols-3 gap-px overflow-hidden rounded-icon border border-bd-field bg-bd-field">
         {stats.map((s) => (
           <div key={s.label} className="bg-white p-[7px] text-center">
-            <b className="block text-[19px] leading-[30px] font-black">{s.value}</b>
-            <Mono className="mt-[3px] block text-[9.5px] text-text-3">{s.label}</Mono>
+            <b className="block text-title leading-[30px] font-black">{s.value}</b>
+            <Mono className="mt-[3px] block text-2xs text-text-3">{s.label}</Mono>
           </div>
         ))}
       </div>

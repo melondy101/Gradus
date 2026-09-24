@@ -30,7 +30,7 @@ export function TodayListEmpty({ selectedTag, showOnlyPending, onClearTag, onSho
           ? t("home.todayAllClear", "待完成任务已全部清空")
           : t("home.todayEmpty", "今天没有排期任务")}
       </p>
-      <p className="mt-1 text-[12.5px] leading-[1.6] text-text-2">
+      <p className="mt-1 text-body-sm leading-[1.6] text-text-2">
         {selectedTag
           ? t("home.todayEmptyTag", "当前标签下没有符合条件的任务，可清除筛选查看全部。")
           : t("home.todayEmptyHint", "切换筛选可查看已完成的任务，或去上方输入新的学习目标。")}

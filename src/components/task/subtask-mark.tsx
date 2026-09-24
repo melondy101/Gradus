@@ -28,7 +28,7 @@ export function SubtaskMark({
   children,
 }: SubtaskMarkProps) {
   const className = cn(
-    "grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black",
+    "grid h-5 w-5 shrink-0 place-items-center rounded-full text-caption font-black",
     state === "done" && "bg-ink text-cream",
     state === "live" && "border-2 border-accent bg-white text-ink",
     state === "plan" && "hairline border-bd-check bg-white text-text-3",

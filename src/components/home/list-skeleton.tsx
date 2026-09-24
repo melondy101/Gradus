@@ -19,15 +19,15 @@ export function ListSkeleton({ rows = 4 }: { rows?: number }) {
           key={i}
           className="grid animate-pulse grid-cols-[22px_minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-bd-card py-[9px] pr-2 pl-[5px] first:border-t-0"
         >
-          <span className="size-[20px] rounded-[6px] hairline border-bd-field bg-cream-light" />
+          <span className="size-[20px] rounded-tag hairline border-bd-field bg-cream-light" />
           <div className="min-w-0">
             <span
-              className={`block h-[13px] rounded-[4px] bg-cream-light ${TITLE_WIDTH[i % TITLE_WIDTH.length]}`}
+              className={`block h-[13px] rounded-chip-sm bg-cream-light ${TITLE_WIDTH[i % TITLE_WIDTH.length]}`}
             />
-            <span className="mt-0.5 block h-[10px] w-[38%] rounded-[4px] bg-cream-light" />
+            <span className="mt-0.5 block h-[10px] w-[38%] rounded-chip-sm bg-cream-light" />
           </div>
           <Tag>L—</Tag>
-          <Mono className="text-[10px] whitespace-nowrap text-text-3">—h</Mono>
+          <Mono className="text-micro whitespace-nowrap text-text-3">—h</Mono>
         </div>
       ))}
     </div>

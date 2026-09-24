@@ -21,7 +21,7 @@ const NAV_LINKS = [
 
 /** 导航链接：2px 墨色下划线由左向右擦入（原 `.lp-nav__links a::after`） */
 const NAV_LINK_CLASS = cn(
-  "relative py-1.5 text-[14.5px] font-medium text-text-2 transition-colors duration-[.16s]",
+  "relative py-1.5 text-body-lg font-medium text-text-2 transition-colors duration-[.16s]",
   "after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:origin-left",
   "after:scale-x-0 after:bg-ink after:content-['']",
   "after:transition-transform after:duration-200 hover:text-ink hover:after:scale-x-100",
@@ -92,7 +92,7 @@ export function LandingNav() {
           <Link
             href="/"
             aria-label="拾级 Gradus 首页"
-            className="flex items-center justify-self-start gap-2.5 text-[19px] font-black tracking-[.01em]"
+            className="flex items-center justify-self-start gap-2.5 text-title font-black tracking-[.01em]"
           >
             <GradusLogo size={16} />
             <span>拾级</span>
@@ -118,7 +118,7 @@ export function LandingNav() {
             <button
               type="button"
               onClick={() => auth.login().catch(() => {})}
-              className="text-[14.5px] font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink"
+              className="text-body-lg font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink"
             >
               登录
             </button>

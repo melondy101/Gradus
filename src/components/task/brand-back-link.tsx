@@ -16,7 +16,7 @@ export function BrandBackLink({ href, children }: BrandBackLinkProps) {
   return (
     <Link
       href={href}
-      className="mb-3.5 inline-block font-mono text-[11px] font-medium tracking-[.05em] text-text-3 transition-[color,transform] duration-[.16s] ease-out hover:translate-x-[-3px] hover:text-ink"
+      className="mb-3.5 inline-block font-mono text-caption font-medium tracking-[.05em] text-text-3 transition-[color,transform] duration-[.16s] ease-out hover:translate-x-[-3px] hover:text-ink"
     >
       <ArrowLeft size={12} aria-hidden className="mr-[5px] inline align-[-2px]" />
       {children}

@@ -5,17 +5,17 @@ import { GradusLogo } from "@/components/ui/gradus-logo";
 import { Mono } from "@/components/ui/eyebrow";
 
 interface BrandPageShellProps {
-  /** 内容最大宽度：屏二比历史页更宽（主列 + 380px 详情面板） */
+  /** 内容最大宽度：屏二比其他独立页更宽（主列 + 380px 详情面板） */
   maxWidth?: number;
   /** 品牌栏右端 mono 角标 */
   railLabel?: string;
-  /** 角标若带链接（如历史任务入口），在此给出目标路由 */
+  /** 角标若带链接（如学习计划库入口），在此给出目标路由 */
   railHref?: string;
   children: React.ReactNode;
 }
 
 /**
- * 独立路由（/task/[id]、/history）共用的品牌外壳：
+ * 独立路由（/task/[id] 等）共用的品牌外壳：
  * 画布底色 = --cream（§1.3 body 底），白底细描边品牌栏（台阶标识 + 字标），
  * 内容区居中并按设计稿留白。宽度随 maxWidth 变化，故只有这一处走内联样式。
  * data-slot="page-canvas" 是 design-audit 量画布底色的落点。
@@ -38,7 +38,7 @@ export function BrandPageShell({
           className="inline-flex items-center gap-[9px]"
         >
           <GradusLogo size={15} />
-          <b className="text-[17px] font-black tracking-[.02em]">拾级</b>
+          <b className="text-title-sm font-black tracking-[.02em]">拾级</b>
         </Link>
         {railHref ? (
           <Link href={railHref}>

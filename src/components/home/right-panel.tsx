@@ -7,7 +7,7 @@
  * variant="card" —— 屏一双列右列的深底卡（与 rail 共用同一份 <AiInspector>）。
  *
  * 数据全部由 home-page 通过 props 注入（useAnalysisPanel 输出），此处不请求任何接口。
- * 弹层阶梯：移动抽屉遮罩 150 / 抽屉 160，落在 new-task(100/101) 与 detail(200/201) 之间。
+ * 移动端抽屉走 ui/modal 的 placement="bottom" 变体（drawer 层 150）。
  */
 
 import { useState, useEffect } from "react";
@@ -15,6 +15,7 @@ import { Bell, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
+import { Modal } from "@/components/ui/modal";
 import { cn } from "@/utils/utils";
 import { AiInspector } from "./ai-inspector";
 import { useResponsive } from "./use-responsive";
@@ -22,7 +23,12 @@ import type { PipelineSize } from "./ai-pipeline-node";
 import type { AnalysisEntry } from "./use-analysis-panel";
 
 export { useAnalysisPanel } from "./use-analysis-panel";
-export type { AnalysisEntry, Phase, Resource, StreamState } from "./use-analysis-panel";
+export type {
+  AnalysisEntry,
+  Phase,
+  Resource,
+  StreamState,
+} from "./use-analysis-panel";
 
 export interface RightPanelProps {
   entries: AnalysisEntry[];
@@ -30,8 +36,16 @@ export interface RightPanelProps {
   setFocusedId: (id: string | null) => void;
   regenAnalysis: (taskId: string, adjustment: string) => void;
   removeEntry: (taskId: string) => void;
-  onRequestDelete?: (taskId: string, title?: string, subtaskCount?: number) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
+  onRequestDelete?: (
+    taskId: string,
+    title?: string,
+    subtaskCount?: number,
+  ) => void;
+  onToggleSubtask: (
+    taskId: string,
+    subtaskId: string,
+    current: boolean,
+  ) => void;
   /** 点击子任务 → 跳到对应日期卡片并高亮（#subtask-card-{id}） */
   onJumpToSubtask?: (subtaskId: string) => void;
   /** rail = 应用外壳右栏；card = 屏一双列右列深底卡 */
@@ -54,14 +68,19 @@ export function RightPanel({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const isLive = (e: AnalysisEntry) =>
-    e.stream.phase !== "idle" && e.stream.phase !== "done" && e.stream.phase !== "error";
+    e.stream.phase !== "idle" &&
+    e.stream.phase !== "done" &&
+    e.stream.phase !== "error";
   const runningCount = entries.filter(isLive).length;
 
   // 任务开始分析时自动展开面板：这是「外部状态变化 → 展开」的响应式同步，
   // 触发点在别的组件、无法放进事件处理器，故此处的 setState 是合法的。
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
-    if (runningCount > 0) { setCollapsed(false); if (isMobile) setSheetOpen(true); }
+    if (runningCount > 0) {
+      setCollapsed(false);
+      if (isMobile) setSheetOpen(true);
+    }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [runningCount, isMobile]);
 
@@ -95,7 +114,7 @@ export function RightPanel({
     );
   }
 
-  // ── 移动端：悬浮 pill 入口 + 底部抽屉（遮罩 150 / 抽屉 160，不越级） ────
+  // ── 移动端：悬浮 pill 入口 + <Modal placement="bottom"> 底部抽屉（drawer 层 150） ──
   if (isMobile) {
     return (
       <>
@@ -105,41 +124,45 @@ export function RightPanel({
           aria-label="打开 AI 分析面板"
           className={cn(
             "fixed right-[26px] bottom-[22px] z-[40] h-auto gap-2.5 border-0 bg-band-dark py-3 pr-[18px] pl-3.5",
-            "text-[13px] font-bold text-on-dark shadow-[0_22px_46px_-18px_rgba(14,13,11,.55)]"
+            "text-body font-bold text-on-dark shadow-[0_22px_46px_-18px_rgba(14,13,11,.55)]",
           )}
         >
           <Sparkles size={15} className="text-accent" />
           <span>AI 规划面板</span>
-          {runningCount > 0 && <Mono className="text-accent">{runningCount} 进行中</Mono>}
+          {runningCount > 0 && (
+            <Mono className="text-accent">{runningCount} 进行中</Mono>
+          )}
         </Button>
 
-        {sheetOpen && (
-          <div
-            aria-hidden
-            onClick={() => setSheetOpen(false)}
-            className="fixed inset-0 z-[150] bg-ink/45 backdrop-blur-[2px]"
-          />
-        )}
-
-        <Card
-          tone="dark"
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-[160] h-[82vh] max-h-[82vh] gap-0 rounded-t-card border-0",
-            "pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-[280ms] ease-[cubic-bezier(.4,0,.2,1)]",
-            sheetOpen ? "translate-y-0" : "translate-y-full"
-          )}
+        <Modal
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          placement="bottom"
+          layer="drawer"
+          width="100%"
+          height="82vh"
+          className="border-0 bg-band-dark text-on-dark"
+          bodyClassName="flex flex-col overflow-hidden p-0"
         >
           <div className="flex flex-none items-center gap-2.5 border-b border-bd-dark px-4 py-3">
             <div className="min-w-0 flex-1">
               <Eyebrow tone="accent">AI Review</Eyebrow>
-              <div className="mt-1 text-[15px] font-bold text-on-dark">意图 · 资源 · 计划 · 核查</div>
+              <div className="mt-1 text-body-lg font-bold text-on-dark">
+                意图 · 资源 · 计划 · 核查
+              </div>
             </div>
-            <Button variant="onDark" size="xs" onClick={() => setSheetOpen(false)}>
+            <Button
+              variant="onDark"
+              size="xs"
+              onClick={() => setSheetOpen(false)}
+            >
               收起
             </Button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5">{inspector("sm")}</div>
-        </Card>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5 [scrollbar-width:thin]">
+            {inspector("sm")}
+          </div>
+        </Modal>
       </>
     );
   }
@@ -150,7 +173,7 @@ export function RightPanel({
       className={cn(
         "flex flex-none flex-col overflow-hidden border-0 border-l border-bd-dark bg-band-dark text-on-dark",
         "transition-[width] duration-[250ms] ease-[cubic-bezier(.4,0,.2,1)]",
-        collapsed ? "w-9" : "w-[350px]"
+        collapsed ? "w-9" : "w-[350px]",
       )}
     >
       <div className="flex flex-none items-center gap-2 border-b border-bd-dark px-3 py-[13px]">
@@ -174,7 +197,9 @@ export function RightPanel({
         </Button>
       </div>
       {!collapsed && (
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5">{inspector("md")}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5">
+          {inspector("md")}
+        </div>
       )}
     </aside>
   );

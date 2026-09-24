@@ -27,7 +27,7 @@ export function Input({
         "placeholder:text-text-3",
         "transition-[border-color,background-color,box-shadow] duration-[.16s] ease-out",
         "focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
-        size === "default" && "h-11 text-[15px]",
+        size === "default" && "h-11 text-body-lg",
         size === "lg" && "h-14 text-base",
         invalid && "border-error focus:border-error",
         "disabled:cursor-not-allowed disabled:opacity-50",
@@ -49,7 +49,7 @@ export function Textarea({
       data-slot="textarea"
       aria-invalid={invalid || undefined}
       className={cn(
-        "w-full rounded-field border border-bd-field bg-cream-light px-4 py-3 text-[15px] leading-[1.6] text-ink outline-none",
+        "w-full rounded-field border border-bd-field bg-cream-light px-4 py-3 text-body-lg leading-[1.6] text-ink outline-none",
         "placeholder:text-text-3 resize-none",
         "transition-[border-color,background-color,box-shadow] duration-[.16s] ease-out",
         "focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
@@ -80,10 +80,10 @@ export function SearchField({
         className
       )}
     >
-      {icon ? <span className="text-[15px] text-text-3">{icon}</span> : null}
+      {icon ? <span className="text-body-lg text-text-3">{icon}</span> : null}
       <input
         data-slot="search-field"
-        className="min-w-0 flex-1 border-0 bg-transparent text-[13.5px] text-ink outline-none placeholder:text-text-3"
+        className="min-w-0 flex-1 border-0 bg-transparent text-body text-ink outline-none placeholder:text-text-3"
         {...props}
       />
       {trailing}

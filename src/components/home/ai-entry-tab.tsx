@@ -21,7 +21,7 @@ export function AiEntryTab({ label, active, onClick }: Props) {
       title={label}
       className={cn(
         "max-w-[150px] cursor-pointer rounded-pill border px-[9px] py-1 text-left",
-        "font-mono text-[10px] tracking-[.05em] transition-[background-color,border-color,color] duration-150",
+        "font-mono text-micro tracking-[.05em] transition-[background-color,border-color,color] duration-150",
         "truncate overflow-hidden whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         active
           ? "border-accent bg-accent-soft text-accent"

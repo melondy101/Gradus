@@ -31,7 +31,7 @@ export function KbdFooter() {
         {KEYS.map(([key, label]) => (
           <span key={key} className="flex items-center gap-1.5">
             <Kbd>{key}</Kbd>
-            <Mono className="text-[10px] text-text-3">{label}</Mono>
+            <Mono className="text-micro text-text-3">{label}</Mono>
           </span>
         ))}
       </div>

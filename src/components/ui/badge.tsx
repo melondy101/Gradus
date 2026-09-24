@@ -6,7 +6,7 @@ import { cn } from "@/utils/utils";
  * 三态与复选框、甘特条共用同一语言：进行中黄 / 已完成墨 / 计划中描边。
  */
 const badgeVariants = cva(
-  "inline-flex items-center gap-[7px] self-start rounded-pill px-[11px] py-[5px] font-mono text-[10px] font-bold tracking-[.06em] whitespace-nowrap",
+  "inline-flex items-center gap-[7px] self-start rounded-pill px-[11px] py-[5px] font-mono text-micro font-bold tracking-[.06em] whitespace-nowrap",
   {
     variants: {
       state: {
@@ -39,8 +39,8 @@ export function Tag({
   return (
     <span
       className={cn(
-        "rounded-[6px] border border-bd-card bg-cream px-[9px] py-[4px]",
-        "font-mono text-[10px] font-bold tracking-[.06em] text-text-2 whitespace-nowrap",
+        "rounded-tag border border-bd-card bg-cream px-[9px] py-[4px]",
+        "font-mono text-micro font-bold tracking-[.06em] text-text-2 whitespace-nowrap",
         className
       )}
       {...props}

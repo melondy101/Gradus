@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { T, BLOOM_CONFIG } from "@/lib/design-tokens";
+import { T } from "@/lib/design-tokens";
+import { addDays, diffDays } from "@/lib/dates";
+import { fmtShortDate } from "@/components/task/task-dates";
+import { TimelineGanttRow } from "./timeline-gantt-row";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 
 interface TimelineViewProps {
@@ -11,15 +13,35 @@ interface TimelineViewProps {
   onToggleSubtask: (subtask: SubtaskWithTask) => void;
 }
 
+function todayUtc0(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 export function TimelineView({
   subtasks,
   onSelectSubtask,
   onToggleSubtask,
 }: TimelineViewProps) {
-  // Sort subtasks by startDay and task
-  const sorted = [...subtasks].sort((a, b) => a.startDay - b.startDay);
-  const maxDay = Math.max(...sorted.map((s) => s.startDay + s.durationDays), 14);
-  const daysArray = Array.from({ length: Math.min(maxDay, 30) }, (_, i) => i + 1);
+  // 跨任务排序/布局只消费数据层派生的 absoluteStart/End（相对 startDay 不做跨任务比较）。
+  const today0 = todayUtc0();
+  const dated = subtasks
+    .filter((s) => !!s.absoluteStart)
+    .sort((a, b) => {
+      const diff = new Date(a.absoluteStart!).getTime() - new Date(b.absoluteStart!).getTime();
+      return diff !== 0 ? diff : a.startDay - b.startDay;
+    });
+  const undated = subtasks.filter((s) => !s.absoluteStart);
+  const rows = [...dated, ...undated];
+
+  const windowStart = dated.length ? addDays(new Date(dated[0].absoluteStart!), 0) : today0;
+  const maxEnd = dated.reduce(
+    (acc, s) => Math.max(acc, s.absoluteEnd ? new Date(s.absoluteEnd).getTime() : 0),
+    windowStart.getTime()
+  );
+  const dayCount = Math.min(Math.max(diffDays(windowStart, new Date(maxEnd)) + 1, 14), 30);
+  const todayIdx = diffDays(windowStart, today0);
+  const daysArray = Array.from({ length: dayCount }, (_, i) => addDays(windowStart, i));
 
   return (
     <div
@@ -42,10 +64,10 @@ export function TimelineView({
       >
         <div>
           <div className="font-editorial" style={{ fontSize: 16, fontWeight: 700, color: T.ink }}>
-            时间甘特图与艾宾浩斯复习节点 (Timeline & Spaced Repetition)
+            时间甘特图 (Timeline)
           </div>
           <div style={{ fontSize: 12.5, color: T.muted, marginTop: 3 }}>
-            色条对应认知层级深度，虚线框为智能算法生成的间隔重复（Spaced Repetition）复习节点
+            色条对应认知层级深度，虚线框表示排期已定、尚未开始的计划条
           </div>
         </div>
 
@@ -65,7 +87,7 @@ export function TimelineView({
                 background: "var(--accent-soft)",
               }}
             />
-            <span>复习节点</span>
+            <span>未开始</span>
           </div>
         </div>
       </div>
@@ -80,11 +102,11 @@ export function TimelineView({
           boxShadow: "0 1px 4px var(--cream)",
         }}
       >
-        {/* 时间刻度表头 */}
+        {/* 时间刻度表头：D1 = 窗口首日（全部排期中最早的开始日） */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: `240px repeat(${daysArray.length}, minmax(36px, 1fr))`,
+            gridTemplateColumns: `240px repeat(${dayCount}, minmax(36px, 1fr))`,
             borderBottom: `1px solid ${T.line}`,
             background: T.soft,
             padding: "8px 0",
@@ -104,11 +126,12 @@ export function TimelineView({
           >
             任务 / 计划
           </div>
-          {daysArray.map((day) => {
-            const isToday = day === 1;
+          {daysArray.map((date, i) => {
+            const isToday = i === todayIdx;
             return (
               <div
-                key={day}
+                key={i}
+                title={fmtShortDate(date)}
                 style={{
                   textAlign: "center",
                   fontSize: 11,
@@ -121,7 +144,7 @@ export function TimelineView({
                   borderLeft: `1px solid ${T.line}`,
                 }}
               >
-                D{day}
+                D{i + 1}
               </div>
             );
           })}
@@ -129,136 +152,24 @@ export function TimelineView({
 
         {/* 任务行 */}
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {sorted.map((item, index) => {
-            const bloom = BLOOM_CONFIG[(item.bloomLevel || 1) as keyof typeof BLOOM_CONFIG] || BLOOM_CONFIG[1];
-            const startCol = Math.max(item.startDay, 1);
-            const duration = Math.max(item.durationDays, 1);
-
+          {rows.map((item, index) => {
+            const startIdx = item.absoluteStart
+              ? Math.min(Math.max(diffDays(windowStart, new Date(item.absoluteStart)), 0), dayCount - 1)
+              : null;
+            const rawDuration = Math.max(item.durationDays, 1);
+            const duration = startIdx === null ? rawDuration : Math.min(rawDuration, dayCount - startIdx);
             return (
-              <div
+              <TimelineGanttRow
                 key={item.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `240px repeat(${daysArray.length}, minmax(36px, 1fr))`,
-                  borderBottom: `1px solid ${T.line}`,
-                  alignItems: "center",
-                  minHeight: 46,
-                  transition: "background 0.1s",
-                  background: index % 2 === 0 ? "transparent" : `${T.soft}33`,
-                }}
-              >
-                {/* 左侧任务信息 */}
-                <div
-                  onClick={() => onSelectSubtask(item)}
-                  style={{
-                    padding: "6px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    cursor: "pointer",
-                    overflow: "hidden",
-                  }}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSubtask(item);
-                    }}
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 4,
-                      border: `1.5px solid ${item.completed ? bloom.color : T.line}`,
-                      background: item.completed ? "var(--ink)" : "transparent",
-                      color: "var(--cream)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {item.completed ? "✓" : ""}
-                  </button>
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 600,
-                        color: item.completed ? T.muted : T.ink,
-                        textDecoration: item.completed ? "line-through" : "none",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {item.title}
-                    </div>
-                    <div style={{ fontSize: 10, color: T.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {item.taskTitle}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 右侧甘特图条柱区域 */}
-                <div
-                  style={{
-                    gridColumn: `2 / span ${daysArray.length}`,
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${daysArray.length}, minmax(36px, 1fr))`,
-                    height: "100%",
-                    alignItems: "center",
-                    position: "relative",
-                  }}
-                >
-                  {/* 今日基准指示线 (Today vertical line) */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 18,
-                      top: 0,
-                      bottom: 0,
-                      width: 2,
-                      background: T.accent,
-                      opacity: 0.3,
-                      zIndex: 0,
-                      pointerEvents: "none",
-                    }}
-                  />
-
-                  {/* 任务进度柱条 */}
-                  <motion.div
-                    onClick={() => onSelectSubtask(item)}
-                    whileHover={{ scale: 1.02 }}
-                    style={{
-                      gridColumn: `${startCol} / span ${duration}`,
-                      background: item.completed ? `${bloom.color}50` : bloom.color,
-                      borderRadius: 6,
-                      height: 26,
-                      margin: "0 4px",
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "0 8px",
-                      color: "#fff",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      boxShadow: `0 2px 6px ${bloom.color}30`,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      zIndex: 1,
-                    }}
-                    title={`${item.title} (第${startCol}天起，共${duration}天)`}
-                  >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {item.title}
-                    </span>
-                  </motion.div>
-                </div>
-              </div>
+                item={item}
+                dayCount={dayCount}
+                todayIdx={todayIdx}
+                startIdx={startIdx}
+                duration={duration}
+                zebra={index % 2 !== 0}
+                onSelectSubtask={onSelectSubtask}
+                onToggleSubtask={onToggleSubtask}
+              />
             );
           })}
         </div>

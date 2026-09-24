@@ -72,7 +72,7 @@ export function GanttChart({
             {COLS.map((c) => (
               <span
                 key={c.state}
-                className="flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-[.05em] text-text-2"
+                className="flex items-center gap-1.5 font-mono text-micro font-medium tracking-[.05em] text-text-2"
               >
                 <GanttKey state={c.state} />
                 {c.label}
@@ -104,7 +104,7 @@ export function GanttChart({
                   key={c.key}
                   title={c.date}
                   className={cn(
-                    "rounded-[6px] py-[5px] font-mono text-[10px] font-medium tracking-[.05em] text-text-3",
+                    "rounded-tag py-[5px] font-mono text-micro font-medium tracking-[.05em] text-text-3",
                     c.isToday && "bg-accent font-bold text-ink"
                   )}
                 >
@@ -120,7 +120,7 @@ export function GanttChart({
               className={cn(TRACK, "pointer-events-none absolute inset-y-0 right-0 left-[calc(var(--g-lab)+6px)] max-sm:hidden")}
             >
               {win.cols.map((c) => (
-                <span key={c.key} className={c.isToday ? "rounded-[4px] bg-[rgba(245,197,24,.13)]" : "rounded-[4px]"} />
+                <span key={c.key} className={c.isToday ? "rounded-chip-sm bg-[rgba(245,197,24,.13)]" : "rounded-chip-sm"} />
               ))}
             </div>
 
@@ -133,7 +133,7 @@ export function GanttChart({
                   className="grid h-[30px] grid-cols-[var(--g-lab)_minmax(0,1fr)] items-center gap-1.5 max-sm:h-auto max-sm:grid-cols-1 max-sm:gap-1 max-sm:pb-3"
                 >
                   <span className="flex min-w-0 items-center gap-2" title={title}>
-                    <b className="truncate text-[12.5px] font-medium">{v.subtask.title}</b>
+                    <b className="truncate text-body-sm font-medium">{v.subtask.title}</b>
                     {v.bloom && (
                       <em className="shrink-0 font-mono text-[9px] font-medium not-italic text-text-3">
                         {v.bloom.split(" ")[0]}
@@ -157,7 +157,7 @@ export function GanttChart({
             })}
           </div>
 
-          <Mono className="mt-3.5 block text-[9.5px] text-text-3">{footParts.join(" · ")}</Mono>
+          <Mono className="mt-3.5 block text-2xs text-text-3">{footParts.join(" · ")}</Mono>
         </div>
       )}
     </Card>

@@ -47,7 +47,7 @@ export function Stat({
       <Eyebrow kind="label" tone={tone === "dark" ? "accent" : "muted"} className={cn(tone === "accent" && "text-ink/70")}>
         {label}
       </Eyebrow>
-      <div data-slot="stat-value" className="text-[28px] leading-[34px] font-black tracking-[-.01em]">
+      <div className="text-[28px] leading-[34px] font-black tracking-[-.01em]">
         {value}
         {unit ? (
           <em className={cn("ml-[3px] text-[14px] font-medium not-italic", faint)}>
@@ -56,7 +56,7 @@ export function Stat({
         ) : null}
       </div>
       {foot ? (
-        <div className={cn("mt-[7px] text-[12px] leading-[18px]", faint)}>{foot}</div>
+        <div className={cn("mt-[7px] text-body-sm leading-[18px]", faint)}>{foot}</div>
       ) : null}
     </div>
   );

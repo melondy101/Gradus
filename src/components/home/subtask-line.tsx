@@ -10,7 +10,7 @@
  *   待开始 → 素色空框
  *
  * ⚠ id={`subtask-card-${row.id}`} 是键盘导航（↑↓）与 AI 面板「定位子任务」的
- *   DOM 契约，改名前先确认 use-home-hotkeys / home-page 的跳转。
+ *   DOM 契约，改名前先确认 home-page 的键盘导航与跳转。
  */
 
 import { useTranslation } from "react-i18next";
@@ -80,7 +80,7 @@ export function SubtaskLine({
       <div className="min-w-0">
         <b
           className={cn(
-            "block overflow-hidden text-ellipsis text-[14.5px] leading-[1.4] font-bold whitespace-nowrap",
+            "block overflow-hidden text-ellipsis text-body-lg leading-[1.4] font-bold whitespace-nowrap",
             state === "done"
               ? "text-text-3 line-through decoration-bd-check"
               : "text-ink"
@@ -88,7 +88,7 @@ export function SubtaskLine({
         >
           {row.title}
         </b>
-        <p className="mt-0.5 text-[12px] text-text-3">
+        <p className="mt-0.5 text-body-sm text-text-3">
           {lead}
           {range ? ` · ${range}` : ` · ${t("timelineCard.days", { count: row.durationDays })}`}
           {row.topic ? ` · ${row.topic}` : ""}
@@ -117,7 +117,7 @@ export function SubtaskLine({
             )}
           </span>
         )}
-        <Mono className="text-[10px] whitespace-nowrap text-text-3">
+        <Mono className="text-micro whitespace-nowrap text-text-3">
           {hoursOf(row)}h
           <ArrowRight
             size={11}

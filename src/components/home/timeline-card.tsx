@@ -106,7 +106,7 @@ export function TimelineCard({
     >
       {/* ── 键盘选中状态条 ── */}
       {isActive && !row.completed && (
-        <div className="flex items-center gap-1.5 border-b border-bd-card bg-accent-soft px-3 py-[3px] text-[11px] font-semibold text-accent-ink">
+        <div className="flex items-center gap-1.5 border-b border-bd-card bg-accent-soft px-3 py-[3px] text-caption font-semibold text-accent-ink">
           <Kbd>Space</Kbd>
           <span>{t("timelineCard.completeThis")}</span>
           <Kbd>↑↓</Kbd>
@@ -127,7 +127,7 @@ export function TimelineCard({
         <div className="min-w-0 flex-1">
           <div
             className={cn(
-              "mb-1.5 overflow-hidden text-ellipsis text-[13.5px] leading-[1.4] font-semibold whitespace-nowrap",
+              "mb-1.5 overflow-hidden text-ellipsis text-body leading-[1.4] font-semibold whitespace-nowrap",
               row.completed ? "text-text-3 line-through decoration-bd-check" : "text-ink"
             )}
           >
@@ -135,7 +135,7 @@ export function TimelineCard({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <Tag className="max-w-[140px] truncate px-2 py-px font-sans text-[11px] font-semibold tracking-normal">
+            <Tag className="max-w-[140px] truncate px-2 py-px font-sans text-caption font-semibold tracking-normal">
               {row.taskTitle}
             </Tag>
 
@@ -145,7 +145,7 @@ export function TimelineCard({
             </Tag>
 
             {dateRange && (
-              <Mono className="text-[11px] text-text-3">{dateRange}</Mono>
+              <Mono className="text-caption text-text-3">{dateRange}</Mono>
             )}
           </div>
         </div>
@@ -157,8 +157,8 @@ export function TimelineCard({
           </div>
 
           <div className="text-right">
-            <div className="font-mono text-[13px] leading-none font-bold text-ink">{deepHours}h</div>
-            <div className="mt-0.5 font-mono text-[10px] text-text-3">
+            <div className="font-mono text-body leading-none font-bold text-ink">{deepHours}h</div>
+            <div className="mt-0.5 font-mono text-micro text-text-3">
               {t("timelineCard.days", { count: row.durationDays })}
             </div>
           </div>

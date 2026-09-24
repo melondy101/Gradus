@@ -15,18 +15,18 @@ export function NewTaskUrlHint({ hint }: { hint: UrlHint }) {
   const Icon = hint.Icon;
 
   return (
-    <div className="flex items-start gap-2 rounded-[8px] border border-bd-field bg-cream-light px-2.5 py-[7px]">
+    <div className="flex items-start gap-2 rounded-tile border border-bd-field bg-cream-light px-2.5 py-[7px]">
       <Icon size={16} className={cn("mt-px shrink-0", hint.canFetch ? "text-ink" : "text-text-2")} />
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex items-center gap-1">
-          <Tag className="border-accent-deep bg-accent-soft px-[5px] py-px text-[9.5px] text-accent-ink">
+          <Tag className="border-accent-deep bg-accent-soft px-[5px] py-px text-2xs text-accent-ink">
             {t(`newTask.platforms.${hint.type}.label`)}
           </Tag>
-          <span className={cn("text-[9.5px] font-semibold", hint.canFetch ? "text-success" : "text-warning")}>
+          <span className={cn("text-2xs font-semibold", hint.canFetch ? "text-success" : "text-warning")}>
             {hint.canFetch ? t("newTask.willFetch") : t("newTask.needDesc")}
           </span>
         </div>
-        <div className="text-[10.5px] leading-[1.35] text-text-2">
+        <div className="text-micro leading-[1.35] text-text-2">
           {t(`newTask.platforms.${hint.type}.tip`)}
         </div>
       </div>

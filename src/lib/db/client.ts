@@ -3,9 +3,6 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 // Only meaningful locally — on Vercel the env vars are already injected.
-// `.env.local` 先加载且不覆盖既有值，与 Next.js 自己的加载优先级一致，
-// 这样 `bun run db:seed-demo` 这类脱离 Next 运行时的脚本也能拿到 DATABASE_URL。
-config({ path: ".env.local" });
 config({ path: ".env" });
 
 const connectionString =

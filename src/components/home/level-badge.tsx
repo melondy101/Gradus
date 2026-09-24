@@ -5,14 +5,12 @@
  * 从 achievement-panel.tsx 拆出：一个文件只导出一个组件（AGENTS.md §13）。
  */
 
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Crown, Medal, Rocket, Sprout, Star, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Mono } from "@/components/ui/eyebrow";
-import { request } from "@/lib/api/request";
+import { useUserStats } from "./use-user-stats";
 import { getLevel, getNextLevel, getLevelProgress } from "@/lib/growth";
-import type { UserStats } from "./use-user-stats";
 
 /**
  * growth.ts 的 level 不再自带 emoji，品牌规范要求界面不出现 emoji，
@@ -27,28 +25,10 @@ export const LEVEL_ICONS: Array<{ threshold: number; Icon: typeof Sprout }> = [
   { threshold: 0, Icon: Sprout },
 ];
 
-export function LevelBadge({ refreshTick = 0 }: { refreshTick?: number }) {
+export function LevelBadge() {
   const { t } = useTranslation();
-  const [stats, setStats] = useState<UserStats | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const res = await request("/api/user/stats");
-        if (alive && res.ok) {
-          const data = (await res.json()) as UserStats;
-          if (alive) setStats(data);
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-    load();
-    return () => {
-      alive = false;
-    };
-  }, [refreshTick]);
+  // Phase 3：订阅模块级 stats store，与统计卡行共享同一份数据，不再各自 fetch
+  const stats = useUserStats();
 
   if (!stats) return null;
 
@@ -73,7 +53,7 @@ export function LevelBadge({ refreshTick = 0 }: { refreshTick?: number }) {
           }}
         />
       </span>
-      <Mono className="whitespace-nowrap text-[9.5px] text-text-3">
+      <Mono className="whitespace-nowrap text-2xs text-text-3">
         {next
           ? t("achievement.toNextLevel", { count: prog.need - prog.done, name: next.name })
           : t("achievement.maxLevel")}

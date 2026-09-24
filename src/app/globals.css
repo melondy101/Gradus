@@ -24,6 +24,8 @@
   --color-accent-deep: var(--accent-deep);
   --color-accent-ink:  var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-bright: var(--accent-bright);
+  --color-error-on-dark: var(--error-on-dark);
   --color-band-dark:   var(--dark);
   --color-on-dark:     var(--on-dark);
   --color-on-dark-2:   var(--on-dark-2);
@@ -59,6 +61,23 @@
   --radius-card: 16px;
   --radius-field: 12px;
   --radius-pill: 999px;
+
+  /* 小圆角收编（审计报告 §3.3：出现 ≥3 次的一次性值） */
+  --radius-chip-sm: 4px;
+  --radius-tag: 6px;
+  --radius-tile: 8px;
+  --radius-icon: 10px;
+  --radius-popover: 20px;
+
+  /* 文字档位收编（审计报告 §3.3；半像素档就近归档，闸门容差 ±0.5px） */
+  --text-2xs: 9.5px;
+  --text-micro: 10px;
+  --text-caption: 11px;
+  --text-body-sm: 12px;
+  --text-body: 13px;
+  --text-body-lg: 15px;
+  --text-title-sm: 17px;
+  --text-title: 19px;
 
   /* Shadcn 语义映射 */
   --color-background:           var(--background);
@@ -130,6 +149,9 @@
   --accent:      #F5C518;
   --accent-deep: #E3B40F;
   --accent-ink:  #7A5F00;
+  /* 设计稿字面量收编：点缀黄按钮 hover 提亮 + 深底校验失败描边 */
+  --accent-bright: #FFD740;
+  --error-on-dark: #E06C4A;
   --dark:        #0E0D0B;
   --card:        #FFFFFF;
 
@@ -201,18 +223,6 @@
   --bloom-5: #3A3833;
   --bloom-6: #F5C518;
 
-  /* 历史别名，迁移期兼容 */
-  --color-bg: var(--cream);
-  --color-surface: #FFFFFF;
-  --color-soft: var(--cream-light);
-  --color-line: var(--bd-card);
-  --color-ink: var(--ink);
-  --color-muted: var(--text-2);
-  --color-subtle: var(--text-3);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-deep);
-  --color-secondary-accent: var(--text-3);
-
   /* 安全区 */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -282,17 +292,6 @@
   --bloom-5: #E6E1D3;
   --bloom-6: #F5C518;
 
-  --color-bg: #0E0D0B;
-  --color-surface: #17150F;
-  --color-soft: #1F1C16;
-  --color-line: #2B2924;
-  --color-ink: #F5F2EA;
-  --color-muted: rgba(245, 242, 234, 0.72);
-  --color-subtle: rgba(245, 242, 234, 0.58);
-  --color-accent: #F5C518;
-  --color-accent-hover: #FFD740;
-  --color-secondary-accent: #8A867C;
-
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 14px 30px -16px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 40px 90px -40px rgba(0, 0, 0, 0.7);
@@ -332,9 +331,6 @@
   --bloom-4: #557064;
   --bloom-5: #245C43;
   --bloom-6: #3E8A63;
-  --color-surface: #FFFFFF;
-  --color-soft: #E6F0E8;
-  --color-line: #CADBCF;
 }
 
 :root[data-theme="ocean"] {
@@ -370,9 +366,6 @@
   --bloom-4: #557286;
   --bloom-5: #1F5F82;
   --bloom-6: #287CA8;
-  --color-surface: #FFFFFF;
-  --color-soft: #E4EFF5;
-  --color-line: #C8DAE5;
 }
 
 :root[data-theme="rose"] {
@@ -408,9 +401,6 @@
   --bloom-4: #7A5867;
   --bloom-5: #8E3655;
   --bloom-6: #B74C70;
-  --color-surface: #FFFFFF;
-  --color-soft: #F4E7EB;
-  --color-line: #E6CBD3;
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */

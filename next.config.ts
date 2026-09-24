@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      // 历史页已并入首页「学习计划库」视图（决策 2），旧书签/外链永久跳转
+      {
+        source: "/history",
+        destination: "/app?view=plans",
+        permanent: true,
+      },
+    ];
+  },
   // RFC1918 LAN ranges + localhost for `next dev` HMR over Wi-Fi.
   allowedDevOrigins: [
     "*.e2b.app",

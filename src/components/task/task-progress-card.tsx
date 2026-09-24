@@ -36,8 +36,8 @@ export function TaskProgressCard({
     <Card className="gap-0">
       <div className="grid grid-cols-[minmax(0,230px)_minmax(0,1fr)_auto] items-center gap-5">
         <div className="min-w-0">
-          <h3 className="text-[15px] font-bold">总体进度</h3>
-          <Mono className="mt-1 block text-[10px] text-text-3">
+          <h3 className="text-body-lg font-bold">总体进度</h3>
+          <Mono className="mt-1 block text-micro text-text-3">
             {detail.join(" · ")}
             {total > 0 ? ` · 共 ${total} 个子任务` : ""}
           </Mono>

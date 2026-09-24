@@ -13,6 +13,7 @@ import {
   updateCurrentUser,
   getCurrentUserSnapshot,
 } from "@/lib/auth/user-provider";
+import { fetchMe, logoutSession } from "@/lib/api/auth";
 import type { CurrentUserView } from "@/lib/auth/current-user";
 import type { User } from "@/lib/db/schema";
 
@@ -70,7 +71,7 @@ function adaptUser(view: CurrentUserView | null): User | null {
 }
 
 type EazoState = {
-  auth: { user: User | null; loading: boolean; authenticated: boolean };
+  auth: { user: User | null; authenticated: boolean };
   device: { platform: "web" | "mobile" };
 };
 
@@ -97,7 +98,6 @@ export function useEazo<T>(selector: (s: EazoState) => T): T {
   const state: EazoState = {
     auth: {
       user,
-      loading: false,
       authenticated: user !== null,
     },
     device: { platform: "web" },
@@ -131,10 +131,9 @@ export const auth = {
   },
 
   async logout(): Promise<void> {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (err) {
-      console.warn("[auth] logout request failed:", err);
+    const res = await logoutSession();
+    if (!res.ok) {
+      console.warn("[auth] logout request failed:", res.kind, res.message);
     }
     // Clear local user state so the UI updates immediately.
     updateCurrentUser(null);
@@ -144,27 +143,14 @@ export const auth = {
    * 重新拉取当前用户。Login/Register 成功后由调用方触发，让 React 树立即反映新 user。
    */
   async refresh(): Promise<void> {
-    try {
-      const res = await fetch("/api/auth/me", { cache: "no-store" });
-      if (!res.ok) {
-        const prevUser = readCurrentUserSnapshot();
-        if (prevUser) {
-          try {
-            const cloned = await res.clone().json() as { error?: string };
-            if (cloned?.error === "账号不存在") {
-              updateCurrentUser(null);
-            }
-          } catch {
-            // 非 JSON 响应时保留旧 user，避免将有效登录态误清为空。
-          }
-        }
-        return;
-      }
-      const json = (await res.json()) as { ok: boolean; user: CurrentUserView };
-      updateCurrentUser(json.ok ? json.user : null);
-    } catch (err) {
-      console.warn("[auth] refresh request failed:", err);
+    const res = await fetchMe();
+    if (!res.ok) {
+      // 服务端确认账号已不存在（幽灵会话防线）→ 清本地登录态；
+      // 其余失败（网络/非 JSON）保留旧 user，避免误清有效登录态。
+      if (res.accountMissing) updateCurrentUser(null);
+      return;
     }
+    updateCurrentUser(res.data.ok ? res.data.user ?? null : null);
   },
 };
 

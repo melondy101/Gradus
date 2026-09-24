@@ -1,32 +1,36 @@
 "use client";
 
 /**
- * 轻提示条状态（5s 自动消失，可带一个「撤销」动作）。
- * z-index 400，不与弹窗阶梯冲突。
+ * 轻提示条 —— 单一出口适配层：内部直接调 sonner 的 <Toaster>（ui/sonner.tsx 负责品牌深药丸语言）。
+ * 保留 showToast(msg, actionLabel?, onAction?) / dismissToast() 旧契约，
+ * use-subtask-actions 等调用方零改动。
  */
 
-import { useCallback, useRef, useState } from "react";
-
-export interface ToastState {
-  msg: string;
-  actionLabel?: string;
-  onAction?: () => void;
-}
+import { useCallback } from "react";
+import { toast } from "sonner";
 
 export function useToast() {
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = useCallback((msg: string, actionLabel?: string, onAction?: () => void) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setToast({ msg, actionLabel, onAction });
-    timerRef.current = setTimeout(() => setToast(null), 5000);
-  }, []);
+  const showToast = useCallback(
+    (msg: string, actionLabel?: string, onAction?: () => void) => {
+      const id = toast(msg, {
+        action:
+          actionLabel && onAction
+            ? {
+                label: actionLabel,
+                onClick: () => {
+                  onAction();
+                  toast.dismiss(id);
+                },
+              }
+            : undefined,
+      });
+    },
+    [],
+  );
 
   const dismissToast = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setToast(null);
+    toast.dismiss();
   }, []);
 
-  return { toast, showToast, dismissToast };
+  return { showToast, dismissToast };
 }

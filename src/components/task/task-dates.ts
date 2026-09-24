@@ -1,20 +1,11 @@
 /**
- * 任务日期工具 —— 屏二甘特窗口与子任务排期共用的最小日期层。
- * 全部基于真实字段 task.startDate 与 subtask.startDay / durationDays。
+ * 任务日期工具 —— 屏二甘特窗口与子任务排期共用的日期格式化层。
+ * toDate / addDays 本体已下沉到 src/lib/dates.ts（features store 也消费）。
  */
 
-export function toDate(value: string | Date | null | undefined): Date | null {
-  if (!value) return null;
-  const d = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
+import { addDays, toDate } from "@/lib/dates";
 
-/** 以「自然日」为粒度偏移，避免时区导致的一天漂移。 */
-export function addDays(base: Date, days: number): Date {
-  const d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
-  d.setDate(d.getDate() + days);
-  return d;
-}
+export { addDays, toDate };
 
 export function fmtShortDate(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");

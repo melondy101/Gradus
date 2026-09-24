@@ -59,7 +59,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
       layer="newTask"
       width={460}
       icon={
-        <span className="inline-grid size-[22px] flex-none place-items-center rounded-[6px] bg-accent-soft text-accent-ink">
+        <span className="inline-grid size-[22px] flex-none place-items-center rounded-tag bg-accent-soft text-accent-ink">
           <Sparkles size={12} />
         </span>
       }
@@ -96,7 +96,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
             <Chip
               key={key}
               type="button"
-              className="gap-1 rounded-[6px] px-2 py-1 text-[11px] font-medium"
+              className="gap-1 rounded-tag px-2 py-1 text-caption font-medium"
               onClick={() => handleExample(t(`newTask.exampleValues.${key}`))}
             >
               <Icon size={11} />
@@ -140,7 +140,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
             />
             <span
               className={cn(
-                "text-[11px] font-semibold",
+                "text-caption font-semibold",
                 selectedTags.length > 0 ? "text-ink" : "text-text-2"
               )}
             >
@@ -149,20 +149,20 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
             {selectedTags.length > 0 && !showTagEditor && (
               <span className="ml-1 flex gap-[3px]">
                 {selectedTags.slice(0, 2).map((tag) => (
-                  <Tag key={tag} className="rounded-[4px] px-1 py-0 text-[9.5px]">
+                  <Tag key={tag} className="rounded-chip-sm px-1 py-0 text-2xs">
                     {tag}
                   </Tag>
                 ))}
                 {selectedTags.length > 2 && (
-                  <span className="text-[9.5px] text-text-2">
+                  <span className="text-2xs text-text-2">
                     +{selectedTags.length - 2}
                   </span>
                 )}
               </span>
             )}
           </span>
-          <span className="flex items-center gap-0.5 text-[11px] text-text-2">
-            <span className="text-[10.5px]">{showTagEditor ? "收起" : "展开"}</span>
+          <span className="flex items-center gap-0.5 text-caption text-text-2">
+            <span className="text-micro">{showTagEditor ? "收起" : "展开"}</span>
             {showTagEditor ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </span>
         </button>

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent 任务 worktree 里的构建产物，不属于本仓库源码
+    ".claude/**",
+    "output/**",
   ]),
 ]);
 

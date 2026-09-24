@@ -34,12 +34,12 @@ export function RitualStageList({ phase }: RitualStageListProps) {
               style={{ animationDelay: `${i * 0.07}s` }}
               className="grid animate-[fadeSlideUp_.34s_ease_forwards] grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 rounded-[11px] border border-bd-card bg-cream-light px-3 py-1.5 opacity-0"
             >
-              <span className="grid h-[27px] w-[27px] place-items-center rounded-[8px] border border-bd-card bg-white font-mono text-[11px] font-bold text-text-2">
+              <span className="grid h-[27px] w-[27px] place-items-center rounded-tile border border-bd-card bg-white font-mono text-caption font-bold text-text-2">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="flex min-w-0 items-baseline gap-2.5">
-                <b className="truncate text-[13.5px] leading-[1.35] font-bold">{stage.name}</b>
-                <Mono className="block truncate text-[9.5px] text-text-3">{stage.desc}</Mono>
+                <b className="truncate text-body leading-[1.35] font-bold">{stage.name}</b>
+                <Mono className="block truncate text-2xs text-text-3">{stage.desc}</Mono>
               </div>
               <Tag>{STATUS_LABEL[state]}</Tag>
             </li>

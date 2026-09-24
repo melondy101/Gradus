@@ -12,7 +12,7 @@ export function IconButton({
       type={type ?? "button"}
       className={cn(
         "relative grid h-10 w-10 shrink-0 place-items-center rounded-field",
-        "border border-bd-card bg-white text-[15px] text-text-2",
+        "border border-bd-card bg-white text-body-lg text-text-2",
         "transition-[border-color,color,background] duration-[.16s] ease-out",
         "hover:border-ink hover:text-ink",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",

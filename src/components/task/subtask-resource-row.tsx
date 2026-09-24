@@ -20,14 +20,14 @@ export function SubtaskResourceRow({ res }: SubtaskResourceRowProps) {
       title={res.url ?? res.searchQuery ?? res.title}
       className="mb-2 flex flex-col gap-1.5 rounded-field border border-bd-card bg-cream-light px-[14px] py-3 text-left transition-[border-color,transform] duration-[.16s] ease-out enabled:hover:translate-x-[3px] enabled:hover:border-ink disabled:cursor-default"
     >
-      <span className="text-[13.5px] leading-[20px] font-bold">{res.title}</span>
-      <span className="flex items-center gap-2 font-mono text-[9.5px] font-medium tracking-[.05em] text-text-3">
+      <span className="text-body leading-[20px] font-bold">{res.title}</span>
+      <span className="flex items-center gap-2 font-mono text-2xs font-medium tracking-[.05em] text-text-3">
         {res.verified ? (
-          <i className="rounded-[4px] bg-[rgba(245,197,24,.2)] px-[6px] py-0.5 font-bold not-italic text-accent-ink">
+          <i className="rounded-chip-sm bg-[rgba(245,197,24,.2)] px-[6px] py-0.5 font-bold not-italic text-accent-ink">
             VERIFIED
           </i>
         ) : (
-          <i className="rounded-[4px] border border-bd-field bg-cream px-[6px] py-0.5 font-bold not-italic text-text-2">
+          <i className="rounded-chip-sm border border-bd-field bg-cream px-[6px] py-0.5 font-bold not-italic text-text-2">
             SEARCH ONLY
           </i>
         )}

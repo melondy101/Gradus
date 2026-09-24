@@ -20,7 +20,7 @@ export function AiTrustTag({ res }: { res: Resource }) {
   return (
     <span
       className={cn(
-        "rounded-[4px] px-[6px] py-[2px] font-mono text-[9.5px] leading-[1.4] font-bold tracking-[.05em] whitespace-nowrap",
+        "rounded-chip-sm px-[6px] py-[2px] font-mono text-2xs leading-[1.4] font-bold tracking-[.05em] whitespace-nowrap",
         dead && "bg-error/[.28] text-error",
         !dead && verified && "bg-accent/[.18] text-accent",
         !dead && !verified && "bg-on-dark/[.08] text-on-dark-2"

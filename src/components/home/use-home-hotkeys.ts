@@ -1,82 +1,125 @@
 "use client";
 
-/**
- * 全局键盘映射（§13 交互不变量）：
- *   ⌘K / Ctrl+K 指令面板 · N 新建 · Esc 逐级关闭 · ↑↓ 移动光标 · Space 勾选完成
- */
-
 import { useEffect } from "react";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
+import type { HomeOverlays } from "./use-home-overlays";
 
-interface Options {
-  inputOpen: boolean;
-  modalOpen: boolean;
-  paletteOpen: boolean;
+interface HomeHotkeysOpts {
+  overlays: HomeOverlays;
+  detailSubtask: SubtaskWithTask | null | undefined;
   focusedId: string | null;
-  activeSubtaskId: string | null;
-  displayedRows: SubtaskWithTask[];
-  allRows: SubtaskWithTask[];
-  onTogglePalette: () => void;
-  onNewTask: () => void;
-  onEscapeLadder: () => void;
-  onMove: (row: SubtaskWithTask) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
+  setFocusedId: (v: string | null) => void;
+  displayedFlatRows: SubtaskWithTask[];
+  subtaskRows: SubtaskWithTask[];
+  handleToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
 }
 
-export function useHomeHotkeys(opts: Options) {
+/**
+ * 首页全局键盘快捷键（审计 §5.4：快捷键入 use-home-hotkeys）。
+ * ⌘K 指令面板 / n 新建 / Escape 逐层关闭 / ↑↓ 移动选中 / 空格打卡。
+ */
+export function useHomeHotkeys(opts: HomeHotkeysOpts) {
   const {
-    inputOpen, modalOpen, paletteOpen, focusedId, activeSubtaskId,
-    displayedRows, allRows, onTogglePalette, onNewTask, onEscapeLadder,
-    onMove, onToggleSubtask,
+    overlays,
+    detailSubtask,
+    focusedId,
+    setFocusedId,
+    displayedFlatRows,
+    subtaskRows,
+    handleToggleSubtask,
   } = opts;
+  const {
+    showInput,
+    congrats,
+    commandPaletteOpen,
+    activeSubtaskId,
+    setCommandPaletteOpen,
+    setShowInput,
+    setDetailSubtaskId,
+    setActiveSubtaskId,
+  } = overlays;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement;
-      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
 
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        onTogglePalette();
+        setCommandPaletteOpen((prev) => !prev);
       } else if (e.key === "n" || e.key === "N") {
-        if (!inputOpen && !modalOpen && !paletteOpen) {
+        if (!showInput && !detailSubtask && !congrats && !commandPaletteOpen) {
           e.preventDefault();
-          onNewTask();
+          setShowInput(true);
         }
       } else if (e.key === "Escape") {
-        onEscapeLadder();
+        if (commandPaletteOpen) {
+          setCommandPaletteOpen(false);
+        } else if (detailSubtask) {
+          setDetailSubtaskId(null);
+        } else if (showInput) {
+          setShowInput(false);
+        } else if (activeSubtaskId) {
+          setActiveSubtaskId(null);
+        } else if (focusedId) {
+          setFocusedId(null);
+        }
       } else if (
         (e.key === "ArrowDown" || e.key === "ArrowUp") &&
-        !inputOpen && !modalOpen && !paletteOpen
+        !showInput &&
+        !detailSubtask &&
+        !congrats &&
+        !commandPaletteOpen
       ) {
-        if (displayedRows.length === 0) return;
+        if (displayedFlatRows.length === 0) return;
         e.preventDefault();
-        const idx = displayedRows.findIndex((r) => r.id === activeSubtaskId);
-        const last = displayedRows.length - 1;
-        const next =
-          idx === -1
-            ? e.key === "ArrowDown" ? 0 : last
-            : e.key === "ArrowDown" ? Math.min(last, idx + 1) : Math.max(0, idx - 1);
-        const target = displayedRows[next];
+        const idx = displayedFlatRows.findIndex((r) => r.id === activeSubtaskId);
+        let next: number;
+        if (idx === -1) {
+          next = e.key === "ArrowDown" ? 0 : displayedFlatRows.length - 1;
+        } else {
+          next =
+            e.key === "ArrowDown"
+              ? Math.min(displayedFlatRows.length - 1, idx + 1)
+              : Math.max(0, idx - 1);
+        }
+        const target = displayedFlatRows[next];
         if (target) {
-          onMove(target);
+          setActiveSubtaskId(target.id);
+          setFocusedId(target.taskId);
           setTimeout(() => {
-            document.getElementById(`subtask-card-${target.id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            document
+              .getElementById(`subtask-card-${target.id}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }, 0);
         }
       } else if (e.key === " ") {
-        let row = activeSubtaskId ? allRows.find((s) => s.id === activeSubtaskId) : undefined;
-        if (!row && focusedId) row = allRows.find((s) => s.taskId === focusedId && !s.completed);
-        if (row) {
+        let target = activeSubtaskId ? subtaskRows.find((s) => s.id === activeSubtaskId) : undefined;
+        if (!target && focusedId) {
+          target = subtaskRows.find((s) => s.taskId === focusedId && !s.completed);
+        }
+        if (target) {
           e.preventDefault();
-          onToggleSubtask(row.taskId, row.id, row.completed);
+          handleToggleSubtask(target.taskId, target.id, target.completed);
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
-    inputOpen, modalOpen, paletteOpen, focusedId, activeSubtaskId, displayedRows, allRows,
-    onTogglePalette, onNewTask, onEscapeLadder, onMove, onToggleSubtask,
+    showInput,
+    detailSubtask,
+    congrats,
+    focusedId,
+    activeSubtaskId,
+    displayedFlatRows,
+    subtaskRows,
+    handleToggleSubtask,
+    setFocusedId,
+    setCommandPaletteOpen,
+    setShowInput,
+    setDetailSubtaskId,
+    setActiveSubtaskId,
+    commandPaletteOpen,
   ]);
 }

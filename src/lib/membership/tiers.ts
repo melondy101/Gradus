@@ -80,7 +80,6 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
       "每日 100 次新建 AI 规划全案拆解",
       "每日 500 次深度提示词微调修改",
       "最高优先级 AI 算力通道与零等待",
-      "专属间隔复习与长程认知推演",
       "全功能多设备无缝同步",
     ],
   },

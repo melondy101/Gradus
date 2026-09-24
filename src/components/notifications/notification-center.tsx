@@ -13,12 +13,13 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import {
-  fetchNotifications,
-  markNotificationRead,
-  clearNotifications,
-} from "@/lib/api/notifications";
+  clearAll,
+  markAllRead,
+  markRead,
+} from "@/features/notifications/store";
+import { useNotifications } from "@/features/notifications/use-notifications";
 import type { Notification } from "@/lib/db/schema";
-import { useEazo } from "@/lib/eazo-shim";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 function formatRelativeTime(dateInput: Date | string): string {
   const date = new Date(dateInput);
@@ -45,35 +46,15 @@ interface PopoverPosition {
 }
 
 export function NotificationCenter({ collapsed = false }: NotificationCenterProps) {
-  const user = useEazo((s) => s.auth.user);
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const { notifications, unreadCount, refresh } = useNotifications();
   const popoverRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
-
-  const loadData = useCallback(() => {
-    if (!user?.id) return;
-    fetchNotifications()
-      .then((res) => {
-        if (res?.ok) {
-          setNotifications(res.notifications || []);
-          setUnreadCount(res.unreadCount || 0);
-        }
-      })
-      .catch(() => {});
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    loadData();
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
-  }, [user?.id, loadData]);
 
   // 点击外部关闭
   useEffect(() => {
@@ -138,11 +119,7 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
 
   const handleMarkAllRead = async () => {
     try {
-      const res = await markNotificationRead(undefined, true);
-      if (res.ok) {
-        setNotifications(res.notifications);
-        setUnreadCount(res.unreadCount);
-      }
+      await markAllRead();
     } catch {
       // ignore
     }
@@ -151,11 +128,7 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
   const handleMarkSingleRead = async (item: Notification) => {
     if (!item.isRead) {
       try {
-        const res = await markNotificationRead(item.id);
-        if (res.ok) {
-          setNotifications(res.notifications);
-          setUnreadCount(res.unreadCount);
-        }
+        await markRead(item.id);
       } catch {
         // ignore
       }
@@ -167,13 +140,9 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
   };
 
   const handleClear = async () => {
-    if (!confirm("确定清空所有通知吗？")) return;
+    setClearConfirmOpen(false);
     try {
-      const res = await clearNotifications();
-      if (res.ok) {
-        setNotifications([]);
-        setUnreadCount(0);
-      }
+      await clearAll();
     } catch {
       // ignore
     }
@@ -201,8 +170,9 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
         ref={triggerRef}
         id="btn-notification-trigger"
         onClick={() => {
-          setOpen(!open);
-          if (!open) loadData();
+          const next = !open;
+          setOpen(next);
+          if (next) void refresh();
         }}
         aria-expanded={open}
         title="站内消息通知"
@@ -339,7 +309,7 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
               )}
               {notifications.length > 0 && (
                 <button
-                  onClick={handleClear}
+                  onClick={() => setClearConfirmOpen(true)}
                   title="清空通知"
                   style={{
                     background: "transparent",
@@ -517,6 +487,17 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
         document.body
       )
         : null}
+
+      <ConfirmDialog
+        open={clearConfirmOpen}
+        onClose={() => setClearConfirmOpen(false)}
+        onConfirm={handleClear}
+        title="确定清空所有通知吗？"
+        message="清空后通知列表将被移除，已关联的任务与会员权益不受影响。"
+        hint="CLEAR · 不可恢复"
+        confirmLabel="确认清空"
+        destructive
+      />
     </div>
   );
 }
