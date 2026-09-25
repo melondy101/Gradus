@@ -68,7 +68,6 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           activeSubtaskId={overlays.activeSubtaskId}
           focusedTaskId={panel.focusedId}
           highlightedSubtaskId={overlays.highlightedSubtaskId}
-          onOpenPalette={() => overlays.setCommandPaletteOpen(true)}
           onNewGoal={(goal) => panel.startAnalysis(goal)}
           onOpenDialog={() => overlays.setShowInput(true)}
           onOpenReport={() => {

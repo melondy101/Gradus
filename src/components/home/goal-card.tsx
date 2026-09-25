@@ -7,13 +7,15 @@
  * §1.4 硬指标：输入框与主按钮同为 56px 高、方圆角 12，故用 Input size="lg"
  * 与 Button variant="app" size="lg"（二者都落在 h-14 / rounded-field）。
  *
- * 两条真实出口：
+ * 一条真实出口：
  *   · 开始规划 → 直接进 AI 流水线（与旧「示例目标」按钮同一动作）
- *   · 标签与链接 → 打开完整新建对话框（保留标签选择与 URL 抓取提示能力）
+ *
+ * 输入为空时点「开始规划」会落到 onOpenDialog，完整新建对话框另有
+ * ⌘K / N / 顶栏按钮入口。
  */
 
 import { useState } from "react";
-import { Settings2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -68,16 +70,6 @@ export function GoalCard({ onSubmit, onOpenDialog }: Props) {
         <Button variant="app" size="lg" onClick={submit}>
           <Sparkles size={16} />
           <span>开始规划</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="px-[18px]"
-          onClick={() => onOpenDialog(trimmed)}
-          title="选择标签，或粘贴文章 / 视频 / 论文链接"
-        >
-          <Settings2 size={15} />
-          <span className="hidden lg:inline">标签与链接</span>
         </Button>
       </div>
 

@@ -2,23 +2,22 @@
 
 /**
  * 视图页头（《品牌与产品设计说明》§3 屏一，原 app.css `.main__head` `.main__tools`
- * `.main__search` `.icon-btn` `.avatar` 与 base.css `.h-page` `.eyebrow` `.mono`）。
- * 搜索按钮复用 ⌘K 指令面板（同一能力，不新建第二套搜索）；通知为站内消息中心。
+ * `.icon-btn` `.avatar` 与 base.css `.h-page` `.eyebrow` `.mono`）。
+ *
+ * 搜索与通知在此不收口：二者各自只在侧栏底部（桌面）与移动端顶栏保留一个入口，
+ * 页头只承担标题、日期和本周独有的「学习周报」。
  */
 
-import { ChartNoAxesCombined, Search } from "lucide-react";
+import { ChartNoAxesCombined } from "lucide-react";
 import { getResolvedLocale } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Heading } from "@/components/ui/heading";
-import { Tag } from "@/components/ui/badge";
-import { NotificationCenter } from "@/components/notifications/notification-center";
 
 interface Props {
   title: string;
   /** 眉题（标题上方），如「TODAY」 */
   eyebrow?: string;
-  onOpenPalette: () => void;
   /** 生成学习周报（有 stats 时屏一显示该按钮） */
   onOpenReport?: () => void;
 }
@@ -34,7 +33,7 @@ function todayLine(): string {
   return `${date} · 第 ${week} 周 · ${weekday}`;
 }
 
-export function ViewPageHead({ title, eyebrow, onOpenPalette, onOpenReport }: Props) {
+export function ViewPageHead({ title, eyebrow, onOpenReport }: Props) {
   return (
     <header className="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
       <div className="min-w-0">
@@ -53,23 +52,6 @@ export function ViewPageHead({ title, eyebrow, onOpenPalette, onOpenReport }: Pr
             <span className="sm:hidden">周报</span>
           </Button>
         )}
-
-        {/* 搜索触发器：与 ui/SearchField 同一套 utility（真正的检索在 ⌘K 面板里）。
-            移动端顶栏已有搜索图标，250px 宽的输入框只在中断以上出现。 */}
-        <button
-          type="button"
-          onClick={onOpenPalette}
-          aria-label="搜索任务、子任务、资源"
-          className="hidden h-10 items-center gap-2 rounded-field border border-bd-card bg-white px-[13px] text-left transition-[border-color,box-shadow] duration-[.16s] hover:border-ink focus-visible:border-ink focus-visible:shadow-[0_0_0_3px_rgba(245,197,24,.24)] focus-visible:outline-none md:flex md:w-[250px]"
-        >
-          <Search size={15} className="shrink-0 text-text-3" />
-          <span className="min-w-0 flex-1 truncate text-body text-text-3">
-            搜索任务、子任务、资源
-          </span>
-          <Tag className="px-[5px] py-px text-micro">⌘K</Tag>
-        </button>
-
-        <NotificationCenter />
       </div>
     </header>
   );

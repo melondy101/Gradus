@@ -49,7 +49,6 @@ interface Props {
   activeSubtaskId: string | null;
   focusedTaskId: string | null;
   highlightedSubtaskId: string | null;
-  onOpenPalette: () => void;
   onNewGoal: (goal: string) => void;
   onOpenDialog: (goal: string) => void;
   onOpenReport: () => void;
@@ -62,7 +61,7 @@ export function TodayView(props: Props) {
     todaySection, laterSections, totalRowCount, showOnlyPending, selectedTag,
     onToggleFilterPending, onClearTag, onOpen, onSelect, onToggle, onSkip, onPostpone,
     activeSubtaskId, focusedTaskId, highlightedSubtaskId,
-    onOpenPalette, onNewGoal, onOpenDialog, onOpenReport,
+    onNewGoal, onOpenDialog, onOpenReport,
   } = props;
 
   const rowHandlers = { onOpen, onSelect, onToggle, onSkip, onPostpone };
@@ -76,7 +75,6 @@ export function TodayView(props: Props) {
         <ViewPageHead
           title={t("home.viewToday", "今日面板")}
           eyebrow="TODAY"
-          onOpenPalette={onOpenPalette}
           onOpenReport={stats ? onOpenReport : undefined}
         />
 
