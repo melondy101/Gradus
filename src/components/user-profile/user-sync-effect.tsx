@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useCurrentUser, updateCurrentUser } from "@/lib/auth/user-provider";
-import { auth } from "@/lib/eazo-shim";
+import { auth } from "@/lib/auth-shim";
 import { toast } from "sonner";
 
 /**

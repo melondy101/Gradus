@@ -12,7 +12,7 @@ import type { CurrentUserView } from "./current-user";
  *   - 后续变更通过 `updateCurrentUser(next)` 模块级函数触发（登录/登出成功后）。
  *
  * 为什么用模块级 store + useSyncExternalStore：
- *   - 在 eazo-shim.ts 里 `auth.logout()`、`auth.refresh()` 不在 React 渲染
+ *   - 在 auth-shim.ts 里 `auth.logout()`、`auth.refresh()` 不在 React 渲染
  *     路径里被调用，没法走 Context Provider 的 setter。把 store 放在模块级
  *     让两者都能直接读写。
  *   - `useSyncExternalStore` 是 React 18+ 推荐订阅外部 store 的方式，避

@@ -8,7 +8,7 @@ import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import type { ThemeId } from "@/lib/theme-config";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
-import { useEazo } from "@/lib/eazo-shim";
+import { useSessionUser } from "@/lib/auth-shim";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 
 interface CommandPaletteProps {
@@ -32,7 +32,7 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { setThemeId } = useAppTheme();
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const isAdmin = isAdminUser(user);
 
   // Focus input when opened

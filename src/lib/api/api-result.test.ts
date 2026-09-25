@@ -6,7 +6,6 @@ import {
   unwrap,
   type ApiFetchTransport,
 } from "@/lib/api/result";
-import { AppAIClientUnavailableError } from "@/lib/api/app-ai-request";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -69,13 +68,6 @@ describe("apiFetch 统一契约", () => {
     const aborted = await apiFetch("/api/x");
     if (aborted.ok) throw new Error("expected failure");
     expect(aborted.kind).toBe("aborted");
-  });
-
-  test("app_ai_unavailable 专用错误原样上抛，不被吞成结果", async () => {
-    setApiFetchTransport(withTransport(async () => {
-      throw new AppAIClientUnavailableError();
-    }));
-    await expect(apiFetch("/api/x")).rejects.toBeInstanceOf(AppAIClientUnavailableError);
   });
 
   test("unwrap：ok 返回数据，失败抛 message", async () => {

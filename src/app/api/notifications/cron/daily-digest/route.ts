@@ -7,10 +7,9 @@ import { eq, sql } from "drizzle-orm";
  * Daily task reminder, triggered by `vercel.json#crons` and authenticated via
  * `CRON_SECRET`.
  *
- * Self-hosted mode: the original implementation fanned out a push through the
- * Eazo platform's `notifications` service, which is unavailable off-platform.
- * The cron still fires on schedule and computes the digest message; wire your
- * own delivery channel (email / web-push) here if you want real pushes.
+ * Self-hosted mode: pushes are delivered through our own channels. The cron
+ * still fires on schedule and computes the digest message; wire your own
+ * delivery channel (email / web-push) here if you want real pushes.
  */
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;

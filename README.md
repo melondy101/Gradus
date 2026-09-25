@@ -137,11 +137,15 @@ DATABASE_URL="postgresql://user:password@ep-xyz-pooler.us-east-2.aws.neon.tech/n
 # JWT 鉴权密钥（必须 ≥ 32 字符，使用 `openssl rand -hex 32` 生成）
 AUTH_SECRET="your-super-secret-jwt-key-at-least-32-chars-long"
 
-# AI 服务模式（BYOK: Bring Your Own Key）
-EAZO_AI_PROVIDER_MODE="byok"
+# AI 服务（二选一：Google Gemini，或 OpenAI 兼容端点）
+# 方式一：Gemini
+GEMINI_API_KEY="AIza..."
+# 方式二：BYOK（Bring Your Own Key），OpenAI 兼容 /chat/completions
 AI_PROVIDER_BASE_URL="https://api.deepseek.com/v1"
 AI_PROVIDER_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
 AI_PROVIDER_MODEL="deepseek-chat"
+# 可选：显式指定走哪条，缺省自动挑第一条可用的
+# AI_PROVIDER_MODE="gemini"
 
 # ==========================================
 # 可选项 (Optional Enhancements)

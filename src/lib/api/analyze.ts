@@ -1,8 +1,8 @@
 "use client";
 
 // /api/tasks/:id/analyze typed client（审计 §4.4：消灭 use-analysis-runner 的 request 半绕过）。
-// 流水线是长请求，必须支持 AbortSignal；app_ai_unavailable 由 request 层抛
-// AppAIClientUnavailableError，这里不拦截、原样上抛给 runner 的既有分支。
+// 流水线是长请求，必须支持 AbortSignal；网络/取消等错误由 apiFetch 归一到
+// ApiResult，这里原样返回给 runner 的阶段机分支。
 
 import { apiFetch } from "@/lib/api/result";
 import type { Subtask } from "@/lib/db/schema";

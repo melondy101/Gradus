@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { UserRound } from "lucide-react";
-import { auth, useEazo } from "@/lib/eazo-shim";
+import { auth, useSessionUser } from "@/lib/auth-shim";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
 import { AccountCenterModal } from "./account-center-modal";
 
 /** 侧栏账户入口：未登录时打开认证弹层，已登录时进入统一的个人中心。 */
 export function UserBadge() {
-  const user = useEazo((state) => state.auth.user);
+  const user = useSessionUser((state) => state.auth.user);
   const [open, setOpen] = useState(false);
 
   if (!user) {

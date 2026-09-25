@@ -128,7 +128,7 @@ export const THEMES: Record<ThemeId, ThemeConfig> = {
   },
 };
 
-/** 历史 4 主题 → 现 2 主题的迁移映射（含早期 Eazo/AutoTask 时期的键值） */
+/** 历史 4 主题 → 现 2 主题的迁移映射（含早期版本的键值） */
 export function normalizeThemeId(raw: string | null | undefined): ThemeId {
   if (raw === "ink" || raw === "linear") return "ink";
   if (raw === "forest" || raw === "ocean" || raw === "rose") return raw;

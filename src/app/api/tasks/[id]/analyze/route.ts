@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { rateLimit, acquireLock } from "@/lib/rate-limit";
-import { appAi } from "@/lib/eazo-ai-billing";
+import { appAi } from "@/lib/ai-client";
 import { resolveResources, type SearchIntent, type TrustableResource } from "@/lib/tavily";
 import { validateResources } from "@/lib/resource-validator";
 import { extractUrl, fetchUrlContent, formatContentForPrompt } from "@/lib/url-fetcher";
@@ -68,7 +68,6 @@ async function callAI(
   timeoutMs = 45000
 ): Promise<string> {
   const streamPromise = appAi.chat({
-    model: process.env.EAZO_AI_MODEL_KEY || "deepseek.v3.2",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userMessage },

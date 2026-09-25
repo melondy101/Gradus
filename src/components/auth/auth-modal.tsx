@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, UserPlus, LogIn, Send } from "lucide-react";
-import { auth } from "@/lib/eazo-shim";
+import { auth } from "@/lib/auth-shim";
 import {
   getAuthConfig,
   loginWithCredentials,
@@ -337,38 +337,36 @@ export function AuthModal({
           {isRegister ? "注册并开始" : "登录"}
         </button>
 
-        {/* 观猹 OAuth 快捷登录（仅在服务端检测到配置了 WATCHA_CLIENT_ID 时呈现） */}
-        {authConfig.watchaEnabled && (
-          <div className="pt-2 space-y-3">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <span className="relative bg-background px-2 text-[11px] text-muted-foreground">
-                或使用第三方平台
-              </span>
+        {/* 观猹 OAuth 快捷登录：不做配置探测，始终呈现；未配置时由回调路由给出明确错误 */}
+        <div className="pt-2 space-y-3">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
             </div>
-
-            <a
-              href="/api/auth/oauth/watcha"
-              onClick={startWatchaLogin}
-              aria-disabled={submitting || watchaRedirecting}
-              className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
-            >
-              {watchaRedirecting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Image
-                  src="/watcha-logo.svg"
-                  alt="观猹"
-                  width={20}
-                  height={20}
-                />
-              )}
-              {watchaRedirecting ? "正在前往观猹授权…" : "使用观猹账号快捷登录"}
-            </a>
+            <span className="relative bg-background px-2 text-[11px] text-muted-foreground">
+              或使用第三方平台
+            </span>
           </div>
-        )}
+
+          <a
+            href="/api/auth/oauth/watcha"
+            onClick={startWatchaLogin}
+            aria-disabled={submitting || watchaRedirecting}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
+          >
+            {watchaRedirecting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Image
+                src="/watcha-logo.svg"
+                alt="观猹"
+                width={20}
+                height={20}
+              />
+            )}
+            {watchaRedirecting ? "正在前往观猹授权…" : "使用观猹账号快捷登录"}
+          </a>
+        </div>
 
         <p className="text-center text-xs text-muted-foreground pt-1">
           {isRegister ? (

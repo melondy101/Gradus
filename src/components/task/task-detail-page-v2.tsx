@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { auth, memory, useEazo } from "@/lib/eazo-shim";
+import { auth, useSessionUser } from "@/lib/auth-shim";
 import {
   getTask,
   updateTaskTagsApi,
@@ -33,7 +33,7 @@ interface TaskDetailPageProps {
  */
 export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
   const { t } = useTranslation();
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const task = useTaskById(taskId);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
   const pinnedId = sel.taskId === taskId ? sel.id : null;
   const dismissed = sel.taskId === taskId ? sel.dismissed : false;
 
-  // 依赖 user?.id（稳定字符串）而非 user 对象：useEazo 每次渲染重建 user 引用，
+  // 依赖 user?.id（稳定字符串）而非 user 对象：useSessionUser 每次渲染重建 user 引用，
   // 直接依赖 user 会让 effect 在每次渲染后重跑，形成无限拉取循环（频闪 + 误报网络异常）。
   const userId = user?.id;
   useEffect(() => {
@@ -89,15 +89,8 @@ export function TaskDetailPage({ taskId }: TaskDetailPageProps) {
         },
       });
       if (!outcome.ok) return;
-
-      memory
-        .reportAction({
-          content: `User ${next ? "completed" : "uncompleted"} subtask in task "${task?.title ?? ""}"`,
-          event_type: next ? "complete" : "update",
-        })
-        .catch(() => {});
     },
-    [taskId, task?.title, showToast, t]
+    [taskId, showToast, t]
   );
 
   const handleUpdateTags = useCallback(

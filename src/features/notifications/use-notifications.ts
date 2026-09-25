@@ -5,7 +5,7 @@
 // 引用计数启停轮询，以及提供弹层打开时的强制刷新。
 
 import { useEffect, useSyncExternalStore } from "react";
-import { useEazo } from "@/lib/eazo-shim";
+import { useSessionUser } from "@/lib/auth-shim";
 import {
   acquireNotificationsPolling,
   getNotificationsSnapshot,
@@ -15,7 +15,7 @@ import {
 } from "./store";
 
 export function useNotifications() {
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const userId = user?.id ?? null;
 
   useEffect(() => acquireNotificationsPolling(), []);

@@ -6,7 +6,7 @@ import { Modal } from "@/components/ui/modal";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { THEMES, type ThemeId } from "@/lib/theme-config";
-import type { User } from "@/lib/eazo-shim";
+import type { User } from "@/lib/db/schema";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
 
 interface AccountCenterModalProps {

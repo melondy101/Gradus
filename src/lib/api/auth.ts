@@ -1,6 +1,6 @@
 "use client";
 
-// auth 族 typed client（审计 §4.4：消灭 auth-modal / eazo-shim 里的 4 处裸 fetch）。
+// auth 族 typed client（审计 §4.4：消灭 auth-modal / auth-shim 里的 4 处裸 fetch）。
 // 服务端这些端点用 { ok, error } JSON 信封表达业务失败，HTTP 状态另有语义
 // （429 限流等），这里原样透出 ApiResult 由调用方分支。
 

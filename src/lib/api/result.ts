@@ -2,8 +2,7 @@
 
 // 统一 API 契约（审计 §4.4）：数据服务层每个端点走 apiFetch，返回可判别的
 // ApiResult<T>，组件层不再直接摆弄 Response / 裸 throw 文本。
-// 网络/中断/401 三类边界显式建模；app_ai_unavailable 的 402 toast 仍由
-// request→appAIRequest 层抛专用错误，这里原样上抛，不吞成 http 错误。
+// 网络/中断/401 三类边界显式建模。
 
 export type ApiErrorKind = "http" | "network" | "aborted";
 
@@ -24,8 +23,8 @@ export type ApiFetchTransport = (
   init?: RequestInit,
 ) => Promise<Response>;
 
-// 默认走 request()（x-app-locale 头 + appAIRequest 的 402 兜底）。
-// 懒加载：request 链路会带进 eazo-shim/i18n/sonner，单元测试注入 transport 时不必加载。
+// 默认走 request()（x-app-locale 头）。
+// 懒加载：request 链路会带进 i18n/sonner，单元测试注入 transport 时不必加载。
 let transport: ApiFetchTransport | null = null;
 
 export function setApiFetchTransport(next: ApiFetchTransport | null): void {
@@ -70,10 +69,6 @@ export async function apiFetch<T = unknown>(
   try {
     res = await send(input, init);
   } catch (err) {
-    const { AppAIClientUnavailableError } = await import(
-      "@/lib/api/app-ai-request"
-    );
-    if (err instanceof AppAIClientUnavailableError) throw err;
     if (err instanceof Error && err.name === "AbortError") {
       return { ok: false, kind: "aborted", status: null, message: "请求已取消", response: null };
     }

@@ -128,9 +128,9 @@
 
 ### 客户端 store 改造
 
-- **`src/lib/eazo-shim.ts`**：删除 `DEMO_USER` 常量；`STATE.auth.user = null`；`useEazo` 改成从 `<UserProvider>` 注入的真实值读取（移除模块级 STATE）。
+- **`src/lib/auth-shim.ts`**：删除 `DEMO_USER` 常量；`STATE.auth.user = null`；`useSessionUser` 改成从 `<UserProvider>` 注入的真实值读取（移除模块级 STATE）。
 - **`src/app/layout.tsx`**：根布局改为 `async`，调用 `getCurrentUser(request)`，把 `user` 作为 props 传给 `<UserProvider>`；删除 `<UserSyncEffect>`（其原有"客户端补打 `/api/user/profile`"逻辑在 H3 双源策略下不再需要）。
-- **新增 `src/lib/auth/user-provider.tsx`**：RSC-safe 的 Context Provider，把 server-side 注入的 `user` 透传到客户端 `useEazo(selector)`。
+- **新增 `src/lib/auth/user-provider.tsx`**：RSC-safe 的 Context Provider，把 server-side 注入的 `user` 透传到客户端 `useSessionUser(selector)`。
 
 ### 限流实现
 
@@ -163,7 +163,7 @@
 2. **Phase 2 · 服务端 auth lib** —— 新建 `jwt.ts` / `password.ts` / `cookie.ts` / `temp-account.ts` / `ratelimit.ts` / `current-user.ts`，纯函数层不挂 HTTP。
 3. **Phase 3 · requireAuth + middleware** —— `requireAuth` 切到 JWT；新建 `src/proxy.ts`，自动建临时账号；scheduler 同步修。
 4. **Phase 4 · 公开 auth API** —— 4 个新路由（register/login/logout/me）。
-5. **Phase 5 · 客户端 auth store + `<UserProvider>`** —— `eazo-shim.ts` 重写；根布局 RSC 注入；删除 `UserSyncEffect`。
+5. **Phase 5 · 客户端 auth store + `<UserProvider>`** —— `auth-shim.ts` 重写；根布局 RSC 注入；删除 `UserSyncEffect`。
 6. **Phase 6 · UI 登录/注册 modal** —— 在用户徽章区加按钮，触发 modal，吐司提示。
 7. **Phase 7 · 数据迁移 + env 清理** —— 跑一次迁移脚本（demo 行 → 保留账号，或全清）；改 `.env.example`。
 8. **Phase 8 · AGENTS.md / README.md 改写** —— 文档同步。
@@ -228,7 +228,7 @@
 
 ### 与 PRD/AGENTS.md 的差异
 
-- **PRD.md §4.4 / §5 / §6.3** 当前描述的是 Eazo 平台 SDK 鉴权（`x-eazo-session` header）。本次改造**完全替换**这段机制，从 SDK 模型切到自托管 JWT cookie。PRD 改动在 Phase 8 文档改写时一并覆盖。
+- **PRD.md §4.4 / §5 / §6.3** 当前描述的是早期平台 SDK 鉴权。本次改造**完全替换**这段机制，从 SDK 模型切到自托管 JWT cookie。PRD 改动在 Phase 8 文档改写时一并覆盖。
 - **AGENTS.md §11** 整段重写。
 - **README.md** 增加「认证」小节。
 

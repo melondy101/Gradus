@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Noto_Sans_SC, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { EazoProvider } from "@/lib/eazo-shim";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
 import { GlobalMembershipModal } from "@/components/membership/global-membership-modal";
 import { GlobalUpdateModal } from "@/components/update/global-update-modal";
@@ -112,16 +111,14 @@ export default async function RootLayout({
         <I18nProvider>
           <ThemeProvider>
             <UserProvider user={user}>
-              <EazoProvider>
-                <LocaleSyncEffect />
-                <UserSyncEffect />
-                {children}
-                <GlobalAuthModal />
-                <GlobalMembershipModal />
-                <GlobalUpdateModal />
-                <Toaster />
-                <Analytics />
-              </EazoProvider>
+              <LocaleSyncEffect />
+              <UserSyncEffect />
+              {children}
+              <GlobalAuthModal />
+              <GlobalMembershipModal />
+              <GlobalUpdateModal />
+              <Toaster />
+              <Analytics />
             </UserProvider>
           </ThemeProvider>
         </I18nProvider>

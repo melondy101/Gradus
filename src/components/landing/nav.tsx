@@ -9,7 +9,7 @@ import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
 import { APP_URL } from "./links";
-import { auth } from "@/lib/eazo-shim";
+import { auth } from "@/lib/auth-shim";
 
 /** 锚点链接组 —— id 与各 section 元素的 id 一一对应 */
 const NAV_LINKS = [

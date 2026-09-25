@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useEazo } from "@/lib/eazo-shim";
+import { useSessionUser } from "@/lib/auth-shim";
 import {
   useSubtaskRowById,
   useSubtaskRows,
@@ -29,7 +29,7 @@ import { useHomeTaskToggle } from "./use-home-task-toggle";
  * 布局 = HomeWorkspace（中央列 + 右栏）与 IconRail。
  */
 export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const [currentView, setCurrentView] = useState<NavView>(initialView);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 

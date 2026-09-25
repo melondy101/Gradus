@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AuthModal } from "./auth-modal";
-import { registerOpenAuth } from "@/lib/eazo-shim";
+import { registerOpenAuth } from "@/lib/auth-shim";
 
 /**
  * 全局唯一登录/注册弹窗。

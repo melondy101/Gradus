@@ -7,28 +7,27 @@
 
 ## 1. 项目概览
 
-一款面向自主学习者的 AI 学习任务规划器：用户输入一个模糊目标 → AI 拆解为带排期、资源、甘特图的可执行子任务，并自动核查修订、全局接续排期。已从 Eazo 平台解耦，可独立部署到任意支持 Next.js 的托管平台。
+一款面向自主学习者的 AI 学习任务规划器：用户输入一个模糊目标 → AI 拆解为带排期、资源、甘特图的可执行子任务，并自动核查修订、全局接续排期。自托管部署，可独立跑在任意支持 Next.js 的托管平台。
 
 技术栈与运行命令见 README.md，此处不再重复。
 
 ---
 
-## 2. 平台解耦（重要，先读这一节）
+## 2. 自托管架构（重要，先读这一节）
 
-代码源自 Eazo 平台模板，但现已自托管。三处兼容层保留了原模板的导入形态，但底层实现是自托管的：
+本项目完全自托管，不依赖任何第三方平台 SDK。三处模块保留了早期模板的调用形态，但底层都是自托管实现：
 
-- **`src/lib/eazo-shim.ts`** — 替换 `@eazo/sdk/react`：
-  - `EazoProvider`：纯 passthrough（直接返回 children）。
+- **`src/lib/auth-shim.ts`** — 客户端会话层：
+  - `useSessionUser(selector)`：从 `<UserProvider>` 注入的模块级 store 读真实 user。`adaptUser` 按 `id/email/name` **缓存同一对象引用**，所以 `useSessionUser(s => s.auth.user)` 在同用户下返回稳定引用。⚠️ 把 `user` 对象直接放进 `useEffect` 依赖数组仍是大忌——务必依赖 `user?.id`（稳定字符串），否则任一上下文 hook 返回新引用都会触发无限重拉循环（home/task-detail 均已踩过）。
   - `auth`：单例。`login(mode?)` 触发全局 `<AuthModal>`（注册/登录弹窗），不再直接发网络请求；`logout()` 调 `/api/auth/logout` 并清本地 user；`refresh()` 重新拉 `/api/auth/me` 同步 user。
-  - `memory`：`reportAction()` 为 no-op（平台长期记忆在站外不可用）。
-  - `useEazo(selector)`：从 `<UserProvider>` 注入的模块级 store 读真实 user。`adaptUser` 按 `id/email/name` **缓存同一对象引用**，所以 `useEazo(s => s.auth.user)` 在同用户下返回稳定引用。⚠️ 把 `user` 对象直接放进 `useEffect` 依赖数组仍是大忌——务必依赖 `user?.id`（稳定字符串），否则任一上下文 hook 返回新引用都会触发无限重拉循环（home/task-detail 均已踩过）。
   - **真实登录态**：每个访客都是 JWT cookie 解析出的独立 user；没有 cookie 时由 middleware 兜底建临时账号。
-- **`src/lib/auth/index.ts`** — 替换 `@eazo/sdk/server` 的 `requireAuth`：解析 `__Host-session` cookie → JWT 校验 → 查 users → 返回 `{ ok, user, userId }`。所有受保护路由第一行调用 `await requireAuth(request)`。
-- **`src/lib/eazo-ai-billing.ts`** — `appAi.chat()` 客户端，两种模式：
-  - `byok`（`EAZO_AI_PROVIDER_MODE=byok`，自托管默认）：直连 `AI_PROVIDER_BASE_URL` 的 OpenAI 兼容 `/v1/chat/completions`。
-  - `eazo`（平台）：走 Eazo Creator Proxy（`EAZO_APP_AI_API_BASE`）。自托管不需要。
+- **`src/lib/auth/index.ts`** — 服务端鉴权：解析 `__Host-session` cookie → JWT 校验 → 查 users → 返回 `{ ok, user, userId }`。所有受保护路由第一行调用 `await requireAuth(request)`。
+- **`src/lib/ai-client.ts`** — AI 客户端，两种模式：
+  - `gemini`（默认优先）：设了 `GEMINI_API_KEY`（或 `AI_PROVIDER_API_KEY`）即走 Google GenAI，默认模型 `gemini-2.5-flash`。
+  - `byok`：`AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`，OpenAI 兼容的 `/chat/completions`。
+  - 用 `AI_PROVIDER_MODE=gemini|byok` 可显式指定；缺省按上面顺序自动挑第一条可用的。两条都没配好时抛出带可读文案的 Error。
 
-> 关键事实：`package.json` 中**已无 `@eazo/sdk` 依赖**。UI / 路由里 import 的 `EazoProvider`、`useEazo`、`requireAuth`、`appAi` 全部来自上述自托管 shim，不依赖任何平台 SDK。其余平台能力（notifications.push、object storage）在自托管模式下未实现，相关代码多为 no-op 或占位。
+> 关键事实：`package.json` 中没有任何平台 SDK 依赖。UI / 路由里 import 的 `useSessionUser`、`requireAuth`、`auth.*` 全部来自上述自托管模块。浏览器侧会话完全靠 `__Host-session` cookie 自动携带，**不需要也不要在客户端注入任何 session header**。
 
 ---
 
@@ -44,7 +43,7 @@ src/components/     ui/（原子件，见 §13）、home/、task/、landing/、l
                     membership/、share/、errors/、user-profile/、i18n/
 src/lib/            auth/ db/ api/ ai/ fetchers/ i18n/ mcp/ + scheduler.ts tavily.ts
                     resource-validator.ts url-fetcher.ts growth.ts task-tags.ts safe-url.ts
-                    eazo-shim.ts eazo-ai-billing.ts（平台解耦兼容层，见 §2）
+                    auth-shim.ts ai-client.ts（自托管会话与 AI 客户端，见 §2）
 src/app/globals.css 品牌令牌（@theme）+ keyframes + iOS 输入字号兜底。**不放组件样式**
 src/middleware.ts   兜底建临时账号 + 滑动续期（matcher 见 §11.1）
 output/             设计真源（见 §14），已随 test(design) commit 入库；改界面前先读它，别凭记忆
@@ -80,7 +79,7 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 
 ## 5. 环境变量
 
-见 [.env.example](./.env.example)。**必填**：`DATABASE_URL`、`AUTH_SECRET`（≥ 32 字符；**惰性校验**——构建期不报错，仅运行时首次签发/校验 JWT 时强制，缺失则相关请求 503）、`EAZO_AI_PROVIDER_MODE=byok`、`AI_PROVIDER_BASE_URL`、`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL`。**可选**：`TAVILY_API_KEY`（无则资源降级为 search_only 跳转）、`NEXT_PUBLIC_APP_TITLE/DESCRIPTION`、`CRON_SECRET`（Vercel Cron 与 `/api/cron/cleanup` 的 `Bearer`）、`AI_MAX_TOKENS`、`GEMINI_API_KEY`。**邮箱验证码**（`/api/auth/send-code`）：`QQ_EMAIL_USER`、`QQ_EMAIL_PASS`（SMTP 授权码，非登录密码）、`SMTP_HOST`、`SMTP_PORT`（默认 465）、`EMAIL_FROM`。**Watcha OAuth 登录**（`/api/auth/oauth/watcha`）：`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`、`WATCHA_AUTH_URL`、`WATCHA_TOKEN_URL`、`WATCHA_USERINFO_URL`、`WATCHA_REDIRECT_URI`。**Android 热更新检查**（`/api/app/check-update`）：`GITHUB_TOKEN`（仅代码引用，`.env.example` 未列）。生成命令：`openssl rand -hex 32`。
+见 [.env.example](./.env.example)。**必填**：`DATABASE_URL`、`AUTH_SECRET`（≥ 32 字符；**惰性校验**——构建期不报错，仅运行时首次签发/校验 JWT 时强制，缺失则相关请求 503）、AI 二者之一（`GEMINI_API_KEY`，或 `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`）。**可选**：`AI_PROVIDER_MODE`（`gemini|byok`，缺省自动挑第一条可用的）、`TAVILY_API_KEY`（无则资源降级为 search_only 跳转）、`NEXT_PUBLIC_APP_TITLE/DESCRIPTION`、`CRON_SECRET`（Vercel Cron 与 `/api/cron/cleanup` 的 `Bearer`）、`AI_MAX_TOKENS`。**邮箱验证码**（`/api/auth/send-code`）：`QQ_EMAIL_USER`、`QQ_EMAIL_PASS`（SMTP 授权码，非登录密码）、`SMTP_HOST`、`SMTP_PORT`（默认 465）、`EMAIL_FROM`。**Watcha OAuth 登录**（`/api/auth/oauth/watcha`）：`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`、`WATCHA_AUTH_URL`、`WATCHA_TOKEN_URL`、`WATCHA_USERINFO_URL`、`WATCHA_REDIRECT_URI`。**Android 热更新检查**（`/api/app/check-update`）：`GITHUB_TOKEN`（仅代码引用，`.env.example` 未列）。生成命令：`openssl rand -hex 32`。
 
 ---
 
@@ -88,8 +87,8 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 
 | 功能 | 主要文件 |
 |---|---|
-| 认证 / 用户 | `src/lib/auth/*`（index/jwt/password/cookie/temp-account/ratelimit/current-user/user-provider/env）、`src/middleware.ts`、`src/lib/eazo-shim.ts`、`src/components/user-profile/user-badge.tsx`、`src/components/auth/auth-modal.tsx`、`src/app/api/auth/*`、`src/app/api/user/profile/route.ts`、`src/app/api/user/stats/route.ts` |
-| AI 流水线 | `src/app/api/tasks/[id]/analyze/route.ts`、`src/lib/ai/prompts.ts`、`src/lib/eazo-ai-billing.ts` |
+| 认证 / 用户 | `src/lib/auth/*`（index/jwt/password/cookie/temp-account/ratelimit/current-user/user-provider/env）、`src/middleware.ts`、`src/lib/auth-shim.ts`、`src/components/user-profile/user-badge.tsx`、`src/components/auth/auth-modal.tsx`、`src/app/api/auth/*`、`src/app/api/user/profile/route.ts`、`src/app/api/user/stats/route.ts` |
+| AI 流水线 | `src/app/api/tasks/[id]/analyze/route.ts`、`src/lib/ai/prompts.ts`、`src/lib/ai-client.ts` |
 | 资源检索 | `src/lib/tavily.ts`（resolveResources）、`src/lib/resource-validator.ts`、`src/lib/url-fetcher.ts`、`src/lib/fetchers/*` |
 | 排期 | `src/lib/scheduler.ts`（`computeNewTaskStartDate` / `findNextAvailableDay` / `validateBloomSequence` / `suggestReviewNodes` / `registerDailySlot`） |
 | 数据库 | `src/lib/db/schema/*`、`src/lib/db/queries/*`、`src/lib/db/client.ts`、`src/lib/db/migrate.ts`、`src/lib/db/migrations/` |
@@ -186,7 +185,7 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 
 1. **Edge / Server Middleware（`src/middleware.ts`）** — match `/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)`：未带合法 cookie 的请求自动 `createTempAccount()` + 签 JWT + Set-Cookie；合法 cookie 的请求每次刷新 Max-Age（**滑动续期 30 天**）。⚠ matcher 里预留的 `calendar/subscribe` **目前没有对应路由**（见 §15 日历导出待办），别以为它已经存在。
 2. **`requireAuth(request)`（`src/lib/auth/index.ts`）** — 解析 cookie → `verifySession` → 查 users → 返回 `{ ok, user, userId }` 或抛 401。**所有受保护路由 handler 第一行 await。**
-3. **RSC `<UserProvider>`（`src/lib/auth/user-provider.tsx` + `src/app/layout.tsx`）** — 根布局在 RSC 阶段直接调 `getCurrentUser()` 解出 user，作为 props 注入 `<UserProvider user={user}>`，客户端 `useEazo()` 读 Context，**首屏零闪烁**。
+3. **RSC `<UserProvider>`（`src/lib/auth/user-provider.tsx` + `src/app/layout.tsx`）** — 根布局在 RSC 阶段直接调 `getCurrentUser()` 解出 user，作为 props 注入 `<UserProvider user={user}>`，客户端 `useSessionUser()` 读同一份 store，**首屏零闪烁**。
 
 ### 11.2 协议与存储
 
@@ -239,7 +238,7 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 ## 14. 项目规则 / 发布前检查
 
 - 优先用 Bun 跑安装与脚本。
-- 不要深入 `@eazo/sdk` 内部（自托管下根本不存在该依赖）。
+- 不要引入第三方平台 SDK（本项目自托管，无任何平台依赖）。
 - AI 只在服务端 `src/app/api/` 调用。
 - 发布前：`bun run lint` && `bun run build` 必须通过。
 - 设计保真有五道闸门（前四道对着浏览器量 computed 值，第五道是静态扫描），全部对着 `output/拾级Gradus-设计预览.html`（设计真源），不靠肉眼比对：

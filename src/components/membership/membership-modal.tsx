@@ -20,7 +20,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
-import { auth } from "@/lib/eazo-shim";
+import { auth } from "@/lib/auth-shim";
 import {
   fetchUserMembership,
   redeemCode,
@@ -28,7 +28,7 @@ import {
 } from "@/lib/api/membership";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
 import { CodeManagerTab } from "./code-manager-tab";
-import { useEazo } from "@/lib/eazo-shim";
+import { useSessionUser } from "@/lib/auth-shim";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 import { Modal } from "@/components/ui/modal";
 
@@ -45,7 +45,7 @@ export function MembershipModal({
   initialTab = "overview",
   onClose,
 }: Props) {
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const isAdmin = isAdminUser(user);
 
   const [activeTab, setActiveTab] = useState<MembershipModalTab>(

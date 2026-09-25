@@ -1,12 +1,11 @@
 "use client";
 
-// Self-hosted drop-in shim for @eazo/sdk / @eazo/sdk/react.
+// Self-hosted auth/session 兼容层。
 //
-// AutoTask was originally built to run inside the Eazo platform. After we
-// moved to JWT cookie sessions (see docs/plans/2026-08-14-multi-user-isolation.md)
-// the shim no longer owns auth state — it just surfaces the user that the
-// server-injected <UserProvider> supplies, so all existing `useEazo(...)`
-// and `auth.*` consumers keep working without code changes.
+// 早期代码跑在第三方平台里，鉴权由平台 SDK 提供。迁到自托管 JWT cookie
+// 会话（见 docs/plans/2026-08-14-multi-user-isolation.md）之后，这里不再
+// 持有任何平台状态，只负责把服务端注入的 <UserProvider> 里的 user 透出来，
+// 让既有的 `useSessionUser(...)` 与 `auth.*` 调用点无需改动即可继续工作。
 
 import {
   useCurrentUser,
@@ -17,8 +16,6 @@ import { fetchMe, logoutSession } from "@/lib/api/auth";
 import type { CurrentUserView } from "@/lib/auth/current-user";
 import type { User } from "@/lib/db/schema";
 
-export type { User, CurrentUserView };
-
 /**
  * Adapter: `CurrentUserView` (auth/current-user.ts) → `User` (db schema).
  *
@@ -28,9 +25,9 @@ export type { User, CurrentUserView };
  * this path.
  */
 // 缓存上一次适配结果，按 id/email/name 判定是否复用同一对象引用。
-// 关键：useEazo(s => s.auth.user) 在每次渲染都会调用 adaptUser，若不缓存，
+// 关键：useSessionUser(s => s.auth.user) 在每次渲染都会调用 adaptUser，若不缓存，
 // 每次都返回新 User 对象 → 所有把 user 放进 useEffect 依赖数组的组件都会在
-// 每次渲染后重跑 effect，形成“渲染→拉取→setState→渲染”的无限循环
+// 每次渲染后重跑 effect，形成"渲染→拉取→setState→渲染"的无限循环
 // （表现为左侧列表/进度频闪、疯狂轮询 /api/subtasks、误报网络异常）。
 let cachedUserView: CurrentUserView | null = null;
 let cachedUser: User | null = null;
@@ -70,7 +67,7 @@ function adaptUser(view: CurrentUserView | null): User | null {
   return cachedUser;
 }
 
-type EazoState = {
+type SessionState = {
   auth: { user: User | null; authenticated: boolean };
   device: { platform: "web" | "mobile" };
 };
@@ -89,13 +86,16 @@ export function registerOpenAuth(handler: OpenAuthHandler | null): void {
 }
 
 /**
- * Selector hook — preserves the existing @eazo/sdk/react API surface
- * (`useEazo((s) => s.auth.user)`) so we don't have to rewrite every
- * consumer. Internally it just reads the SSR-injected user.
+ * Selector hook —— 从 `<UserProvider>` 注入的模块级 store 读真实 user。
+ * `adaptUser` 按 id/email/name **缓存同一对象引用**，所以
+ * `useSessionUser(s => s.auth.user)` 在同用户下返回稳定引用。
+ * ⚠️ 把 `user` 对象直接放进 `useEffect` 依赖数组仍是大忌——务必依赖
+ * `user?.id`（稳定字符串），否则任一上下文 hook 返回新引用都会触发无限重拉
+ * 循环（home/task-detail 均已踩过）。
  */
-export function useEazo<T>(selector: (s: EazoState) => T): T {
+export function useSessionUser<T>(selector: (s: SessionState) => T): T {
   const user = adaptUser(useCurrentUser());
-  const state: EazoState = {
+  const state: SessionState = {
     auth: {
       user,
       authenticated: user !== null,
@@ -106,11 +106,10 @@ export function useEazo<T>(selector: (s: EazoState) => T): T {
 }
 
 /**
- * Auth singleton — mirrors `@eazo/sdk`'s `auth.login()` / `auth.logout()` /
- * `auth.user` API.
+ * Auth singleton —— `auth.login()` / `auth.logout()` / `auth.user`。
  *
  * Note: `auth.user` 是一次性读快照，并不是 reactive 的；要订阅用
- * `useEazo(s => s.auth.user)` 即可。
+ * `useSessionUser(s => s.auth.user)` 即可。
  */
 export const auth = {
   get user(): User | null {
@@ -159,18 +158,4 @@ export const auth = {
 // 注意：此函数不以 `use` 开头，因为它不是 React Hook，只是读取模块级快照。
 function readCurrentUserSnapshot(): CurrentUserView | null {
   return getCurrentUserSnapshot();
-}
-
-/** Mirrors `@eazo/sdk`'s `memory` singleton. */
-export const memory = {
-  async reportAction(_input: { content: string; event_type: string }): Promise<void> {
-    // Platform-owned long-term memory is unavailable off-platform.
-  },
-};
-
-/**
- * Drop-in for `@eazo/sdk/react`'s `EazoProvider` — a pure passthrough.
- */
-export function EazoProvider({ children }: { children: React.ReactNode }) {
-  return children;
 }

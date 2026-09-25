@@ -50,7 +50,7 @@
 
 **设计与信息层级（明细见 §3）：** z-index 三套体系互不知晓（登录框会被指令面板压住）；弹层遮罩 5 种写法；toast 三套系统并存；任务卡四视图四种圆角；98 个裸 `<button>`；`text-[Npx]` 约 280 处；JS 令牌镜像 `design-tokens.ts` fallback 与 CSS 值已漂移（`.14` vs `.16`）。
 
-**状态管理（明细见 §4）：** 子任务四份可变副本且 postpone 漏更三份；`useEazo().loading` 恒 false 导致多处骨架屏死分支；`useUserStats` 不依赖 user，切换账号后统计不刷新；列表拉取无 abort/序号守卫。
+**状态管理（明细见 §4）：** 子任务四份可变副本且 postpone 漏更三份；`useSessionUser(s => s.auth.authenticated)` 恒 true 导致多处骨架屏死分支；`useUserStats` 不依赖 user，切换账号后统计不刷新；列表拉取无 abort/序号守卫。
 
 #### P2 —— 打磨项（节选，全量见 §3/§5 表）
 
@@ -327,7 +327,7 @@ HomeScreen (编排, 0 fetch)
 ### Phase 3 · 状态与数据流收敛（5-8 天，高风险：核心链路，放最后）
 - **范围**：`features/tasks/store.ts` 规范化 store（Map 双表 + selector），消灭 4 副本；postpone/勾选全走统一 mutation hooks（乐观+回滚+撤销）；`use-user-stats`/`use-notifications` 提为模块级单例订阅（首屏 9→≤5 请求，轮询 2→1）；`lib/api` 补 auth/user-stats/analyze typed client + 统一 `ApiResult<T>`；home-page.tsx 按 §5.3 拆至 <150 行；`startDay` 语义统一为 absolute 日期出层；领域改名（planStatus/progressStatus/runState）；（可选决策）review_nodes 落库 + `subtasks.kind` 字段 + 迁移。
 - **依赖**：Phase 0-2（store 收敛后改 UI 才安全；命名收敛与领域决策一起做）。**风险**：高——打卡/分析主链路，需 parity-probe 全流程手测 + 每勾选时序回归。
-- **验收**：Network 面板首屏 ≤5 请求、打勾 0 额外 stats 请求；快速切换视图/账号无陈旧闪现；postpone 后天梯/甘特/弹窗三处日期同步；`useEazo().loading` 真实化或删死分支。
+- **验收**：Network 面板首屏 ≤5 请求、打勾 0 额外 stats 请求；快速切换视图/账号无陈旧闪现；postpone 后天梯/甘特/弹窗三处日期同步；`authenticated` 真实化或删死分支。
 
 ### Phase 4 · 打磨（随需）
 i18n 补齐（auth-modal 37 串起）、骨架屏家族、侧栏折叠语义、落地页版本徽标真实化、快捷键遮罩抑制、`--duration` 全局替换。

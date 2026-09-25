@@ -270,7 +270,7 @@ Subtask.completed:
 
 ### 4.4 认证流程（*已替换为自托管 JWT cookie 模型*）
 
-自托管版不再使用 `@eazo/sdk` 的登录 UI / Bridge handshake。当前流程：
+自托管版使用自建登录 UI（`<AuthModal>`）+ JWT cookie 会话。当前流程：
 
 ```
 Web 浏览器（首次访问，无 cookie）：
@@ -515,8 +515,7 @@ const userId = auth.user.id; // string，来自 JWT (jose) → users.id 查库
 import { request } from "@/lib/api/request";
 const res = await request("/api/tasks");
 // → 自动添加 "x-app-locale": getResolvedLocale()
-// → 自动处理 402 app_ai_unavailable → Sonner toast
-// （不再注入 x-eazo-session —— cookie 由浏览器自动附带）
+// → session 走 __Host-session cookie，浏览器自动附带，无需客户端注入 header
 ```
 
 ### 6.4 MCP 工具（`/api/mcp`）
@@ -532,7 +531,7 @@ const res = await request("/api/tasks");
 #### `users` 表
 ```sql
 CREATE TABLE users (
-  id          VARCHAR(128) PRIMARY KEY,   -- Eazo 平台 userId
+  id          VARCHAR(128) PRIMARY KEY,   -- 用户 id（注册/OAuth/临时账号）
   email       TEXT,
   name        TEXT,
   avatar_url  TEXT,
@@ -858,8 +857,9 @@ animation: `ganttGrow 0.9s cubic-bezier(.2,.8,.2,1) ${i * 0.12}s both`
 |---|---|---|
 | `DATABASE_URL` | ✅ | PostgreSQL 连接串（自托管时自配） |
 | `AUTH_SECRET` | ✅ | JWT (HS256) 签名密钥，**≥ 32 字符**；**惰性校验**——构建期不报错，仅运行时首次签发/校验 JWT 时强制，缺失则相关请求 503。`openssl rand -hex 32` 生成 |
-| `EAZO_AI_PROVIDER_MODE` | ✅ | 自托管默认 `byok` |
-| `AI_PROVIDER_BASE_URL` / `AI_PROVIDER_API_KEY` / `AI_PROVIDER_MODEL` | ✅ | byok 模式下必填 |
+| `GEMINI_API_KEY` | ⭕ | Gemini 直连模式密钥（与下面 byok 三件套二选一） |
+| `AI_PROVIDER_BASE_URL` / `AI_PROVIDER_API_KEY` / `AI_PROVIDER_MODEL` | ⭕ | byok 模式三件套，OpenAI 兼容 `/chat/completions` |
+| `AI_PROVIDER_MODE` | ❌ | 显式指定 `gemini` 或 `byok`；缺省自动挑第一条可用的 |
 | `NEXT_PUBLIC_APP_TITLE` | ❌ | App 标题（默认 拾级） |
 | `NEXT_PUBLIC_APP_DESCRIPTION` | ❌ | App 描述 |
 | `CRON_SECRET` | ❌ | Vercel Cron 鉴权密钥（仅在 `vercel.json` 的 cron 配置启用时必填） |

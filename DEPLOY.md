@@ -6,7 +6,7 @@
 
 ## 0. 先确认改造已生效
 
-本仓库已从 Eazo 平台解耦，可独立部署。改动摘要见文末「改造说明」。
+本仓库完全自托管，不依赖任何第三方平台，可独立部署。改动摘要见文末「改造说明」。
 
 本地自检（应全部通过）：
 
@@ -102,7 +102,7 @@ git push -u origin main
 ```
 DATABASE_URL              postgresql://...-pooler.../neondb?sslmode=require
 AUTH_SECRET               <openssl rand -hex 32 生成的随机串，≥ 32 字符>
-EAZO_AI_PROVIDER_MODE     byok
+GEMINI_API_KEY            AIza...
 AI_PROVIDER_BASE_URL      https://api.deepseek.com/v1
 AI_PROVIDER_API_KEY       sk-xxxx
 AI_PROVIDER_MODEL         deepseek-chat
@@ -110,9 +110,8 @@ CRON_SECRET               <openssl rand -hex 32 生成的随机串>
 NEXT_PUBLIC_APP_TITLE     拾级 · 学习规划智能体
 ```
 
-> `AUTH_SECRET` 与 `EAZO_AI_PROVIDER_MODE=byok` 两条**必填**。
-> `AUTH_SECRET` 是**惰性校验**：`next build` 即使没有它也能通过，但运行时缺失/过短会让签名相关请求 503；所以必须配。`EAZO_AI_PROVIDER_MODE` 漏了会走已废弃的平台代理并报
-> "BYOK AI provider is not configured"。
+> `AUTH_SECRET` **必填**，AI 至少配一条（`GEMINI_API_KEY`，或 `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`）。
+> `AUTH_SECRET` 是**惰性校验**：`next build` 即使没有它也能通过，但运行时缺失/过短会让签名相关请求 503；所以必须配。AI 一条都没配好时，用户端只显示通用的「分析未能完成，请稍后重试」，具体原因要查服务端日志里的 `[AutoTask] analyze pipeline error`。
 
 5. Deploy → 等 2-3 分钟
 
@@ -137,7 +136,7 @@ NEXT_PUBLIC_APP_TITLE     拾级 · 学习规划智能体
 ## 常见坑
 
 **部署成功但一分析就报错**
-→ 99% 是环境变量。检查 `EAZO_AI_PROVIDER_MODE=byok` 是否填了，
+→ 99% 是环境变量。检查 AI 是否配好了（`GEMINI_API_KEY` 或 `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`），
 `AI_PROVIDER_BASE_URL` 是否**漏了 `/v1`** 或**多写了 `/chat/completions`**。
 
 **报数据库连接失败 / too many connections**
@@ -152,15 +151,15 @@ NEXT_PUBLIC_APP_TITLE     拾级 · 学习规划智能体
 
 ---
 
-## 改造说明（相对原平台版的差异）
+## 改造说明（相对早期平台版的差异）
 
 | 项 | 原来 | 现在 |
 |---|---|---|
-| 登录 | Eazo 平台 OAuth | 每个访客自动获得临时账号；可选注册/登录正式账号（`src/lib/auth/*` + `src/proxy.ts`） |
+| 登录 | 平台 OAuth | 每个访客自动获得临时账号；可选注册/登录正式账号（`src/lib/auth/*` + `src/proxy.ts`） |
 | 服务端鉴权 | `requireAuth` 验平台 token | JWT cookie（`__Host-session`，HS256）+ 临时账号兜底（`src/lib/auth/index.ts`） |
 | AI 分析 | SSE 逐字流式 | 缓冲式 JSON + 客户端阶段动画（规避代理层缓冲问题） |
-| AI 计费 | 走平台代理扣创作者额度 | BYOK 直连你自己的 OpenAI 兼容端点 |
-| 推送通知 | 平台 push 服务 | 端点保留但为空操作（平台能力不可用） |
+| AI 计费 | 走平台代理扣平台额度 | BYOK 直连你自己的 OpenAI 兼容端点，或用 Gemini |
+| 推送通知 | 平台 push 服务 | 端点保留但为空操作（自行接入邮件 / Web Push） |
 | 数据库 | 平台托管 PG | 外接 Neon，连接池按 Serverless 调优 |
 | 定时任务 | 平台调度 | `vercel.json#crons`，每天 17:00 UTC |
 

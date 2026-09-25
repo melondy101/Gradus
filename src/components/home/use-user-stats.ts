@@ -6,7 +6,7 @@
 // 类型与 fetch 仍在 @/lib/api/user-stats（typed client，审计 §4.4）。
 
 import { useEffect, useSyncExternalStore } from "react";
-import { useEazo } from "@/lib/eazo-shim";
+import { useSessionUser } from "@/lib/auth-shim";
 import { getStatsSnapshot, subscribeStats, syncStats } from "@/features/stats/store";
 import type { UserStats } from "@/lib/api/user-stats";
 
@@ -14,7 +14,7 @@ export type { UserStats };
 export { weekGoalOf } from "@/lib/api/user-stats";
 
 export function useUserStats(): UserStats | null {
-  const user = useEazo((s) => s.auth.user);
+  const user = useSessionUser((s) => s.auth.user);
   const userId = user?.id ?? null;
 
   useEffect(() => {

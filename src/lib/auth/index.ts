@@ -1,4 +1,4 @@
-// Self-hosted replacement for `@eazo/sdk/server`'s `requireAuth`.
+// Self-hosted replacement for the platform SDK's `requireAuth`.
 //
 // Off-platform we run a JWT cookie auth flow with two layers of defence:
 //   1. `src/middleware.ts` (Edge / server runtime) intercepts every
