@@ -77,7 +77,7 @@ export function AppHeader({
         <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-icon">
           <Search size={18} />
         </IconButton>
-        <NotificationCenter />
+        <NotificationCenter id="header-btn-notifications" />
         <ThemeToggle />
         <UserBadge />
       </div>

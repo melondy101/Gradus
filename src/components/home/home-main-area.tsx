@@ -108,11 +108,17 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           className="max-sm:pb-[calc(84px+env(safe-area-inset-bottom,0px))]"
           style={{ flex: 1, overflowY: "auto" }}
         >
-          <AscendingStepsView
-            subtasks={filters.displayedSubtaskRows}
-            onToggleSubtask={(s) => props.onToggleSubtask(s.taskId, s.id, s.completed)}
-            onSelectSubtask={(s) => overlays.setDetailSubtaskId(s.id)}
-          />
+          {props.loadError ? (
+            <div className="px-3.5 sm:px-5 pt-4">
+              <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : (
+            <AscendingStepsView
+              subtasks={filters.displayedSubtaskRows}
+              onToggleSubtask={(s) => props.onToggleSubtask(s.taskId, s.id, s.completed)}
+              onSelectSubtask={(s) => overlays.setDetailSubtaskId(s.id)}
+            />
+          )}
         </div>
       )}
 
@@ -122,11 +128,17 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           className="max-sm:pb-[calc(84px+env(safe-area-inset-bottom,0px))]"
           style={{ flex: 1, overflowY: "auto" }}
         >
-          <TimelineView
-            subtasks={filters.displayedSubtaskRows}
-            onSelectSubtask={(s) => overlays.setDetailSubtaskId(s.id)}
-            onToggleSubtask={(s) => props.onToggleSubtask(s.taskId, s.id, s.completed)}
-          />
+          {props.loadError ? (
+            <div className="px-3.5 sm:px-5 pt-4">
+              <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : (
+            <TimelineView
+              subtasks={filters.displayedSubtaskRows}
+              onSelectSubtask={(s) => overlays.setDetailSubtaskId(s.id)}
+              onToggleSubtask={(s) => props.onToggleSubtask(s.taskId, s.id, s.completed)}
+            />
+          )}
         </div>
       )}
     </div>

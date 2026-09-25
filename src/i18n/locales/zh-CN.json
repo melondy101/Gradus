@@ -159,6 +159,7 @@
       "markUndoneFailed": "取消完成失败，已撤回，请重试",
       "taskStatusFailed": "任务状态更新失败，请稍后重试",
       "postponeFailed": "延迟失败，请重试",
+      "skipFailed": "跳过失败，请重试",
       "postponed": "已延迟到明天，「{{title}}」移到次日",
       "undoFailed": "撤销失败，请重试",
       "skipped": "已跳过「{{title}}」",

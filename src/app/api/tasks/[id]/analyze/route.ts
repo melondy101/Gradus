@@ -468,7 +468,12 @@ export async function POST(
       await updateTaskStatus(id, "draft");
     } catch { /* ignore */ }
     return NextResponse.json(
-      { ok: false, error: "分析未能完成，请稍后重试", debug: errMsg },
+      {
+        ok: false,
+        error: "分析未能完成，请稍后重试",
+        // 内部错误信息只在开发环境回传；生产只暴露通用文案，细节走服务端日志
+        ...(process.env.NODE_ENV === "development" ? { debug: errMsg } : {}),
+      },
       { status: 500 },
     );
   } finally {

@@ -21,7 +21,7 @@ export function SideFooter({ onOpenCommandPalette }: SideFooterProps) {
   return (
     <div className="flex flex-col gap-2">
       {/* 站内消息（组件自带 popover 与 30s 轮询；false = 整行文案态） */}
-      <NotificationCenter collapsed={false} />
+      <NotificationCenter collapsed={false} id="nav-btn-notifications" />
 
       <div className="flex items-center gap-2">
         <button type="button" id="nav-btn-command-palette" onClick={onOpenCommandPalette}

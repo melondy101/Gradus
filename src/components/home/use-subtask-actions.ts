@@ -66,7 +66,7 @@ export function useSubtaskActions({ removeEntry, showToast }: Deps) {
       await postponeWithUndo(
         row,
         t("home.toast.skipped", { title: row.title }),
-        t("home.toast.postponeFailed", "跳过失败，请重试"),
+        t("home.toast.skipFailed", "跳过失败，请重试"),
         t("home.toast.undoFailed", "撤销失败，请重试")
       );
     },

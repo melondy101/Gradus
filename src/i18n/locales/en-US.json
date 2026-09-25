@@ -159,6 +159,7 @@
       "markUndoneFailed": "Failed to unmark, reverted. Please retry",
       "taskStatusFailed": "Failed to update task status, please retry",
       "postponeFailed": "Failed to postpone, please retry",
+      "skipFailed": "Failed to skip, please retry",
       "postponed": "Postponed to tomorrow, “{{title}}” moved to the next day",
       "undoFailed": "Failed to undo, please retry",
       "skipped": "Skipped “{{title}}”",

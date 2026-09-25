@@ -35,6 +35,11 @@ function formatRelativeTime(dateInput: Date | string): string {
 
 interface NotificationCenterProps {
   collapsed?: boolean;
+  /**
+   * 触发器 DOM id。侧栏与移动端顶栏各挂一个实例，必须传不同值，
+   * 否则同一文档里出现重复 id，getElementById 只会命中第一个。
+   */
+  id?: string;
 }
 
 interface PopoverPosition {
@@ -45,7 +50,10 @@ interface PopoverPosition {
   width: number;
 }
 
-export function NotificationCenter({ collapsed = false }: NotificationCenterProps) {
+export function NotificationCenter({
+  collapsed = false,
+  id = "btn-notification-trigger",
+}: NotificationCenterProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
@@ -168,7 +176,7 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
       {/* Trigger Button */}
       <button
         ref={triggerRef}
-        id="btn-notification-trigger"
+        id={id}
         onClick={() => {
           const next = !open;
           setOpen(next);
@@ -235,7 +243,7 @@ export function NotificationCenter({ collapsed = false }: NotificationCenterProp
         ? createPortal(
         <div
           ref={panelRef}
-          id="notification-center-panel"
+          id={`${id}-panel`}
           style={{
             position: "fixed",
             top: popoverPosition.top,
