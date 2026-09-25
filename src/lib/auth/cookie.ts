@@ -4,8 +4,8 @@ import { AUTH_COOKIE_NAME, AUTH_SESSION_MAX_AGE_SECONDS } from "./env";
  * `__Host-session` Cookie 工具。
  *
  * 设计：
- *   - `__Host-` 前缀强制 `Secure + Path=/ + 不带 Domain` —— 浏览器拒绝任何
- *     子域名覆盖、强制 HTTPS（本地开发因 `Secure=false` 不被强制）。
+ *   - `__Host-` 前缀要求浏览器强制 `Secure` + `Path=/` + 不带 `Domain`，
+ *     否则**整条 cookie 被静默丢弃**（见 buildSetSessionCookie 的说明）。
  *   - `httpOnly`：阻止 XSS 偷 cookie。
  *   - `SameSite=Lax`：默认请求带 cookie，但拦截跨站 POST。
  *   - 30 天 Max-Age，通过 Set-Cookie 滑动续期。
@@ -15,17 +15,13 @@ import { AUTH_COOKIE_NAME, AUTH_SESSION_MAX_AGE_SECONDS } from "./env";
  * header。
  */
 
-const isProduction = process.env.NODE_ENV === "production";
-
 function baseAttrs(): string[] {
-  const parts = [
-    `Path=/`,
-    `HttpOnly`,
-    `SameSite=Lax`,
-  ];
-  // 仅生产环境强制 Secure —— 开发 localhost 无 HTTPS。
-  if (isProduction) parts.push("Secure");
-  return parts;
+  // `Secure` 必须常驻：`__Host-` 前缀的 cookie 少了它会被浏览器直接丢弃，
+  // 表现为「登录接口返回 200、下一个请求却 401」且无任何报错。
+  // localhost 属于可信源（secure context），`Secure` 在本地开发同样被接受，
+  // 所以这里不再按 NODE_ENV 开关。真正的明文 HTTP 源（如局域网 IP）本来
+  // 也存不下 `__Host-` cookie，用 HTTPS 访问即可。
+  return [`Path=/`, `HttpOnly`, `SameSite=Lax`, `Secure`];
 }
 
 /** 把 token 写入 session cookie。返回可直接 set 到 Response header 的 Set-Cookie 字符串。 */
