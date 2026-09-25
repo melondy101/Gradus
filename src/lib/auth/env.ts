@@ -29,7 +29,11 @@ function resolveSecret(): string {
     return raw;
   }
 
-  if (allowInsecure || process.env.NODE_ENV !== "production" || !raw) {
+  // 注意：这里必须是 `allowInsecure || NODE_ENV !== "production"`，不能带上
+  // `|| !raw`。带上之后「完全没配」和「配了但太短」行为不一致——后者抛错、
+  // 前者静默用公开占位串，等于生产环境拿着一个仓库里人人可见的常量当签名密钥，
+  // 可被任意伪造 __Host-session 冒充任何 userId。
+  if (allowInsecure || process.env.NODE_ENV !== "production") {
     // 32+ 字符占位符，确保 jwt 签名在开发环境可以正常走通。
     const placeholder = "insecure-dev-only-do-not-use-in-prod-32+chars";
     return placeholder;

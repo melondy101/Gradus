@@ -4,7 +4,7 @@
 > 适用范围：真机（iOS Safari / Android Chrome），**不是**桌面 DevTools 模拟
 > 图例：`P0` 上线阻断 ｜ `P1` 应测 ｜ `P2` 可缓 ｜ ★ = 本次改动直接相关
 > 不含 Capacitor 安卓壳测试（本期明确不做）
-> 覆盖提交：`30acd5f`（健壮性五处）→ `d9c3928`（cookie Secure）→ `8c359d4`（EAZO 清除 + 观猹按钮）→ `4825a19`（测试账号与清单）→ `0ad6740`（评估文档）
+> 覆盖提交：`30acd5f`（健壮性五处）→ `d9c3928`（cookie Secure）→ `8c359d4`（EAZO 清除 + 观猹按钮）→ `4825a19`（测试账号与清单）→ `0ad6740`（评估文档）→ `2b0ff14`（.env.example 补 8 变量）→ HEAD（AUTH_SECRET P0 修复）
 
 ## 0. 测前准备
 
@@ -13,6 +13,7 @@
 - [ ] P0 真机访问地址必须是 **HTTPS**（见 0.2 末节，明文 HTTP 下登录永远是假成功）
 - [ ] P0 真机开启开发者模式的「网络限速」入口（3G / 丢包）
 - [ ] P1 记录基线：`npm run build && npm run start` 后首屏 Network 面板的 tasks 相关请求数
+      （`next start` 是 production 模式，**必须先配 `AUTH_SECRET`**，否则全 503，见 0.2-A）
 
 ---
 
@@ -65,7 +66,7 @@ tasks/subtasks，保证每次跑出来数据一致。脚本结尾会自检配额
 |---|---|---|
 | `DATABASE_URL` | ✅ 已配 | 全站无数据 |
 | **AI Key**（见下） | ❌ **未配** | **AI 拆解整条链路直接失败**，第 2 章全部测不了 |
-| `AUTH_SECRET` | ❌ 未配 | 本地用占位符可跑通；**上线阻断**，缺了/不足 32 字符会在首个签名请求上抛错 |
+| `AUTH_SECRET` | ❌ 未配 | **看 NODE_ENV**：dev 模式用占位符可跑通；production 模式缺了或不足 32 字符会在首个签名请求上抛错（503） |
 
 **AI Key 二选一**（`chat()` 按此优先级分流）：
 
@@ -80,6 +81,27 @@ tasks/subtasks，保证每次跑出来数据一致。脚本结尾会自检配额
 
 可选调优：`AI_PROVIDER_MODE`（显式指定 `gemini` 或 `byok`，缺省自动挑）、
 `AI_MAX_TOKENS`（默认 8000）。
+
+#### AUTH_SECRET 的 NODE_ENV 分界（★ 本次修掉一个 P0 后补充）
+
+`src/lib/auth/env.ts` 原来写的是 `allowInsecure || NODE_ENV !== "production" || !raw`，
+最后那个 `|| !raw` 让**完全没配** `AUTH_SECRET` 的生产环境也静默回落到硬编码占位串
+`insecure-dev-only-do-not-use-in-prod-32+chars`——这个串公开写在仓库里，等于
+JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任意 userId。
+已改为 `allowInsecure || NODE_ENV !== "production"`，实测四种情况：
+
+| NODE_ENV | AUTH_SECRET | 行为 |
+|---|---|---|
+| production | 缺失 | 抛错 ✅（修复前：静默用占位串） |
+| production | `short` | 抛错（不变） |
+| production | ≥32 字符 | 正常使用（不变） |
+| development | 缺失 | 用占位串（不变，本地 dev 照常跑通） |
+
+**推论：`npm run build && npm run start` 这种本地生产模式现在也必须配 `AUTH_SECRET`**，
+否则 0.1 记录首屏请求基线那一步就全 503。本地 dev server（`next dev`）不受影响。
+
+`AUTH_SECRET_ALLOW_INSECURE=1` 仍可在任何环境绕过校验换取占位串——这是显式逃生门，
+但生产设它等于关掉防伪造，别在真机测试环境开。
 
 ### B. 功能开关（按需配，不配有降级路径）
 
@@ -263,6 +285,25 @@ tasks/subtasks，保证每次跑出来数据一致。脚本结尾会自检配额
 > `cookie.ts` 那处是在准备测试账号时发现的：注释写反了 `__Host-` 前缀的语义，
 > 以为"开发环境不强制 Secure"，实际是**少了 Secure 就被丢弃**。本地 dev 一直登不上，
 > 但不影响生产（生产本来就有 `Secure`）。详细分析见 0.2-C。
+
+### A2. `AUTH_SECRET` 缺失时静默用公开占位串（P0 安全漏洞）
+
+| 检查 | 验证方式 | 结论 |
+|---|---|---|
+| 生产 + 缺失 → 抛错 | tsx 探针直接调 `getAuthSecret()`，四例对照（见 0.2-A 表） | **通过（已完整实测）** |
+| 生产 + <32 字符 → 抛错 | 同上 | 通过（行为未变） |
+| 生产 + ≥32 字符 → 用真值 | 同上 | 通过（行为未变） |
+| dev + 缺失 → 占位串 | 同上 | 通过（本地 dev 不受影响） |
+| 回归 | tsc 干净 · `bun test` 125 pass / 0 fail | 通过 |
+
+根因：兜底条件写成 `allowInsecure \|\| NODE_ENV !== "production" \|\| !raw`，
+`|| !raw` 让"完全没配"与"配了但太短"行为分叉——后者抛错、前者静默用
+`insecure-dev-only-do-not-use-in-prod-32+chars`。该串在仓库里公开可见，
+攻击者可自签 `__Host-session` 冒充任意 userId。修复即删掉 `|| !raw`。
+
+> 顺带说明：仓库外 `D:\Develop\src\lib\auth\` 有一份早期拷贝（`cookie.ts`、
+> `current-user.ts`，无 `env.ts`）。本次排查时探针的错误相对路径曾被它干扰，
+> 导致第一轮读到了旧逻辑。不在本仓库内，不影响构建，但建议清理以免再踩。
 
 ### B. `8c359d4` EAZO 清除（内部重构，无新增用户可见行为）
 
