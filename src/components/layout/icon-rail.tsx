@@ -9,7 +9,6 @@ import { MobileTabBar } from "./mobile-tab-bar";
 import type { NavView } from "./nav-items";
 import { SideFooter } from "./side-footer";
 import { SideNav } from "./side-nav";
-import { SideTagFilter } from "./side-tag-filter";
 import { SideUserCard } from "./side-user-card";
 import { WeekProgressWidget } from "./week-progress-widget";
 import {
@@ -34,9 +33,6 @@ interface IconRailProps {
   totalPlansCount: number;
   onOpenCommandPalette: () => void;
   onNewPlan: () => void;
-  availableTags?: Array<{ tag: string; count: number }>;
-  selectedTag?: string | null;
-  onSelectTag?: (tag: string | null) => void;
   /**
    * 可选：本周进度所需的子任务明细。home-page 传已有的 `subtaskRows`
    * （SubtaskWithTask[] 结构兼容）即可；未传时部件退化为「今日待完成」口径，
@@ -54,9 +50,6 @@ export function IconRail({
   totalPlansCount,
   onOpenCommandPalette,
   onNewPlan,
-  availableTags = [],
-  selectedTag = null,
-  onSelectTag,
   weekSubtasks,
 }: IconRailProps) {
   const [weekModel, setWeekModel] = useState<WeekProgressModel | null>(null);
@@ -134,13 +127,6 @@ export function IconRail({
                 />
 
                 <WeekProgressWidget model={progressModel} />
-                <SideTagFilter
-                  availableTags={availableTags}
-                  selectedTag={selectedTag}
-                  onSelectTag={onSelectTag}
-                  totalPlansCount={totalPlansCount}
-                  compact={false}
-                />
               </>
             )}
           </div>

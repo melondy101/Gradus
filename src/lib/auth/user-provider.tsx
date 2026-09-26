@@ -23,8 +23,9 @@ type Listener = () => void;
 
 const listeners = new Set<Listener>();
 
-// 模块级 user 状态。初始值由 `<UserProvider>` 在客户端挂载时 sync 进来。
-let moduleUser: CurrentUserView | null = null;
+// `undefined` 表示客户端 store 尚未由 `<UserProvider>` 初始化；它与真实的
+// 未登录态 `null` 必须区分开。水合期间会回退到 Provider 从 RSC 带来的快照。
+let moduleUser: CurrentUserView | null | undefined;
 
 function subscribe(listener: Listener): () => void {
   listeners.add(listener);
@@ -34,12 +35,12 @@ function subscribe(listener: Listener): () => void {
 }
 
 function getSnapshot(): CurrentUserView | null {
-  return moduleUser;
+  return moduleUser ?? null;
 }
 
 /** 模块级直接读快照（非 React 上下文也能用，例如 auth.user getter）。 */
 export function getCurrentUserSnapshot(): CurrentUserView | null {
-  return moduleUser;
+  return getSnapshot();
 }
 
 /**
@@ -49,6 +50,7 @@ export function getCurrentUserSnapshot(): CurrentUserView | null {
 export function updateCurrentUser(user: CurrentUserView | null): void {
   if (
     user !== null &&
+    moduleUser !== undefined &&
     moduleUser !== null &&
     moduleUser.id === user.id &&
     moduleUser.email === user.email &&
@@ -60,9 +62,9 @@ export function updateCurrentUser(user: CurrentUserView | null): void {
   for (const l of listeners) l();
 }
 
-// Context 主要用来告诉组件"client-side 已经有 user"——但实际读 user
-// 还是用 useCurrentUser()（订阅模块级 store）。
-const HasUserContext = createContext(false);
+// 让 SSR 和客户端水合首帧都读取同一份 RSC 用户快照。模块级 store 只负责
+// 水合后的登录/登出更新，不能作为 SSR 快照来源。
+const CurrentUserContext = createContext<CurrentUserView | null>(null);
 
 export function UserProvider({
   user,
@@ -71,40 +73,33 @@ export function UserProvider({
   user: CurrentUserView | null;
   children: ReactNode;
 }) {
-  // 关键：必须在 useEffect 之前就把 moduleUser 设上 —— 否则首屏渲染
-  // 会触发"SSR null vs client null"的不一致错误。实际上 React 的
-  // "use client" 文件 SSR 渲染时，模块级 moduleUser 已经被 provider 上面
-  // 别的实例同步过；这里只是兜底。
-  // 该赋值发生在 render 期是故意的（确保首次客户端渲染与 SSR 一致，避免
-  // hydration mismatch），并非副作用 bug，故在赋值处禁用对应规则。
-  if (typeof window !== "undefined" && moduleUser === null && user !== null) {
-    // eslint-disable-next-line react-hooks/globals
-    moduleUser = user;
-  }
-
-  // 保留 useEffect 兼容：将来 React 升级或重渲染场景下再次同步
+  // 水合完成后再初始化客户端 store。首帧由 CurrentUserContext 提供相同快照，
+  // 所以不会出现 SSR 的访客按钮与客户端的已登录链接互相替换。
   useEffect(() => {
-    if (moduleUser === null && user !== null) {
+    if (moduleUser === undefined) {
       moduleUser = user;
-      // 触发所有 listener 重渲染
       for (const l of listeners) l();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   return (
-    <HasUserContext.Provider value={user !== null}>
+    <CurrentUserContext.Provider value={user}>
       {children}
-    </HasUserContext.Provider>
+    </CurrentUserContext.Provider>
   );
 }
 
 /** 读取当前 user（首屏由 RSC 注入；之后由 updateCurrentUser() 驱动）。 */
 export function useCurrentUser(): CurrentUserView | null {
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const initialUser = useContext(CurrentUserContext);
+  return useSyncExternalStore(
+    subscribe,
+    () => moduleUser === undefined ? initialUser : getSnapshot(),
+    () => initialUser,
+  );
 }
 
 /** 仅判断"有没有 user"——避免在 React 18 streaming 中误读。 */
 export function useHasUser(): boolean {
-  return useContext(HasUserContext);
+  return useCurrentUser() !== null;
 }

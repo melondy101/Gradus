@@ -93,9 +93,6 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
         totalPlansCount={tasksList.length}
         onOpenCommandPalette={() => overlays.setCommandPaletteOpen(true)}
         onNewPlan={() => overlays.setShowInput(true)}
-        availableTags={filters.availableTags}
-        selectedTag={filters.selectedTag}
-        onSelectTag={filters.setSelectedTag}
       />
 
       <HomeWorkspace
