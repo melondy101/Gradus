@@ -1,125 +1,97 @@
-# 拾级 Gradus · 正式上线前实机测试清单
+# 拾级 Gradus · 正式上线前实机测试清单（最终版）
 
-> 生成日期：2026-09-26 ｜ 分支：`feat/gradus-brand-redesign` @ `0ad6740`
+> 生成日期：2026-09-26 ｜ 分支：`feat/gradus-brand-redesign`
 > 适用范围：真机（iOS Safari / Android Chrome），**不是**桌面 DevTools 模拟
-> 图例：`P0` 上线阻断 ｜ `P1` 应测 ｜ `P2` 可缓 ｜ ★ = 本次改动直接相关
+> 图例：`P0` 上线阻断 ｜ `P1` 应测 ｜ `P2` 可缓 ｜ ★ = 本批改动直接相关
 > 不含 Capacitor 安卓壳测试（本期明确不做）
-> 覆盖提交：`30acd5f`（健壮性五处）→ `d9c3928`（cookie Secure）→ `8c359d4`（EAZO 清除 + 观猹按钮）→ `4825a19`（测试账号与清单）→ `0ad6740`（评估文档）→ `2b0ff14`（.env.example 补 8 变量）→ `93dab99`（AUTH_SECRET P0 修复）→ HEAD（BYOK 路由修复）
-
-## 0. 测前准备
-
-- [ ] P0 按 **0.2 环境变量** 配齐测试环境（AI Key / 邮件 / 数据库均已配并实测通过，见 0.2-A 与附录 A3）
-- [ ] P0 按 **0.1 测试账号** 执行种子脚本 `npx tsx scripts/seed-test-accounts.ts`
-- [ ] P0 真机访问地址必须是 **HTTPS**（见 0.2 末节，明文 HTTP 下登录永远是假成功）
-- [ ] P0 真机开启开发者模式的「网络限速」入口（3G / 丢包）
-- [ ] P1 记录基线：`npm run build && npm run start` 后首屏 Network 面板的 tasks 相关请求数
-      （`next start` 是 production 模式，**必须先配 `AUTH_SECRET`**，否则全 503，见 0.2-A）
+> **范围约定：账号注册 / 邮箱验证 / 密码找回不测**（用户明确排除）；已由桌面端 Chrome 实测通过的项列在 §4，不必重测。
 
 ---
 
-## 0.1 测试账号
+## 0. 结论：现在能不能测
 
-统一密码：**`Gradus@QA2026`**
+**能测，全链路已打通。** 四项外部依赖全部就绪并实测通过：
 
-| 账号 | 邮箱 | 档位 | 会员 | 任务数 | 用途 |
-|---|---|---|---|---|---|
-| 免费号 | `qa-free@gradus.test` | free | — | 1 | 日常主链路、免费档限额边界 |
-| 专业版 | `qa-pro@gradus.test` | pro | +90 天 | 4 | Pro 权益（20 次/日、5 任务） |
-| 尊享版 | `qa-premium@gradus.test` | premium | +365 天 | 8 | Premium 权益（100 次/日、10 任务）、天梯/甘特大数据量 |
-| 配额耗尽号 | `qa-exhausted@gradus.test` | free | — | 1 | 测 `AI_GENERATE_LIMIT_REACHED` 配额拦截 |
+| 依赖 | 环境变量 | 状态 | 实测证据 |
+|---|---|---|---|
+| 数据库 | `DATABASE_URL` | ✅ | Neon pooler 连接正常，118 个用户 / 43 个任务 / 392 个子任务 |
+| AI 模型 | `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL` | ✅ | 走 BYOK→DeepSeek，`2b88915` 修复后实打调用 690ms / 1426ms 返回正常；端到端拆解出 7 个子任务 |
+| 邮件 | `QQ_EMAIL_USER` + `QQ_EMAIL_PASS` | ✅ | `smtp.qq.com:465` secure 握手通过，563ms |
+| 搜索 | `TAVILY_API_KEY` | ✅ | 拆解产物里子任务资源带真实链接，`url_status: ok`、`http_status: 200`、`trust_level: verified` |
+
+**唯一的限流因素是 TAVILY 的 50 次搜索额度。** 每次 AI 拆解会发起若干次资源检索（拆解流程共 4 次 LLM 调用，检索穿插其中），
+因此**预计约 10–20 次完整拆解就会把 50 次额度用尽**。额度耗尽后的行为是**优雅降级**：流程不报错，
+只输出 `searchQuery` 而不返回真实链接（`docs/plans` 与 `.env.example` 均如此记录）。
+所以：额度用尽不影响主链路测试，只影响「资源链接是否为真实可点」这一项断言。
+**建议把有链接断言的用例排在前面，跑完 50 次额度后只测降级路径。**
+
+> 注意：TAVILY 额度是按账号/按天计费的第三方配额，**不是本项目的 bug**。测试前先确认额度剩余，
+> 或接受后半段只能验证降级行为。
+
+---
+
+## 0.1 测前准备
+
+- [ ] P0 确认测试环境可访问：**必须是 HTTPS**（`__Host-session` cookie 强制 `Secure`，明文 `http://192.168.x.x:3000` 永远登不上，现象是登录返回 200 但下个请求 401、控制台零报错）。用 Vercel 预览域名或 `ngrok` / `cloudflared` 隧道。
+- [ ] P0 跑种子脚本（幂等，可反复执行）：`npx tsx scripts/seed-test-accounts.ts`
+- [ ] P0 真机开启开发者模式的「网络限速」入口（3G / 丢包）
+- [ ] P1 记录基线：`npm run build && npm run start` 后首屏 Network 面板的 tasks 相关请求数。
+      **本地生产模式必须配 `AUTH_SECRET`（≥32 字符）**，否则全 503——`93dab99` 修掉的是「缺失时静默用公开占位串」，现在改为直接抛错。
+- [ ] P1 确认 TAVILY 剩余额度（决定 §2 路径 B 的链接断言语能测几条）
+
+---
+
+## 0.2 测试账号
+
+统一密码：**`Gradus@QA2026`**（已确认四个账号都在库里，档位正确）
+
+| 账号 | 档位 | 会员到期 | 任务数 | 用途 |
+|---|---|---|---|---|
+| `qa-free@gradus.test` | free | — | 1 | 日常主链路、免费档限额边界 |
+| `qa-pro@gradus.test` | pro | 2026-12-24 | 4 | Pro 权益（20 次/日、5 任务） |
+| `qa-premium@gradus.test` | premium | 2027-09-25 | 8 | Premium 权益（100 次/日、10 任务）、天梯/甘特大数据量 |
+| `qa-exhausted@gradus.test` | free | — | 1 | 测 `AI_GENERATE_LIMIT_REACHED` 配额拦截（当前 `ai_generate_count = 5`、`last_usage_date = 2026-09-26`） |
 
 每个任务带 4 个子任务（`startDay` 0/1/3/6，Bloom 记忆→分析），前 2 个已勾选完成，
 因此四个账号开箱即有 `streak = 2`、本周完成率 40%，不会进空态。
 
-### 兑换码
+### 兑换码（已确认在库里）
 
-| 兑换码 | 档位 | 时长 | 次数上限 | 用途 |
-|---|---|---|---|---|
-| `QA-PRO-TRIAL` | pro | 30 天 | 5 | 7.2 兑换后立即变权益 |
-| `QA-PREM-TRIAL` | premium | 30 天 | 5 | Premium 兑换链路 |
-| `QA-EXPIRED-CODE` | pro | 30 天 | 5 | 7.3 过期码错误文案 |
-
-### 种子脚本
-
-```bash
-npx tsx scripts/seed-test-accounts.ts
-```
-
-幂等，可反复执行：upsert 4 个账号 + 3 个兑换码，并**清空重建**这 4 个账号名下的
-tasks/subtasks，保证每次跑出来数据一致。脚本结尾会自检配额耗尽号的
-`aiGenerateCount === 5 && lastUsageDate === 今日`。
+| 兑换码 | 档位 | 时长 | 次数上限 | 过期 | 用途 |
+|---|---|---|---|---|---|
+| `QA-PRO-TRIAL` | pro | 30 天 | 5 | 2026-12-24 | 7.2 兑换后立即变权益 |
+| `QA-PREM-TRIAL` | premium | 30 天 | 5 | 2026-12-24 | Premium 兑换链路 |
+| `QA-EXPIRED-CODE` | pro | 30 天 | 5 | **2026-08-26（已过期）** | 7.3 过期码错误文案 |
 
 > ⚠ **时效性**：配额按东八区自然日刷新。`qa-exhausted` 只在「脚本执行当日」有效，
-> 跨过东八区 24:00 后 `aiGenerateCount` 会被重置，需重跑脚本才能继续测配额拦截。
-> 直接写库而非走注册接口，是因为注册要邮箱验证码，无法精确置 `aiGenerateCount`。
+> 跨过东八区 24:00 后 `ai_generate_count` 会被重置，需重跑脚本才能继续测配额拦截。
+> 直接写库而非走注册接口，是因为注册要邮箱验证码，无法精确置 `ai_generate_count`。
 
 ---
 
-## 0.2 测试环境变量
-
-本地 `.env.local` **当前有 10 个键**：`DATABASE_URL`、`VERCEL_OIDC_TOKEN`、
-`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`、`AI_PROVIDER_BASE_URL`、
-`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS`、
-`TAVILY_API_KEY`。以下按「不配会怎样」分级。
+## 0.3 环境变量速查（按「不配会怎样」分级）
 
 ### A. 阻断核心链路（必须配）
 
 | 变量 | 现状 | 不配的后果 |
 |---|---|---|
-| `DATABASE_URL` | ✅ 已配 | 全站无数据 |
-| **AI Key** | ✅ 已配（BYOK 三件套，端点 `api.deepseek.com`，模型 `deepseek-flash`） | **AI 拆解整条链路直接失败**，第 2 章全部测不了 |
-| `AUTH_SECRET` | ❌ 未配 | **看 NODE_ENV**：dev 模式用占位符可跑通；production 模式缺了或不足 32 字符会在首个签名请求上抛错（503） |
+| `DATABASE_URL` | ✅ | 全站无数据 |
+| **AI Key**（BYOK 三件套） | ✅ | **AI 拆解整条链路直接失败**，第 2 章全部测不了 |
+| `AUTH_SECRET` | ❌ 未配（本地 dev 用占位串可跑通） | production 模式（`npm run start`）缺了或不足 32 字符 → 首个签名请求 503 |
 
-**AI Key 二选一**（`chat()` 按此优先级分流）：
+> ⚠ **用户看不到「没配 AI Key」这个原因**：`resolveProvider()` 抛出的可读文案会被 analyze 路由的兜底 catch
+> 统一替换成通用的「分析未能完成，请稍后重试」，真实原因只进服务端日志（`[AutoTask] analyze pipeline error`）。
+> 所以 2.1–2.11 整章若全部卡在「分析未能完成」，**先查部署环境有没有配 AI Key，别去怀疑代码**。
 
-1. `GEMINI_API_KEY`，设了就走 Gemini，模型默认 `gemini-2.5-flash`；
-2. **BYOK** —— `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY`
-   + `AI_PROVIDER_MODEL`，OpenAI 兼容 `/chat/completions`。← **当前走这条**
-
-> ★ **本批修掉的坑**：BYOK 三件套配齐但没设 `AI_PROVIDER_MODE` 时，旧代码会因
-> `geminiKey()` 回落到 `AI_PROVIDER_API_KEY` 而选 `gemini`，把 DeepSeek 的 key 交给
-> Google GenAI SDK——实测 10.7s 后 `fetch failed`，而用户端只看到通用的
-> 「分析未能完成」。已改为「BYOK 三件套齐了且没有显式 `GEMINI_API_KEY` 就走 byok」。
-> 实测九例路由矩阵，只有这一格行为变化，其余八格（含显式 mode、单 key 兼容、
-> 只配一半）全部不变。修后不设任何 flag 实打调用：690ms / 1426ms 返回正常。
-> 详见附录 A3。
-
-⚠ **用户看不到"没配 AI Key"这个原因**：`resolveProvider()` 抛出的可读文案会被 analyze 路由的
-兜底 catch 统一替换成通用的「分析未能完成，请稍后重试」，真实原因只进服务端日志
-（`[AutoTask] analyze pipeline error`）与开发环境的 `debug` 字段。所以 2.1–2.11 整章若全部
-卡在"分析未能完成"，先查部署环境有没有配 AI Key，别去怀疑代码。
-
-可选调优：`AI_PROVIDER_MODE`（显式指定 `gemini` 或 `byok`，缺省自动挑）、
-`AI_MAX_TOKENS`（默认 8000）。
-
-#### AUTH_SECRET 的 NODE_ENV 分界（★ 本次修掉一个 P0 后补充）
-
-`src/lib/auth/env.ts` 原来写的是 `allowInsecure || NODE_ENV !== "production" || !raw`，
-最后那个 `|| !raw` 让**完全没配** `AUTH_SECRET` 的生产环境也静默回落到硬编码占位串
-`insecure-dev-only-do-not-use-in-prod-32+chars`——这个串公开写在仓库里，等于
-JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任意 userId。
-已改为 `allowInsecure || NODE_ENV !== "production"`，实测四种情况：
-
-| NODE_ENV | AUTH_SECRET | 行为 |
-|---|---|---|
-| production | 缺失 | 抛错 ✅（修复前：静默用占位串） |
-| production | `short` | 抛错（不变） |
-| production | ≥32 字符 | 正常使用（不变） |
-| development | 缺失 | 用占位串（不变，本地 dev 照常跑通） |
-
-**推论：`npm run build && npm run start` 这种本地生产模式现在也必须配 `AUTH_SECRET`**，
-否则 0.1 记录首屏请求基线那一步就全 503。本地 dev server（`next dev`）不受影响。
-
-`AUTH_SECRET_ALLOW_INSECURE=1` 仍可在任何环境绕过校验换取占位串——这是显式逃生门，
-但生产设它等于关掉防伪造，别在真机测试环境开。
+可选调优：`AI_PROVIDER_MODE`（显式指定 `gemini` 或 `byok`，缺省自动挑）、`AI_MAX_TOKENS`（默认 8000）。
 
 ### B. 功能开关（按需配，不配有降级路径）
 
 | 变量 | 不配的行为 |
 |---|---|
 | `TAVILY_API_KEY` | ✅ 已配。缺了资源搜索降级，只输出 `searchQuery` 不返回真实链接 |
-| `QQ_EMAIL_USER` + `QQ_EMAIL_PASS` | ✅ 已配（QQ 邮箱）。**已实测 SMTP 握手通过**（`smtp.qq.com:465` secure，563ms），1.1 的收验证码可以真测。缺了则回落 **mock 发信**：验证码以 toast「[开发提示] 模拟验证码：xxxxxx」弹出，流程可测但真实收信测不到 |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `EMAIL_FROM` | 未配，走默认 `smtp.qq.com:465` secure。非 QQ 邮箱时才需要这套（注意 `SMTP_USER`/`SMTP_PASS` 优先级高于 `QQ_EMAIL_*`，`.env.example` 已补齐） |
+| `QQ_EMAIL_USER` + `QQ_EMAIL_PASS` | ✅ 已配。缺了回落 **mock 发信**：验证码以 toast「[开发提示] 模拟验证码：xxxxxx」弹出 |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `EMAIL_FROM` | 未配，走默认 `smtp.qq.com:465` secure。非 QQ 邮箱时才需要（`SMTP_USER`/`SMTP_PASS` 优先级高于 `QQ_EMAIL_*`） |
 | `WATCHA_CLIENT_ID` + `WATCHA_CLIENT_SECRET` | ✅ 已配。缺了 OAuth 入口返回 503 |
 | `WATCHA_REDIRECT_URI` / `WATCHA_AUTH_URL` / `WATCHA_TOKEN_URL` / `WATCHA_USERINFO_URL` | 全部有内置默认值，仅测试环境地址不同时才覆盖 |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `NEXT_PUBLIC_ADMIN_EMAIL` | 后台入口不可用。**注意：`ADMIN_EMAIL` 是登录接口的服务端旁路**，匹配该邮箱时用 `ADMIN_PASSWORD` 直接换 premium 会员，与库里密码无关——别拿它当普通账号用 |
@@ -128,121 +100,133 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_APP_TITLE` / `NEXT_PUBLIC_APP_DESCRIPTION` | 元信息用默认值；`NEXT_PUBLIC_APP_URL` 同时喂给 Capacitor |
 | `YUQUE_API_TOKEN` / `FEISHU_USER_TOKEN` | 语雀 / 飞书工作区导入不可用 |
 | `CAPACITOR_SERVER_URL` | 安卓壳热重载不指向本地 |
-| `AUTH_SECRET_ALLOW_INSECURE=1` | 显式跳过 secret 校验，仅供本地手测 |
+| `AUTH_SECRET_ALLOW_INSECURE=1` | 显式跳过 secret 校验，仅供本地手测。**生产设它等于关掉防伪造** |
 
 模板见 `.env.example`（已含全部键与中文注释）。
 
-### C. 真机访问必须 HTTPS（本次新发现的坑）
-
-`__Host-session` 这个 cookie 名带 `__Host-` 前缀，**浏览器强制要求 `Secure` 属性**，
-少一个字符整条 cookie 就被静默丢弃——现象是登录接口返回 `200 {"ok":true}`，
-下一个请求却 `401`，控制台零报错。
-
-原实现只在 `NODE_ENV=production` 加 `Secure`，导致本地 `http://localhost:3000`
-**永远登不上**（已验证：`__Host-` 无 `Secure` 的 cookie 在该源下被拒，带 `Secure`
-则被接受，因为 localhost 属于可信源）。已改为 `Secure` 常驻。
-
-**推论：真机不能用 `http://192.168.x.x:3000` 这种明文地址测。** 那种源既存不下
-`__Host-` cookie，也过不了浏览器可信源判定。可选：
-
-- 用 Vercel 预览/生产域名（HTTPS，最省事，但会连到线上库）；
-- 本地起 HTTPS 隧道（`ngrok` / `cloudflared` / `localtunnel`）拿到 `https://` 地址；
-- 自签证书 + 真机安装并信任该 CA。
-
 ---
 
-## 1. 账号与鉴权（幽灵会话防线）
+## 1. 账号与登录（注册不测）
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 1.1 | P0 | 邮箱注册 → 收验证码 → 登录 → 进 `/app` | 首屏有数据，无白屏 |
+| 1.1 | P0 | 用 `qa-free@gradus.test` / `Gradus@QA2026` 登录 → 进 `/app` | 首屏有数据，无白屏；DevTools Network 看到 `__Host-session` cookie 被设上 |
 | 1.2 | P0 | 登录态停留至过期后，再点子任务勾选 | 弹全局登录框，不是白屏/裸报错 |
 | 1.3 | P0 ★ | A 登录 → 登出 → B 登录 | 不得残留 A 的任务、分析条目、详情弹窗瞬态 |
 | 1.4 | P0 | 后台删掉账号 → 用旧 cookie 再进 `/app` | 踢回登录，**不得带空面板通行** |
 | 1.5 | P1 | 同一浏览器多标签同时登录不同账号 | 不串数据 |
-| 1.6 | P0 ★ | 打开登录/注册弹窗 | 「使用观猹账号快捷登录」**直接呈现**，不等服务端探测；配了 `WATCHA_CLIENT_ID` 时点进去能走完 OAuth，没配时回调给明确错误而不是按钮消失 |
+| 1.6 | P0 ★ | 打开登录弹窗 | 「使用观猹账号快捷登录」**直接呈现**，不等服务端探测；点进去能走完 OAuth |
 | 1.7 | P1 ★ | 看登录弹窗的兜底文案 | 不出现 "Eazo" / "Eazo 应用模板" 等早期平台模板字样 |
+
+---
 
 ## 2. AI 拆解主链路（核心，最长最脆）
 
+> **这一章是上线前唯一必须跑完的章节。** 跑之前先确认 TAVILY 额度。
+
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 2.1 | P0 | 输入目标 → 开始规划 → 看到底到底 | intent / 资源 / 规划 / 校验四阶段文案依次推进，子任务落库 |
+| 2.1 | P0 | 「今日聚焦」页 → `#goal-input` 输入「两周内掌握 Git 分支与合并的基础操作」→ 点 **开始规划** | 右栏（移动端为「AI 规划面板」抽屉）依次推进 intent / 资源 / 规划 / 校验四阶段文案，子任务落库；完成后弹通知 |
 | 2.2 | P0 | 拆解进行中按 Home 键切后台，30s 后回来 | 进度不丢、不重复扣配额、不出现两条相同任务 |
 | 2.3 | P0 | 拆解中途杀 App 再冷启 | 有明确错误态或可恢复，**不得永久卡在 "intent"** |
 | 2.4 | P0 | 拆解中途开飞行模式 | 面板进 error 相位，文案可读，可重试 |
-| 2.5 | P0 | 免费号当日第 6 次拆解 | 配额文案清晰（free = 5 次/日），不是 raw error |
+| 2.5 | P0 | 用 `qa-exhausted@gradus.test` 当日第 6 次拆解 | 配额文案清晰（free = 5 次/日），不是 raw error |
 | 2.6 | P0 | 连点「开始规划」10+ 次 | 触发用户级 10 次/分限流 → 429 文案友好 |
 | 2.7 | P1 | 同一任务重复提交分析 | 409「该任务正在分析中」 |
 | 2.8 | P1 | 拆解完成后点 AI 右栏「定位子任务」 | 滚动到 `#subtask-card-{id}` 并高亮约 3s |
 | 2.9 | P1 | 拆解完成后「提示词微调」再生成 | 覆盖旧子任务，不产生重复 |
 | 2.10 | P1 | 弱网（3G 节流）下跑一次完整拆解 | 阶段 ticker 正常推进，最终成功或明确失败 |
-| 2.11 | P1 | 目标输入框留空直接点「开始规划」 | 落到完整新建对话框，不是无反应 |
+| 2.11 | P1 | 目标输入框留空直接点「开始规划」 | 落到完整新建对话框（textarea 占位「你想学什么？直接描述目标，或粘贴一个链接 🔗」），不是无反应 |
+| 2.12 | P1 ★ | TAVILY 额度耗尽后再跑一次完整拆解 | 不报错，降级为只输出 `searchQuery`、无真实链接（见 §0 说明） |
 
 > ⚠ 已知缺口：`apiFetch` 无客户端超时，服务端单次 AI 调用 45s、任务锁 180s。
 > 真机弱网下 2.3 / 2.10 若出现「一直转圈且阶段文案仍在跳」，即为此问题，需补客户端超时。
+
+---
 
 ## 3. 子任务操作
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 3.1 | P0 | 勾选子任务 | 乐观立刻打勾，PATCH 成功后保持 |
+| 3.1 | P0 | 点子任务卡片上的**标记已完成**（复选框） | 乐观立刻打勾，PATCH 成功后保持 |
 | 3.2 | P0 | 断网时勾选 | 回滚 + toast 提示，不静默丢失 |
-| 3.3 | P0 ★ | 点「跳过」并让其失败 | toast 显示「跳过失败，请重试」——**不得出现「顺延失败」** |
-| 3.4 | P1 | 点「顺延」改期 | 成功且日期正确 |
-| 3.5 | P0 | 删除任务 → 确认弹窗 | 确认后真删，列表与统计同步 |
+| 3.3 | P0 ★ | 点**跳过此任务（标记为已完成，无需执行）**并让其失败 | toast 显示「跳过失败，请重试」——**不得出现「顺延失败」** |
+| 3.4 | P1 | 点**延迟一天（顺延排期）**改期 | 成功且日期正确 |
+| 3.5 | P0 | 「我的任务」页删除任务 → 确认弹窗 | 确认后真删，列表与统计同步 |
 | 3.6 | P1 | 快速连续勾选同一子任务 5 次 | 终态一致，不闪回 |
-| 3.7 | P1 | 子任务详情弹窗内的复制/跳转 | 均可用，弹窗关闭后焦点回归 |
+| 3.7 | P1 | 点子任务卡片**查看详情** | 详情弹窗内的复制/跳转均可用，关闭后焦点回归 |
 
-## 4. 四个视图渲染
+---
+
+## 4. 本次已实测通过（不必重测）
+
+以下 12 项在桌面端 Chrome（1011px 与 375px 两档）已跑通，真机只需抽验：
+
+| 项 | 结论 |
+|---|---|
+| 登录 + `/app` 首屏 | 通过，`__Host-session` 正常落库 |
+| AI 拆解端到端 | 通过：`POST /api/tasks → 201`、`POST /api/tasks/{id}/analyze → 200`，产出 7 个子任务、Bloom 1→5、`startDay` 0/1/3/5/7/8/11 |
+| TAVILY 资源检索 | 通过：子任务资源带真实链接，`url_status: ok` / `http_status: 200` / `authority_score` / `trust_level: verified` |
+| 数据落库（独立于 UI） | 通过：任务 `status = done`，7 个子任务全部带 `url_status: ok` 资源，已勾选子任务有 `completed_at`，`ai_generate_count` 0→1 且 `last_usage_date` 正确 |
+| 配额/会员拦截 | 通过：免费号建第 3 个任务被拦，文案「普通用户最多同时拥有 2 个学习任务。已达上限，请先完成或删除已有任务，或升级专业版解锁更多任务容量！」 |
+| 通知链路 | 通过：`#nav-btn-notifications-panel` 显示「站内通知 / 1 未读 / 《掌握Git分支与合并操作》已成功拆解为 7 个递进子任务，预计总周期 14 天」 |
+| ⌘K 命令面板 | 通过：开合正常 |
+| 四视图渲染 | 通过：今日聚焦 / 我的任务 / 拾级天梯 / 时间甘特均有内容，无空崩 |
+| 375px 无横向溢出 | 通过：`scrollWidth = 375 = innerWidth`，逐元素扫描 `overflowCount = 0` |
+| 通知入口的桌面/移动端切换 | 通过：375px 下 `#header-btn-notifications` 可见、`#nav-btn-notifications` 隐藏，无 id 重复、不串台 |
+| 移动端 AI 面板 | 通过：「AI 规划面板」悬浮 pill（126×44）→ 点开底部抽屉（82vh）→ 「收起」关闭 |
+| 测试账号与兑换码 | 通过：4 个 qa 账号档位正确、3 个兑换码在库 |
+
+---
+
+## 5. 四个视图与导航
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 4.1 | P0 | 今日聚焦 / 我的任务 / 拾级天梯 / 时间甘特 逐一打开 | 均有内容，无空崩 |
-| 4.2 | P0 ★ | 断网后刷新，逐个切四个视图 | 天梯与甘特也显示失败态 + 「重新加载」，**与「我的任务」一致** |
-| 4.3 | P0 ★ | 点失败态的「重新加载」 | 网络恢复后真的重拉成功 |
-| 4.4 | P1 | 标签过滤下切到空结果 | 空态可读，可一键清除标签 |
-| 4.5 | P1 | 100+ 子任务时滚天梯与甘特 | 不掉帧、不抖动 |
+| 5.1 | P0 | 侧栏依次点 **今日面板** / **我的任务** / **拾级天梯** / **甘特视图** | URL hash 变 `#today` / `#plans` / `#steps` / `#timeline`，四视图均有内容 |
+| 5.2 | P0 ★ | 断网后刷新，逐个切四个视图 | 天梯与甘特也显示失败态 + 「重新加载」，**与「我的任务」一致** |
+| 5.3 | P0 ★ | 点失败态的「重新加载」 | 网络恢复后真的重拉成功 |
+| 5.4 | P1 | 「我的任务」页点标签过滤后切到空结果 | 空态可读，可一键清除标签（`#tag-filter-all`） |
+| 5.5 | P1 | 用 `qa-premium`（8 个任务）滚天梯与甘特 | 不掉帧、不抖动 |
 
-## 5. 通知（★ 本次改了 id）
+---
 
-| # | 优先级 | 操作 | 预期 |
-|---|---|---|---|
-| 5.1 | P0 ★ | 桌面端（≥640px）点侧栏「消息通知」 | 面板正常开合 |
-| 5.2 | P0 ★ | 移动端（<640px）点顶栏铃铛 | 面板正常开合，与侧栏入口不串台 |
-| 5.3 | P0 ★ | 同一文档内检查重复 id | `nav-btn-notifications` 与 `header-btn-notifications` 各只出现一次 |
-| 5.4 | P1 | 未读小红点 / 「已读」/ 清空 | 计数正确，清空有二次确认 |
-| 5.5 | P1 | 点带 link 的通知 | 跳转正确且面板关闭 |
-
-## 6. 错误边界（★ 本次新增 `/app/error.tsx`）
+## 6. 通知（★ 本批改了 id）
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 6.1 | P0 ★ | 构造 `/app` 内组件 throw（断网 + 强制报错，或临时插桩） | 显示「出了点问题 / 重试 / 返回首页」，**不是整站白屏** |
-| 6.2 | P0 ★ | 点「重试」 | 不整页刷新，直接重渲染该段 |
-| 6.3 | P1 | 点「返回首页」 | 正常回到首页 |
-| 6.4 | P1 | 语言切换在错误页仍可用 | 中英切换生效 |
+| 6.1 | P0 ★ | 桌面端（≥640px）点侧栏 **消息通知**（`#nav-btn-notifications`） | 面板正常开合 |
+| 6.2 | P0 ★ | 移动端（<640px）点顶栏铃铛（`#header-btn-notifications`） | 面板正常开合，与侧栏入口不串台 |
+| 6.3 | P0 ★ | 同一文档内检查重复 id | `nav-btn-notifications` 与 `header-btn-notifications` 各只出现一次 |
+| 6.4 | P1 | 未读小红点 / 「已读」/ 清空 | 计数正确，清空有二次确认 |
+| 6.5 | P1 | 点带 link 的通知 | 跳转正确且面板关闭 |
+
+---
 
 ## 7. 会员与配额
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
 | 7.1 | P0 | 免费号建第 3 个任务 | 被拦（free maxTasks = 2），文案清晰 |
-| 7.2 | P0 | 兑换 Pro 码 | 立即变 20 次/日、5 任务，无需重新登录 |
-| 7.3 | P1 | 无效 / 已用兑换码 | 明确错误，不吞 |
+| 7.2 | P0 | 「我的任务」页点升级入口 → 会员中心 → **兑换码激活** → 输入 `QA-PRO-TRIAL` → **立即兑换** | 立即变 20 次/日、5 任务，无需重新登录 |
+| 7.3 | P1 | 输入 `QA-EXPIRED-CODE` | 明确错误「兑换码已过期」类文案，不吞 |
 | 7.4 | P1 | 跨东八区 24:00 | 配额按日刷新 |
 | 7.5 | P1 | 会员到期后降级 | 超额任务有合理处理，不静默丢数据 |
+
+---
 
 ## 8. 响应式与触控
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
 | 8.1 | P0 | 375px 宽度跑四个视图 | 无横向滚动条 |
-| 8.2 | P0 | <640px | 侧栏隐藏，顶栏出现搜索/铃铛/主题/头像 |
-| 8.3 | P0 | 底部安全区 | 内容不被 `env(safe-area-inset-bottom)` 遮挡 |
-| 8.4 | P1 | 所有可点元素 | 触控区 ≥ 44×44px |
+| 8.2 | P0 | <640px | 侧栏隐藏，顶栏出现搜索 / 铃铛 / 主题 / 头像 |
+| 8.3 | P0 | 底部安全区 | 内容不被 `env(safe-area-inset-bottom)` 遮挡（iPhone Home 条区域） |
+| 8.4 | P1 | 所有可点元素 | 触控区 ≥ 44×44px —— **已知不达标，见 §11 已知问题 #2**，按现状记录即可，不必逐条报 |
 | 8.5 | P1 | 横屏 / 小屏平板 | 布局不破 |
 | 8.6 | P1 | 软键盘弹起时操作输入框 | 输入框不被遮挡，页面不跳 |
+
+---
 
 ## 9. 键盘与外设
 
@@ -254,28 +238,146 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 | 9.4 | P1 | `Space` / `Esc` | 勾选 / 关闭弹窗 |
 | 9.5 | P1 | 外接键盘 Tab 走查 | 焦点顺序合理，有 focus-visible |
 
-## 10. 主题与 i18n
+---
+
+## 10. 错误边界（★ 本批新增 `/app/error.tsx`）
 
 | # | 优先级 | 操作 | 预期 |
 |---|---|---|---|
-| 10.1 | P1 | 明暗切换 | 持久化，无闪烁 |
-| 10.2 | P0 ★ | 切英文后触发「跳过失败」 | 显示 `Failed to skip, please retry`，**不漏中文** |
-| 10.3 | P1 | 跟随系统语言 | 首次进入语言正确 |
-| 10.4 | P1 | 两种主题 × 两种语言 全过一遍 | 无串文案、无 fallback 露底 |
+| 10.1 | P0 ★ | 构造 `/app` 内组件 throw（断网 + 强制报错，或临时插桩） | 显示「出了点问题 / 重试 / 返回首页」，**不是整站白屏** |
+| 10.2 | P0 ★ | 点「重试」 | 不整页刷新，直接重渲染该段 |
+| 10.3 | P1 | 点「返回首页」 | 正常回到首页 |
+| 10.4 | P1 | 语言切换在错误页仍可用 | 中英切换生效 |
 
-## 11. 统计与周报
+---
 
-| # | 优先级 | 操作 | 预期 |
-|---|---|---|---|
-| 11.1 | P1 | 连续 3 天完成子任务 | streak = 3，跨天正确 |
-| 11.2 | P1 | 生成学习周报 | 内容与真实数据一致 |
-| 11.3 | P1 | 制造 stats 接口失败 | ⚠ 当前 fail-open 返回 **HTTP 200 + 全 0**，用户看到「0 连续天数」而非报错——需产品确认可接受 |
+## 11. 已知问题（需在报告里如实记录，不必现场修）
+
+### #1 `/app` hydration 报错（既有问题，非本批引入）
+
+控制台可见 `Hydration failed because the server rendered HTML...`。在干净 worktree 上同样复现。
+根因疑为 SSR 阶段 locale 硬编码 `en-US`、客户端 hydration 后才切系统语言。需单独排查。
+
+### #2 375px 下触控目标偏小（QA 项 8.4）
+
+实测 375px 下 **40 / 57** 个可见交互元素小于 44×44px。最严重的几类：
+
+| 元素 | 实测尺寸 |
+|---|---|
+| 子任务复选框（标记已完成 / 取消完成） | 20×20 |
+| 顺延、跳过按钮 | 24×24 |
+| 顶栏铃铛（`#header-btn-notifications`） | 16×32 |
+| 顶栏搜索 / 头像 | 32×32 |
+| 主题切换 | 36×36 |
+| 目标输入框（`#goal-input`） | 273×26 |
+
+判定为 **P1**：设计稿刻意使用紧凑控件，功能全部可用，但真机拇指点击会误触。
+若产品要求达标，最小改动是给复选框与顺延/跳过按钮加 `min-h-11 min-w-11`（或 `p-2.5` 负 margin 保持视觉尺寸）。
+**不建议上线前改**——会动到用户未提交的设计系统改动区域。
+
+### #3 探针自造假象（记录以免复踩）
+
+第一次验证 BYOK 时用了 `max_tokens: 32`，返回空文本。`deepseek-flash` 是推理模型，
+32 token 全被 `reasoning_content` 吃掉，`content` 为空。用默认 8000 即正常。
+**测 AI 时别把小预算当 bug。**
+
+---
 
 ## 12. 已知限制（需产品决策，非 bug）
 
 - [ ] P1 无 Service Worker / PWA 离线壳 → 断网即白屏，是否接受？
-- [ ] P1 stats 接口 fail-open 返回 200 + 全 0，是否改为返回错误态？
+- [ ] P1 stats 接口 fail-open 返回 200 + 全 0，用户看到「0 连续天数」而非报错，是否改为返回错误态？
 - [ ] P0 `apiFetch` 无客户端超时，弱网下 AI 拆解可能长期挂起，是否补超时？
+
+---
+
+## 13. 最终报告模板
+
+上线判定以这份报告为准。**每行必须填「实测结果」和「证据」，不许填「应该可以」。**
+
+```markdown
+# 拾级 Gradus · 上线前实机测试报告
+
+- 测试日期：YYYY-MM-DD
+- 测试人：
+- 设备：iOS Safari __ / Android Chrome __（系统版本 __）
+- 访问地址：https://____（必须 HTTPS）
+- 账号：qa-free / qa-pro / qa-premium / qa-exhausted
+- 构建：分支 feat/gradus-brand-redesign @ commit ______
+- TAVILY 额度：起始 __ 次 / 结束 __ 次
+
+## 一、结论
+
+| 项 | 结论 |
+|---|---|
+| P0 用例通过率 | __ / __ |
+| 是否建议上线 | 建议上线 / 有条件上线 / 不建议上线 |
+| 阻塞项（如有） | __ |
+
+## 二、阻塞项明细（仅 P0 失败项）
+
+| 用例号 | 现象 | 复现步骤 | 截图/录屏 | 服务端日志关键行 |
+|---|---|---|---|---|
+
+## 三、分章结果
+
+| 章节 | 用例数 | 通过 | 失败 | 备注 |
+|---|---|---|---|---|
+| 1 账号与登录 | | | | |
+| 2 AI 拆解主链路 | | | | |
+| 3 子任务操作 | | | | |
+| 5 四视图与导航 | | | | |
+| 6 通知 | | | | |
+| 7 会员与配额 | | | | |
+| 8 响应式与触控 | | | | |
+| 9 键盘与外设 | | | | |
+| 10 错误边界 | | | | |
+| 12 主题与语言 | | | | |
+| 13 统计与周报 | | | | |
+
+## 四、导航矩阵（每个入口点一次，记录落地页）
+
+| 入口 | 点击后落地 | 是否符合预期 |
+|---|---|---|
+| 今日面板 | | |
+| 我的任务 | | |
+| 拾级天梯 | | |
+| 甘特视图 | | |
+| 消息通知（桌面侧栏） | | |
+| 消息通知（移动端顶栏） | | |
+| 搜索 / 命令 ⌘K | | |
+| 新建计划 | | |
+| 开始规划（目标输入框） | | |
+| 打开个人中心 | | |
+| 学习周报 | | |
+| AI 规划面板（移动端 pill） | | |
+| 子任务卡片 → 查看详情 | | |
+| 会员中心 → 兑换码激活 | | |
+| 登出 | | |
+
+## 五、已知问题复核
+
+| # | 问题 | 本机是否复现 | 严重度 | 处置 |
+|---|---|---|---|---|
+| 1 | /app hydration 报错 | | | |
+| 2 | 375px 触控目标 < 44px | | | |
+| 3 | apiFetch 无客户端超时 | | | |
+
+## 六、未覆盖项与原因
+
+| 项 | 原因 |
+|---|---|
+| 账号注册 / 邮箱验证 / 密码找回 | 本期明确不测 |
+| Capacitor 安卓壳 | 本期明确不做 |
+| | |
+
+## 七、签收
+
+- [ ] 所有 P0 用例已执行并记录结果
+- [ ] 所有失败项已附复现步骤与证据
+- [ ] 已知问题已复核并记录严重度
+- [ ] 测试人签字：________  日期：________
+```
 
 ---
 
@@ -294,52 +396,39 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 
 > `cookie.ts` 那处是在准备测试账号时发现的：注释写反了 `__Host-` 前缀的语义，
 > 以为"开发环境不强制 Secure"，实际是**少了 Secure 就被丢弃**。本地 dev 一直登不上，
-> 但不影响生产（生产本来就有 `Secure`）。详细分析见 0.2-C。
+> 但不影响生产（生产本来就有 `Secure`）。
 
 ### A2. `AUTH_SECRET` 缺失时静默用公开占位串（P0 安全漏洞）
 
-| 检查 | 验证方式 | 结论 |
-|---|---|---|
-| 生产 + 缺失 → 抛错 | tsx 探针直接调 `getAuthSecret()`，四例对照（见 0.2-A 表） | **通过（已完整实测）** |
-| 生产 + <32 字符 → 抛错 | 同上 | 通过（行为未变） |
-| 生产 + ≥32 字符 → 用真值 | 同上 | 通过（行为未变） |
-| dev + 缺失 → 占位串 | 同上 | 通过（本地 dev 不受影响） |
-| 回归 | tsc 干净 · `bun test` 125 pass / 0 fail | 通过 |
-
-根因：兜底条件写成 `allowInsecure \|\| NODE_ENV !== "production" \|\| !raw`，
+根因：兜底条件写成 `allowInsecure || NODE_ENV !== "production" || !raw`，
 `|| !raw` 让"完全没配"与"配了但太短"行为分叉——后者抛错、前者静默用
 `insecure-dev-only-do-not-use-in-prod-32+chars`。该串在仓库里公开可见，
 攻击者可自签 `__Host-session` 冒充任意 userId。修复即删掉 `|| !raw`。
 
-> 顺带说明：仓库外 `D:\Develop\src\lib\auth\` 有一份早期拷贝（`cookie.ts`、
-> `current-user.ts`，无 `env.ts`）。本次排查时探针的错误相对路径曾被它干扰，
-> 导致第一轮读到了旧逻辑。不在本仓库内，不影响构建，但建议清理以免再踩。
+| NODE_ENV | AUTH_SECRET | 修复后行为 |
+|---|---|---|
+| production | 缺失 | 抛错 ✅（修复前：静默用占位串） |
+| production | `short` | 抛错（不变） |
+| production | ≥32 字符 | 正常使用（不变） |
+| development | 缺失 | 用占位串（不变，本地 dev 照常跑通） |
+
+**推论：`npm run build && npm run start` 这种本地生产模式现在也必须配 `AUTH_SECRET`。**
 
 ### A3. BYOK 三件套配齐却被路由去 Gemini（第 2 章的直接阻断项）
 
-**现象**：`.env.local` 里 `AI_PROVIDER_BASE_URL=https://api.deepseek.com/v1`、
-`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL=deepseek-flash` 全有值，但 AI 拆解必然失败。
-
-**根因**：`resolveProvider()` 第一行是
-`if (mode === "gemini" || (mode !== "byok" && geminiKey())) return "gemini";`，
-而 `geminiKey()` 是 `GEMINI_API_KEY || AI_PROVIDER_API_KEY`。于是没设
-`AI_PROVIDER_MODE` 时，BYOK 用户的 key 被当成 Gemini key，交给 Google GenAI SDK。
+**现象**：`.env.local` 里 BYOK 三件套全有值，但 AI 拆解必然失败。
+**根因**：`resolveProvider()` 首行 `if (mode === "gemini" || (mode !== "byok" && geminiKey())) return "gemini";`，
+而 `geminiKey()` 是 `GEMINI_API_KEY || AI_PROVIDER_API_KEY`。于是没设 `AI_PROVIDER_MODE` 时，
+BYOK 用户的 key 被当成 Gemini key 交给 Google GenAI SDK，10.7s 后 `fetch failed`。
 
 | 验证 | 方式 | 结论 |
 |---|---|---|
 | 修复前实打调用 | tsx 探针加载 `.env.local` 调 `appAi.chat()` | `fetch failed`，10.7s |
-| 端点本身没问题 | 裸 fetch `api.deepseek.com/v1/chat/completions` | 200，718ms，返回「可用」；`/v1/models` 列出 `deepseek-flash`（DeepSeek-V4.1-Flash） |
-| 模型名有效 | 同上 | `deepseek-flash` 在模型清单里，不是拼错 |
-| 修复后实打调用 | 同上，不设任何 flag | 200，690ms / 1426ms，返回「可用」 |
+| 端点本身没问题 | 裸 fetch `api.deepseek.com/v1/chat/completions` | 200，718ms，返回「可用」 |
+| 模型名有效 | `/v1/models` | `deepseek-flash` 在清单里，不是拼错 |
+| 修复后实打调用 | 同上，不设任何 flag | 200，690ms / 1426ms |
 | 路由矩阵无回归 | 九例对照新旧逻辑 | 仅「BYOK 三件套 + 无 mode + 无 GEMINI_KEY」一格由 gemini 变 byok，其余八格全同 |
 | 回归 | tsc · `bun test` | 125 pass / 0 fail |
-
-修复即把首行改成「显式 mode 优先 → BYOK 三件套齐且无显式 `GEMINI_API_KEY` 就走 byok
-→ 再回落单 key 兼容」。
-
-> ⚠ 另有一个**探针自造的假象**记录在此以免复踩：第一次验证时用了 `max_tokens: 32`，
-> 返回空文本。`deepseek-flash` 是推理模型，32 token 全被 `reasoning_content` 吃掉，
-> `content` 为空。用默认 8000 即正常。测 AI 时别把小预算当 bug。
 
 ### B. `8c359d4` EAZO 清除（内部重构，无新增用户可见行为）
 
@@ -354,15 +443,17 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 ### C. 顺带修正的文档失实
 
 对着代码核对测试清单时发现：`resolveProvider()` 抛出的「AI 服务尚未配置…」可读文案
-**到不了用户眼前**——它被 analyze 路由的兜底 catch 换成通用的「分析未能完成，请稍后
-重试」，真实原因只进服务端日志与开发环境 `debug` 字段（且 `debug` 客户端从未消费）。
+**到不了用户眼前**——它被 analyze 路由的兜底 catch 换成通用的「分析未能完成，请稍后重试」，
+真实原因只进服务端日志与开发环境 `debug` 字段（且 `debug` 客户端从未消费）。
 清单与 `DEPLOY.md` 原先写的"用户看到的是「AI 服务尚未配置…」"是错的，已按实际行为改正。
 排查第 2 章整章失败时，先查部署环境有没有配 AI Key。
 
-### D. 未覆盖/待确认
+### D. 未覆盖 / 待确认
 
 | 项 | 状态 |
 |---|---|
-| AI 拆解成功路径（2.1–2.11） | **未测**——本地 `.env.local` 没有任何 AI Key，成功路径无法构造；失败路径只做到代码级与字符串比对 |
-| `/app` hydration 报错 | **既有问题，非本批引入**。在 HEAD（`30acd5f`）的干净 worktree 上复现了同样的报错。根因疑为 SSR 阶段 locale 硬编码 `en-US`、客户端 hydration 后才切系统语言。需单独排查 |
+| AI 拆解成功路径 | **已测通**（见 §4），原先因无 AI Key 无法构造的情况已解除 |
+| `/app` hydration 报错 | 既有问题，需单独排查（见 §11 #1） |
 | 配额按日刷新（7.4） | 依赖东八区跨天，需在真实时间点验证 |
+| TAVILY 额度耗尽的降级路径 | 未测（额度尚未耗尽），见 2.12 |
+| 真机 iOS Safari / Android Chrome | 未测，本清单的既定目标 |
