@@ -9,6 +9,8 @@ import {
   readSessionCookieFromRequest,
 } from "@/lib/auth/cookie";
 
+class WatchaBindingConflictError extends Error {}
+
 /**
  * GET /api/auth/oauth/watcha/callback
  * 处理观猹（Watcha.cn）OAuth 2.0 回调
@@ -122,6 +124,7 @@ export async function GET(request: NextRequest) {
     const cookieToken = readSessionCookieFromRequest(request);
     const decoded = cookieToken ? await verifySession(cookieToken) : null;
     let tempUserId: string | null = null;
+    let bindingUser: Awaited<ReturnType<typeof getUserById>> | null = null;
     if (decoded) {
       const cookieUser = await getUserById(decoded.sub);
       if (
@@ -130,6 +133,9 @@ export async function GET(request: NextRequest) {
         cookieUser.email?.endsWith("@anon.local")
       ) {
         tempUserId = cookieUser.id;
+      }
+      if (request.cookies.get("watcha_oauth_intent")?.value === "bind" && cookieUser && !tempUserId) {
+        bindingUser = cookieUser;
       }
     }
 
@@ -142,6 +148,22 @@ export async function GET(request: NextRequest) {
         .where(eq(users.watchaOpenId, String(watchaUid)))
         .limit(1);
       let existingUser = byOpenId[0];
+
+      if (bindingUser) {
+        if (existingUser && existingUser.id !== bindingUser.id) {
+          throw new WatchaBindingConflictError();
+        }
+        if (!existingUser) {
+          await tx.update(users)
+            .set({ watchaOpenId: String(watchaUid), updatedAt: new Date() })
+            .where(eq(users.id, bindingUser.id));
+        }
+        return {
+          id: bindingUser.id,
+          email: bindingUser.email || watchaEmail,
+          name: bindingUser.name || watchaName,
+        };
+      }
 
       if (!existingUser && watchaEmail) {
         const byEmail = await tx
@@ -207,12 +229,15 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/?auth_success=1", origin));
     response.headers.append("set-cookie", buildSetSessionCookie(sessionToken));
     response.cookies.delete("watcha_oauth_state");
+    response.cookies.delete("watcha_oauth_intent");
     return response;
   } catch (err) {
     console.error("[Watcha OAuth] Callback error:", err);
     return oauthError(
       origin,
-      err instanceof Error ? err.message : "oauth_callback_failed"
+      err instanceof WatchaBindingConflictError
+        ? "watcha_account_already_bound"
+        : err instanceof Error ? err.message : "oauth_callback_failed"
     );
   }
 }
@@ -222,5 +247,6 @@ function oauthError(origin: string, error: string): NextResponse {
     new URL(`/?auth_error=${encodeURIComponent(error)}`, origin)
   );
   response.cookies.delete("watcha_oauth_state");
+  response.cookies.delete("watcha_oauth_intent");
   return response;
 }

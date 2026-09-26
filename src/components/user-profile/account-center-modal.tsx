@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { Crown, KeyRound, LogOut } from "lucide-react";
+import { Crown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { THEMES, type ThemeId } from "@/lib/theme-config";
 import type { User } from "@/lib/db/schema";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
+import { ProfileSettingsModal } from "./profile-settings-modal";
 
 interface AccountCenterModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface AccountCenterModalProps {
 
 /** 个人中心：汇集 Profile、Appearance、会员兑换与账户操作，不复制业务逻辑。 */
 export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: AccountCenterModalProps) {
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const { themeId, setThemeId } = useAppTheme();
   const tier = (user.membershipTier || "free") as MembershipTier;
   const tierConfig = TIER_CONFIGS[tier] || TIER_CONFIGS.free;
@@ -69,6 +71,11 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
         </section>
 
         <section aria-label="账户服务" className="overflow-hidden rounded-card border border-bd-card">
+          <button type="button" onClick={() => setProfileOpen(true)}
+            className="flex min-h-11 w-full items-center gap-3 border-b border-bd-card px-4 text-left text-body font-semibold text-ink transition-colors hover:bg-cream-light focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent">
+            <UserRound size={16} className="shrink-0 text-text-2" aria-hidden="true" />
+            <span className="flex-1">资料与账号绑定</span><span className="text-body-sm font-medium text-text-2">编辑资料 · 观猹</span>
+          </button>
           <button type="button" onClick={() => openMembership("overview")}
             className="flex min-h-11 w-full items-center gap-3 border-b border-bd-card px-4 text-left text-sm font-semibold text-ink transition-colors hover:bg-cream-light focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent">
             <Crown size={16} className="shrink-0 text-accent" aria-hidden="true" />
@@ -88,6 +95,7 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
           <LogOut size={16} aria-hidden="true" />退出登录
         </button>
       </div>
+      {profileOpen ? <ProfileSettingsModal key={`${user.id}-${user.name ?? ""}`} open onClose={() => setProfileOpen(false)} user={user} /> : null}
     </Modal>
   );
 }

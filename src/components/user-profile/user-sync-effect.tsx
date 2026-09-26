@@ -33,6 +33,8 @@ export function UserSyncEffect() {
           ? "授权状态校验失败，请重试"
           : authError === "watcha_oauth_not_configured"
           ? "观猹 OAuth 尚未配置"
+          : authError === "watcha_account_already_bound"
+          ? "该观猹账号已绑定到其他拾级账户"
           : decodeURIComponent(authError);
       toast.error(`观猹授权登录失败：${errorMsg}`);
       url.searchParams.delete("auth_error");

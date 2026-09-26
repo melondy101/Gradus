@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
 
   // 生成防伪 state
   const state = crypto.randomUUID();
+  const isBinding = request.nextUrl.searchParams.get("intent") === "bind";
 
   const authUrl = new URL(authBaseUrl);
   authUrl.searchParams.set("client_id", clientId);
@@ -45,6 +46,17 @@ export async function GET(request: NextRequest) {
     maxAge: 300,
     secure: process.env.NODE_ENV === "production",
   });
+  if (isBinding) {
+    response.cookies.set("watcha_oauth_intent", "bind", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 300,
+      secure: process.env.NODE_ENV === "production",
+    });
+  } else {
+    response.cookies.delete("watcha_oauth_intent");
+  }
 
   return response;
 }

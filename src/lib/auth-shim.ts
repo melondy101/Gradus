@@ -43,6 +43,7 @@ function adaptUser(view: CurrentUserView | null): User | null {
     cachedUserView.id === view.id &&
     cachedUserView.email === view.email &&
     cachedUserView.name === view.name &&
+    cachedUserView.watchaBound === view.watchaBound &&
     cachedUserView.membershipTier === view.membershipTier &&
     cachedUserView.membershipExpiresAt === view.membershipExpiresAt;
   if (same) return cachedUser;
@@ -54,7 +55,7 @@ function adaptUser(view: CurrentUserView | null): User | null {
     avatarUrl: null,
     passwordHash: "",
     emailLower: view.email ? view.email.toLowerCase() : null,
-    watchaOpenId: null,
+    watchaOpenId: view.watchaBound ? "bound" : null,
     membershipTier: view.membershipTier ?? "free",
     membershipExpiresAt: view.membershipExpiresAt ? new Date(view.membershipExpiresAt) : null,
     aiGenerateCount: 0,

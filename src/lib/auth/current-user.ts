@@ -21,6 +21,8 @@ export interface CurrentUserView {
   id: string;
   name: string;
   email: string;
+  /** 仅暴露绑定状态，绝不把第三方 OpenID 送入客户端。 */
+  watchaBound?: boolean;
   membershipTier?: string;
   membershipExpiresAt?: string | null;
 }
@@ -53,6 +55,7 @@ export async function getCurrentUserFromRequest(
     id: user.id,
     name: user.name ?? decoded.name ?? "",
     email: user.email ?? decoded.email ?? "",
+    watchaBound: Boolean(user.watchaOpenId),
     membershipTier: user.membershipTier ?? "free",
     membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
   };
@@ -79,6 +82,7 @@ export async function getCurrentUser(): Promise<CurrentUserView | null> {
     id: user.id,
     name: user.name ?? decoded.name ?? "",
     email: user.email ?? decoded.email ?? "",
+    watchaBound: Boolean(user.watchaOpenId),
     membershipTier: user.membershipTier ?? "free",
     membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
   };

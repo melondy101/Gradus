@@ -9,7 +9,7 @@ import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
 import { APP_URL } from "./links";
-import { auth } from "@/lib/auth-shim";
+import { auth, useSessionUser } from "@/lib/auth-shim";
 
 /** 锚点链接组 —— id 与各 section 元素的 id 一一对应 */
 const NAV_LINKS = [
@@ -36,6 +36,7 @@ const NAV_LINK_CLASS = cn(
  * 因此用 IntersectionObserver 顶部哨兵判断吸顶态，不监听 window scroll。
  */
 export function LandingNav() {
+  const user = useSessionUser((state) => state.auth.user);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
   const [activeId, setActiveId] = useState<string>("");
@@ -115,13 +116,16 @@ export function LandingNav() {
           </nav>
 
           <div className="flex items-center justify-self-end gap-5">
-            <button
-              type="button"
-              onClick={() => auth.login().catch(() => {})}
-              className="text-body-lg font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink"
-            >
-              登录
-            </button>
+            {user ? (
+              <Link href={APP_URL} className="text-body-lg font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink">
+                {user.name || user.email || "进入产品"}
+              </Link>
+            ) : (
+              <button type="button" onClick={() => auth.login().catch(() => {})}
+                className="text-body-lg font-medium text-text-2 transition-colors duration-[.16s] hover:text-ink">
+                登录
+              </button>
+            )}
             <Link
               href={APP_URL}
               className={cn(
