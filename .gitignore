@@ -214,3 +214,6 @@ watcha_oauth2接入文档.md
 .playwright-cli/
 .playwright-mcp/
 output/playwright/
+
+# AI 工具本地状态（含 worktree 副本与 .env.local 密钥，严禁入库）
+.claude/
