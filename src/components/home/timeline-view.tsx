@@ -13,6 +13,8 @@ interface TimelineViewProps {
   onToggleSubtask: (subtask: SubtaskWithTask) => void;
 }
 
+const BLOOM_LEVELS = [1, 2, 3, 4, 5, 6] as const;
+
 function todayUtc0(): Date {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -73,7 +75,7 @@ export function TimelineView({
 
         {/* 图例：与 timeline-gantt-row 的实际渲染一致——条色 = Bloom 层级阶梯 */}
         <div className="flex flex-wrap items-center gap-3">
-          {[1, 2, 3, 4, 5, 6].map((lv) => (
+          {BLOOM_LEVELS.map((lv) => (
             <span key={lv} className="flex items-center gap-1.5 text-caption text-text-3">
               <span
                 aria-hidden
