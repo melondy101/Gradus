@@ -4,11 +4,11 @@
 > 适用范围：真机（iOS Safari / Android Chrome），**不是**桌面 DevTools 模拟
 > 图例：`P0` 上线阻断 ｜ `P1` 应测 ｜ `P2` 可缓 ｜ ★ = 本次改动直接相关
 > 不含 Capacitor 安卓壳测试（本期明确不做）
-> 覆盖提交：`30acd5f`（健壮性五处）→ `d9c3928`（cookie Secure）→ `8c359d4`（EAZO 清除 + 观猹按钮）→ `4825a19`（测试账号与清单）→ `0ad6740`（评估文档）→ `2b0ff14`（.env.example 补 8 变量）→ HEAD（AUTH_SECRET P0 修复）
+> 覆盖提交：`30acd5f`（健壮性五处）→ `d9c3928`（cookie Secure）→ `8c359d4`（EAZO 清除 + 观猹按钮）→ `4825a19`（测试账号与清单）→ `0ad6740`（评估文档）→ `2b0ff14`（.env.example 补 8 变量）→ `93dab99`（AUTH_SECRET P0 修复）→ HEAD（BYOK 路由修复）
 
 ## 0. 测前准备
 
-- [ ] P0 按 **0.2 环境变量** 配齐测试环境（尤其 AI Key，缺了第 2 章整章测不了）
+- [ ] P0 按 **0.2 环境变量** 配齐测试环境（AI Key / 邮件 / 数据库均已配并实测通过，见 0.2-A 与附录 A3）
 - [ ] P0 按 **0.1 测试账号** 执行种子脚本 `npx tsx scripts/seed-test-accounts.ts`
 - [ ] P0 真机访问地址必须是 **HTTPS**（见 0.2 末节，明文 HTTP 下登录永远是假成功）
 - [ ] P0 真机开启开发者模式的「网络限速」入口（3G / 丢包）
@@ -57,22 +57,32 @@ tasks/subtasks，保证每次跑出来数据一致。脚本结尾会自检配额
 
 ## 0.2 测试环境变量
 
-本地 `.env.local` **当前只有** `DATABASE_URL`、`VERCEL_OIDC_TOKEN`、
-`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`。以下按「不配会怎样」分级。
+本地 `.env.local` **当前有 10 个键**：`DATABASE_URL`、`VERCEL_OIDC_TOKEN`、
+`WATCHA_CLIENT_ID`、`WATCHA_CLIENT_SECRET`、`AI_PROVIDER_BASE_URL`、
+`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS`、
+`TAVILY_API_KEY`。以下按「不配会怎样」分级。
 
 ### A. 阻断核心链路（必须配）
 
 | 变量 | 现状 | 不配的后果 |
 |---|---|---|
 | `DATABASE_URL` | ✅ 已配 | 全站无数据 |
-| **AI Key**（见下） | ❌ **未配** | **AI 拆解整条链路直接失败**，第 2 章全部测不了 |
+| **AI Key** | ✅ 已配（BYOK 三件套，端点 `api.deepseek.com`，模型 `deepseek-flash`） | **AI 拆解整条链路直接失败**，第 2 章全部测不了 |
 | `AUTH_SECRET` | ❌ 未配 | **看 NODE_ENV**：dev 模式用占位符可跑通；production 模式缺了或不足 32 字符会在首个签名请求上抛错（503） |
 
 **AI Key 二选一**（`chat()` 按此优先级分流）：
 
-1. **最省事** —— `GEMINI_API_KEY`，设了就走 Gemini，模型默认 `gemini-2.5-flash`；
+1. `GEMINI_API_KEY`，设了就走 Gemini，模型默认 `gemini-2.5-flash`；
 2. **BYOK** —— `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY`
-   + `AI_PROVIDER_MODEL`，OpenAI 兼容 `/chat/completions`。
+   + `AI_PROVIDER_MODEL`，OpenAI 兼容 `/chat/completions`。← **当前走这条**
+
+> ★ **本批修掉的坑**：BYOK 三件套配齐但没设 `AI_PROVIDER_MODE` 时，旧代码会因
+> `geminiKey()` 回落到 `AI_PROVIDER_API_KEY` 而选 `gemini`，把 DeepSeek 的 key 交给
+> Google GenAI SDK——实测 10.7s 后 `fetch failed`，而用户端只看到通用的
+> 「分析未能完成」。已改为「BYOK 三件套齐了且没有显式 `GEMINI_API_KEY` 就走 byok」。
+> 实测九例路由矩阵，只有这一格行为变化，其余八格（含显式 mode、单 key 兼容、
+> 只配一半）全部不变。修后不设任何 flag 实打调用：690ms / 1426ms 返回正常。
+> 详见附录 A3。
 
 ⚠ **用户看不到"没配 AI Key"这个原因**：`resolveProvider()` 抛出的可读文案会被 analyze 路由的
 兜底 catch 统一替换成通用的「分析未能完成，请稍后重试」，真实原因只进服务端日志
@@ -107,9 +117,9 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 
 | 变量 | 不配的行为 |
 |---|---|
-| `TAVILY_API_KEY` | 资源搜索降级，只输出 `searchQuery` 不返回真实链接 |
-| `QQ_EMAIL_USER` + `QQ_EMAIL_PASS` | 回落 **mock 发信**：验证码以 toast「[开发提示] 模拟验证码：xxxxxx」弹出。流程可测，真实收信测不到 |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `EMAIL_FROM` | 同上，非 QQ 邮箱时用这套 |
+| `TAVILY_API_KEY` | ✅ 已配。缺了资源搜索降级，只输出 `searchQuery` 不返回真实链接 |
+| `QQ_EMAIL_USER` + `QQ_EMAIL_PASS` | ✅ 已配（QQ 邮箱）。**已实测 SMTP 握手通过**（`smtp.qq.com:465` secure，563ms），1.1 的收验证码可以真测。缺了则回落 **mock 发信**：验证码以 toast「[开发提示] 模拟验证码：xxxxxx」弹出，流程可测但真实收信测不到 |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `EMAIL_FROM` | 未配，走默认 `smtp.qq.com:465` secure。非 QQ 邮箱时才需要这套（注意 `SMTP_USER`/`SMTP_PASS` 优先级高于 `QQ_EMAIL_*`，`.env.example` 已补齐） |
 | `WATCHA_CLIENT_ID` + `WATCHA_CLIENT_SECRET` | ✅ 已配。缺了 OAuth 入口返回 503 |
 | `WATCHA_REDIRECT_URI` / `WATCHA_AUTH_URL` / `WATCHA_TOKEN_URL` / `WATCHA_USERINFO_URL` | 全部有内置默认值，仅测试环境地址不同时才覆盖 |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `NEXT_PUBLIC_ADMIN_EMAIL` | 后台入口不可用。**注意：`ADMIN_EMAIL` 是登录接口的服务端旁路**，匹配该邮箱时用 `ADMIN_PASSWORD` 直接换 premium 会员，与库里密码无关——别拿它当普通账号用 |
@@ -304,6 +314,32 @@ JWT 签名密钥是人尽皆知的常量，可自签 `__Host-session` 冒充任�
 > 顺带说明：仓库外 `D:\Develop\src\lib\auth\` 有一份早期拷贝（`cookie.ts`、
 > `current-user.ts`，无 `env.ts`）。本次排查时探针的错误相对路径曾被它干扰，
 > 导致第一轮读到了旧逻辑。不在本仓库内，不影响构建，但建议清理以免再踩。
+
+### A3. BYOK 三件套配齐却被路由去 Gemini（第 2 章的直接阻断项）
+
+**现象**：`.env.local` 里 `AI_PROVIDER_BASE_URL=https://api.deepseek.com/v1`、
+`AI_PROVIDER_API_KEY`、`AI_PROVIDER_MODEL=deepseek-flash` 全有值，但 AI 拆解必然失败。
+
+**根因**：`resolveProvider()` 第一行是
+`if (mode === "gemini" || (mode !== "byok" && geminiKey())) return "gemini";`，
+而 `geminiKey()` 是 `GEMINI_API_KEY || AI_PROVIDER_API_KEY`。于是没设
+`AI_PROVIDER_MODE` 时，BYOK 用户的 key 被当成 Gemini key，交给 Google GenAI SDK。
+
+| 验证 | 方式 | 结论 |
+|---|---|---|
+| 修复前实打调用 | tsx 探针加载 `.env.local` 调 `appAi.chat()` | `fetch failed`，10.7s |
+| 端点本身没问题 | 裸 fetch `api.deepseek.com/v1/chat/completions` | 200，718ms，返回「可用」；`/v1/models` 列出 `deepseek-flash`（DeepSeek-V4.1-Flash） |
+| 模型名有效 | 同上 | `deepseek-flash` 在模型清单里，不是拼错 |
+| 修复后实打调用 | 同上，不设任何 flag | 200，690ms / 1426ms，返回「可用」 |
+| 路由矩阵无回归 | 九例对照新旧逻辑 | 仅「BYOK 三件套 + 无 mode + 无 GEMINI_KEY」一格由 gemini 变 byok，其余八格全同 |
+| 回归 | tsc · `bun test` | 125 pass / 0 fail |
+
+修复即把首行改成「显式 mode 优先 → BYOK 三件套齐且无显式 `GEMINI_API_KEY` 就走 byok
+→ 再回落单 key 兼容」。
+
+> ⚠ 另有一个**探针自造的假象**记录在此以免复踩：第一次验证时用了 `max_tokens: 32`，
+> 返回空文本。`deepseek-flash` 是推理模型，32 token 全被 `reasoning_content` 吃掉，
+> `content` 为空。用默认 8000 即正常。测 AI 时别把小预算当 bug。
 
 ### B. `8c359d4` EAZO 清除（内部重构，无新增用户可见行为）
 

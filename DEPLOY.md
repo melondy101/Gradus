@@ -57,7 +57,11 @@ bun run db:migrate
 
 ## 3. 准备模型 API
 
-任意 OpenAI 兼容端点都行。三条环境变量：
+两条路二选一：
+
+**A. Gemini（最省事）** —— 只配 `GEMINI_API_KEY`，模型默认 `gemini-2.5-flash`。
+
+**B. 自带 OpenAI 兼容端点（BYOK）** —— 三条环境变量：
 
 | 变量 | 说明 | 示例 |
 |---|---|---|
@@ -71,6 +75,17 @@ bun run db:migrate
 - OpenAI `https://api.openai.com/v1` → `gpt-4o-mini`
 - Moonshot `https://api.moonshot.cn/v1` → `moonshot-v1-8k`
 - 硅基流动 `https://api.siliconflow.cn/v1` → `Qwen/Qwen2.5-72B-Instruct`
+
+**路由规则**（`src/lib/ai-client.ts` 的 `resolveProvider()`）：
+
+1. `AI_PROVIDER_MODE=gemini|byok` 显式指定时优先；
+2. 否则 **BYOK 三件套配齐、且没有显式 `GEMINI_API_KEY`** → 走 BYOK；
+3. 否则有 `GEMINI_API_KEY`（或只有单个 `AI_PROVIDER_API_KEY`）→ 走 Gemini；
+4. 两条都不满足 → 抛错。
+
+> ⚠ 曾有个坑：BYOK 三件套配齐但没设 `AI_PROVIDER_MODE` 时，`AI_PROVIDER_API_KEY`
+> 会被当成 Gemini key 交给 Google GenAI SDK，结果 10s 后 `fetch failed`，而用户端
+> 只看到通用的「分析未能完成」。已按上面第 2 条修掉。
 
 **选型建议**：分析流程要连打 4 次 LLM，选快的模型体验差别很大。
 `deepseek-chat` 全程约 40-70 秒，推理型模型（如 o1 / r1）可能超过 200 秒。
@@ -110,8 +125,8 @@ CRON_SECRET               <openssl rand -hex 32 生成的随机串>
 NEXT_PUBLIC_APP_TITLE     拾级 · 学习规划智能体
 ```
 
-> `AUTH_SECRET` **必填**，AI 至少配一条（`GEMINI_API_KEY`，或 `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`）。
-> `AUTH_SECRET` 是**惰性校验**：`next build` 即使没有它也能通过，但运行时缺失/过短会让签名相关请求 503；所以必须配。AI 一条都没配好时，用户端只显示通用的「分析未能完成，请稍后重试」，具体原因要查服务端日志里的 `[AutoTask] analyze pipeline error`。
+> `AUTH_SECRET` **必填**。它是**惰性校验**：`next build` 即使没有它也能通过，但生产环境运行时缺失/过短会让签名相关请求直接抛错（503）；`next dev` 不受影响（走本地占位串）。
+> AI 至少配一条：`GEMINI_API_KEY`，或 `AI_PROVIDER_BASE_URL` + `AI_PROVIDER_API_KEY` + `AI_PROVIDER_MODEL`（路由规则见第 3 节，BYOK 三件套配齐就会自动走 BYOK，不必再设 `AI_PROVIDER_MODE`）。AI 一条都没配好时，用户端只显示通用的「分析未能完成，请稍后重试」，具体原因要查服务端日志里的 `[AutoTask] analyze pipeline error`。
 
 5. Deploy → 等 2-3 分钟
 
