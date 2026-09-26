@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { T } from "@/lib/design-tokens";
+import { T, BLOOM_CONFIG } from "@/lib/design-tokens";
 import { addDays, diffDays } from "@/lib/dates";
 import { fmtShortDate } from "@/components/task/task-dates";
 import { TimelineGanttRow } from "./timeline-gantt-row";
@@ -67,28 +67,23 @@ export function TimelineView({
             时间甘特图 (Timeline)
           </div>
           <div style={{ fontSize: 12.5, color: T.muted, marginTop: 3 }}>
-            色条对应认知层级深度，虚线框表示排期已定、尚未开始的计划条
+            色条颜色对应子任务的认知层级（L1 识记 → L6 创造）
           </div>
         </div>
 
-        {/* 图例 */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: T.muted }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: T.accent }} />
-            <span>常规任务</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: T.muted }}>
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                border: `1.5px dashed var(--accent-deep)`,
-                background: "var(--accent-soft)",
-              }}
-            />
-            <span>未开始</span>
-          </div>
+        {/* 图例：与 timeline-gantt-row 的实际渲染一致——条色 = Bloom 层级阶梯 */}
+        <div className="flex flex-wrap items-center gap-3">
+          {[1, 2, 3, 4, 5, 6].map((lv) => (
+            <span key={lv} className="flex items-center gap-1.5 text-caption text-text-3">
+              <span
+                aria-hidden
+                className="size-2.5 rounded-chip-sm"
+                style={{ background: BLOOM_CONFIG[lv].color }}
+              />
+              <span className="font-mono font-medium">L{lv}</span>
+              <span>{BLOOM_CONFIG[lv].name}</span>
+            </span>
+          ))}
         </div>
       </div>
 

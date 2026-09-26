@@ -17,19 +17,10 @@ const HINT = {
 
 type Status = keyof typeof HINT;
 
-/** 深底输入框（原 `.subscribe__input`）：白雾 5% 底 + 深带描边，聚焦转强调黄 */
-const DARK_INPUT = cn(
-  "min-w-0 flex-1 border-bd-dark bg-[rgba(245,242,234,.05)] px-3.5",
-  "text-[14px] text-on-dark placeholder:text-on-dark-3",
-  "focus:border-accent focus:bg-[rgba(245,242,234,.09)] focus:shadow-none",
-);
-
-/** 校验失败态（原 `.subscribe.shake .subscribe__input`）：#E06C4A 描边 + 320ms 抖动 */
-const DARK_INPUT_ERROR = "border-error-on-dark [animation:shake_.32s]";
-
 /**
  * Footer 邮件订阅 —— 演示版不接服务端：只做本地校验与状态反馈。
  * 三种状态（idle / ok / error）分别驱动提示文案颜色与输入框的抖动描边。
+ * 深底输入语言由 Input 的 onDark 变体承载（签字点② 2026-09-26，替代原手写覆盖）。
  */
 export function SubscribeForm() {
   const [email, setEmail] = useState("");
@@ -57,7 +48,9 @@ export function SubscribeForm() {
       </Eyebrow>
       <div className="flex gap-2">
         <Input
-          className={cn(DARK_INPUT, status === "error" && DARK_INPUT_ERROR)}
+          onDark
+          invalid={status === "error"}
+          className={cn("min-w-0 flex-1", status === "error" && "animate-shake")}
           type="email"
           name="email"
           value={email}

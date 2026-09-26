@@ -51,7 +51,8 @@ export function GoalCard({ onSubmit, onOpenDialog }: Props) {
     <Card className="mb-3 gap-0 px-[22px] py-5">
       <Eyebrow className="mb-3">New Goal</Eyebrow>
 
-      <div className="flex gap-2.5">
+      {/* 窄视口纵向堆叠：390px 下固定宽按钮会压扁 flex-1 输入框（体检报告 2026-09-26 阻断#3） */}
+      <div className="flex flex-col gap-2.5 min-[480px]:flex-row">
         <Input
           size="lg"
           id="goal-input"
@@ -67,7 +68,7 @@ export function GoalCard({ onSubmit, onOpenDialog }: Props) {
           placeholder="三个月内通过日语 N3 考试"
           aria-label="新学习目标"
         />
-        <Button variant="app" size="lg" onClick={submit}>
+        <Button variant="app" size="lg" onClick={submit} className="shrink-0">
           <Sparkles size={16} />
           <span>开始规划</span>
         </Button>

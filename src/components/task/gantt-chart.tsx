@@ -104,7 +104,8 @@ export function GanttChart({
                   key={c.key}
                   title={c.date}
                   className={cn(
-                    "rounded-tag py-[5px] font-mono text-micro font-medium tracking-[.05em] text-text-3",
+                    // px-1.5 text-center：黄底今日 pill 的文字不贴左缘（体检报告 2026-09-26 疑似#2）
+                    "rounded-tag px-1.5 py-[5px] text-center font-mono text-micro font-medium tracking-[.05em] text-text-3",
                     c.isToday && "bg-accent font-bold text-ink"
                   )}
                 >

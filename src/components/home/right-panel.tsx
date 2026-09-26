@@ -123,7 +123,8 @@ export function RightPanel({
           onClick={() => setSheetOpen(true)}
           aria-label="打开 AI 分析面板"
           className={cn(
-            "fixed right-[26px] bottom-[22px] z-[40] h-auto gap-2.5 border-0 bg-band-dark py-3 pr-[18px] pl-3.5",
+            // 抬到 TabBar（56px+safe-area）之上，避免整体被盖（体检报告 2026-09-26 阻断#4）
+            "fixed right-[26px] bottom-[calc(68px+env(safe-area-inset-bottom,0px))] z-[40] h-auto gap-2.5 border-0 bg-band-dark py-3 pr-[18px] pl-3.5",
             "text-body font-bold text-on-dark shadow-[0_22px_46px_-18px_rgba(14,13,11,.55)]",
           )}
         >

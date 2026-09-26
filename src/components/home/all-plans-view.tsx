@@ -42,7 +42,8 @@ export function AllPlansView({
             <Crown size={14} className="text-warning" />
             会员与容量
           </Button>
-          <Button size="sm" variant="accent" onClick={onNewPlan}>
+          {/* app 壳禁用 accent 黄按钮（design-system.md Button 禁止场景；体检报告 2026-09-26 阻断#5） */}
+          <Button size="sm" variant="app" onClick={onNewPlan}>
             <Plus size={14} /> 新增学习目标
           </Button>
         </div>
@@ -68,7 +69,7 @@ export function AllPlansView({
             <div className="max-w-[320px] text-body text-text-2">
               输入你感兴趣的学习主题或技能，AI 将为你规划科学的认知阶梯与权威资源
             </div>
-            <Button size="sm" variant="accent" className="mt-1" onClick={onNewPlan}>
+            <Button size="sm" variant="default" className="mt-1" onClick={onNewPlan}>
               立即创建第一个计划
             </Button>
           </Card>

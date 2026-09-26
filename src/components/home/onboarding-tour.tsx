@@ -13,6 +13,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { T } from "@/lib/design-tokens";
+import { Button } from "@/components/ui/button";
 
 export interface TourStep {
   targetSelector: string;
@@ -563,35 +564,19 @@ export function OnboardingTour({
 }
 
 /**
- * 新手引导触发按钮（可挂载在页脚或导航栏供随时查看）
+ * 新手引导触发按钮（挂载在页脚快捷键条）——
+ * ui Button ghost 形态（签字点③ 2026-09-26，替代原手写内联样式按钮）。
  */
 export function TourHelpButton() {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="xs"
       onClick={() => window.dispatchEvent(new CustomEvent("open-gradus-tour"))}
       title="查看功能指引 (Tour)"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 5,
-        background: "transparent",
-        border: "none",
-        color: T.muted,
-        fontSize: 12,
-        cursor: "pointer",
-        padding: "2px 6px",
-        borderRadius: 4,
-        transition: "color 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.color = "var(--accent-ink)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = T.muted;
-      }}
     >
       <HelpCircle size={13} />
       <span>新手指引</span>
-    </button>
+    </Button>
   );
 }

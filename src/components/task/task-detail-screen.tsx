@@ -133,7 +133,9 @@ export function TaskDetailScreen({
 
       {resTotals.total > 0 && (
         <AiPill
-          className="fixed right-[26px] bottom-[22px] z-40"
+          // bottom-20（80px）：给吸顶详情面板的按钮行（42px + 内距）留净空，避免遮挡可点击区
+          //（体检报告 2026-09-26 阻断#7；移动端顺带抬到 TabBar 之上）
+          className="fixed right-[26px] bottom-20 z-40"
           spinning={false}
           live={resTotals.ok < resTotals.total}
           label={

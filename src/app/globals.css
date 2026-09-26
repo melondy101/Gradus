@@ -143,12 +143,9 @@
 
 /* ── 浅色：奶油底（§1.2） ───────────────────────────────────────────── */
 :root {
-  /* 字体与圆角原语 —— base/app/landing.css 直接引用这五个名字 */
+  /* 字体原语别名（--r-* 圆角别名已随 styles/ 目录删除一并清理，签字点② 2026-09-26） */
   --sans: var(--font-sans);
   --mono: var(--font-mono);
-  --r-card: 16px;
-  --r-field: 12px;
-  --r-pill: 999px;
 
   --cream:       #F5F2EA;
   --cream-light: #FAF8F3;

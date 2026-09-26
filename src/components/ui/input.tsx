@@ -5,17 +5,21 @@ import { cn } from "@/utils/utils"
  * 输入 —— 设计说明 §1.4：浅底 #FAF8F3 + 1px 描边 + radius 12；
  * 聚焦时墨色描边 + 黄色外环（focus ring 用点缀黄，全站一致）。
  * `size="lg"` 与 App 内主按钮同高 56。
+ * `onDark`：深色带内输入框（页脚订阅等）——白雾底 + 深带描边，聚焦转点缀黄；
+ * 代替散落各处的手写深底覆盖（ui-debt S9 / 签字点② 2026-09-26）。
  */
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   size?: "default" | "lg"
   invalid?: boolean
+  onDark?: boolean
 }
 
 export function Input({
   className,
   size = "default",
   invalid,
+  onDark,
   ...props
 }: InputProps) {
   return (
@@ -23,13 +27,16 @@ export function Input({
       data-slot="input"
       aria-invalid={invalid || undefined}
       className={cn(
-        "w-full rounded-field border border-bd-field bg-cream-light px-4 text-ink outline-none",
-        "placeholder:text-text-3",
+        "w-full rounded-field border px-4 outline-none",
+        onDark
+          ? "border-bd-dark bg-on-dark/5 text-on-dark placeholder:text-on-dark-3 focus:border-accent focus:bg-on-dark/10"
+          : "border-bd-field bg-cream-light text-ink placeholder:text-text-3 focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
         "transition-[border-color,background-color,box-shadow] duration-[.16s] ease-out",
-        "focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
         size === "default" && "h-11 text-body-lg",
         size === "lg" && "h-14 text-base",
-        invalid && "border-error focus:border-error",
+        invalid && (onDark
+          ? "border-error-on-dark focus:border-error-on-dark"
+          : "border-error focus:border-error"),
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}

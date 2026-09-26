@@ -38,7 +38,8 @@ export function AppHeader({
 }: Props) {
   return (
     <header className="flex h-[52px] flex-none items-center justify-between gap-2 border-b border-bd-card bg-card px-3.5">
-      <div className="flex min-w-0 items-center gap-2 overflow-hidden">
+      {/* 无 overflow-hidden：右侧簇收窄后左侧不再需要裁切兜底（体检报告 2026-09-26 阻断#2） */}
+      <div className="flex min-w-0 items-center gap-2">
         <Link
           href="/app"
           className="flex items-center gap-1.5 shrink-0 transition-opacity hover:opacity-85 sm:hidden"
@@ -48,7 +49,8 @@ export function AppHeader({
           <span className="text-body-lg font-black tracking-[.02em] text-ink">拾级</span>
         </Link>
 
-        <Eyebrow kind="label" className="mb-0">{VIEW_LABEL[currentView]}</Eyebrow>
+        {/* 移动端隐藏：与页内 H1 同文案重复，移动端宽度留给品牌字标（阻断#1/#2 + 建议#2） */}
+        <Eyebrow kind="label" className="mb-0 hidden sm:inline-flex">{VIEW_LABEL[currentView]}</Eyebrow>
 
         {selectedTag && (
           <Badge state="live" id="header-active-tag-filter" className="gap-1 px-[7px] py-[2px]">
@@ -72,14 +74,14 @@ export function AppHeader({
         )}
       </div>
 
-      {/* 移动端顶栏快捷操作 */}
+      {/* 移动端顶栏快捷操作：通知收成图标、账户收成头像，保证品牌字标完整（阻断#1/#2） */}
       <div className="flex items-center gap-1 shrink-0 sm:hidden">
         <IconButton onClick={onOpenPalette} aria-label="搜索" className="size-8 rounded-icon">
           <Search size={18} />
         </IconButton>
-        <NotificationCenter id="header-btn-notifications" />
+        <NotificationCenter id="header-btn-notifications" collapsed />
         <ThemeToggle />
-        <UserBadge />
+        <UserBadge compact />
       </div>
     </header>
   );

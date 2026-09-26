@@ -73,6 +73,8 @@ bun run db:migrate-demo  # 灌演示数据（scripts/migrate-demo-data.ts，需 
 
 > 设计保真五道闸门 `audit:tokens / audit:design / audit:parity / audit:modals / audit:colors`（外加 `bun test` 里的令牌镜像一致性测试）见 §14；Android/Capacitor 命令见 [docs/ANDROID_PACKAGING.md](./docs/ANDROID_PACKAGING.md)。
 
+> **设计系统执行体系**（2026-09-26 起，真源 [docs/design-system/](./docs/design-system/)）：UI 代码一律受 rules.md（R1-R12）约束，写组件前先读 design-system.md 与 tokens.md。确定性闸门 `ds:tokens / ds:imports / ds:vars / ds:report`（`scripts/ds-check/`，存量债走基线棘轮，新增违规即失败）；视觉/交互层由独立检查 Agent 按 rules.md R10-R12 体检，报告存档 `docs/design-system/audits/`；债务与签字点议程见 [docs/design-system/ui-debt.md](./docs/design-system/ui-debt.md)。⚠️ 初版 Token 基准**未经人工签字**，当前全部体检结论为 provisional。截图采集：`node scripts/ds-check/ds-screenshot.mjs`（需 dev server）。
+
 > ⚠️ 旧的 `bun run cleanup:demo` 已在 2026-08-14 删除（指向不存在的脚本），当前 `package.json` 已不再声明该命令。
 
 ---

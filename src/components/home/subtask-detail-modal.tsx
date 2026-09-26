@@ -13,6 +13,7 @@ import {
 
 import { T } from "@/lib/design-tokens";
 import { Button } from "@/components/ui/button";
+import { Tag } from "@/components/ui/badge";
 import { Mono } from "@/components/ui/eyebrow";
 import { Modal } from "@/components/ui/modal";
 
@@ -362,7 +363,8 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
         const firstUrl = firstResource ? firstResource.resolved_url ?? firstResource.url : undefined;
         if (!firstUrl || row.completed) return null;
         return (
-          <Button variant="accent" size="full" onClick={() => openExternalUrl(firstUrl)}>
+          // 浅底弹层禁用 accent 黄按钮（签字点① 方案A，2026-09-26）：主操作用 app 墨色
+          <Button variant="app" size="full" onClick={() => openExternalUrl(firstUrl)}>
             {t("subtaskDetail.startLearning")}
           </Button>
         );
@@ -371,26 +373,14 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
   );
 }
 
+// 属性小标签：组合 ui Tag（中性底）+ Bloom/语义色文字（签字点③ 2026-09-26，
+// 替代原 color-mix 手写内联标签；薄封装白名单见 rules.md R2）
 function AttrPill({ icon, label, color }: { icon: string; label: string; color: string }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 3,
-        fontSize: 10,
-        fontWeight: 600,
-        color,
-        // color 是 var(...) 串，拼 8 位十六进制 alpha 会得到无效声明被浏览器丢掉，
-        // 所以用 color-mix 让令牌自己带透明度落底。
-        background: `color-mix(in srgb, ${color} 8%, transparent)`,
-        border: `1px solid color-mix(in srgb, ${color} 18%, transparent)`,
-        borderRadius: 6,
-        padding: "3px 8px",
-      }}
-    >
-      {icon} {label}
-    </span>
+    <Tag className="gap-1 px-2 py-0.5">
+      <span style={{ color }} aria-hidden>{icon}</span>
+      <span>{label}</span>
+    </Tag>
   );
 }
 
