@@ -11,12 +11,6 @@ export interface MembershipResponse {
   };
   membership: UserQuotaSummary;
   tiers: Record<MembershipTier, TierConfig>;
-  presetCodes: Array<{
-    code: string;
-    tierName: string;
-    duration: string;
-    desc: string;
-  }>;
   history?: Array<{
     id: string;
     code: string;

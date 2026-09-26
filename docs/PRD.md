@@ -166,13 +166,7 @@ Vercel Cron 每日调用 `GET /api/notifications/cron/daily-digest`：
 - 无任务：鼓励新建目标
 - 通过 `CRON_SECRET` Bearer Token 鉴权
 
-#### 3.2.13 MCP 接口（AI Agent 调用）
-`/api/mcp` 暴露标准 MCP Streamable HTTP 协议：
-- 任何 AI Agent（如 Claude Desktop）可通过 MCP 工具直接 CRUD 用户的任务数据
-- 无状态模式，每次请求独立（serverless 友好）
-- 同样通过 `requireAuth` 鉴权，严格用户隔离
-
-#### 3.2.14 甘特图时间线（`GanttChart`）
+#### 3.2.13 甘特图时间线（`GanttChart`）
 `/task/:id` 详情页展示可折叠甘特图：
 - 每个子任务渲染一条比例条（`startDay / totalDays`）
 - 进入动画：`ganttGrow` keyframe，0.12s 逐条延迟
@@ -341,7 +335,6 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 │  │  PATCH  /api/tasks/:id/subtasks/:sid 切换完成状态     │  │
 │  │  GET    /api/subtasks               全量子任务JOIN    │  │
 │  │  GET    /api/user/profile           当前 user          │  │
-│  │  GET/POST/DELETE /api/mcp           MCP Streamable HTTP│  │
 │  │  GET    /api/notifications/cron/daily-digest  Vercel Cron │
 │  └──────────────────┬──────────────┬─────────────────────┘
 └─────────────────────┼──────────────┼──────────────────────┘
@@ -423,7 +416,6 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 | `PATCH` | `/api/tasks/:id/subtasks/:sid` | 切换子任务完成状态 | ✅ | `api/tasks/[id]/subtasks/[subtaskId]/route.ts` |
 | `GET` | `/api/subtasks` | 全量子任务+大任务JOIN | ✅ | `api/subtasks/route.ts` |
 | `GET` | `/api/user/profile` | 获取/创建用户 | ✅ | `api/user/profile/route.ts` |
-| `GET/POST/DELETE` | `/api/mcp` | MCP Streamable HTTP | ✅ | `api/mcp/route.ts` |
 | `GET` | `/api/notifications/cron/daily-digest` | 每日推送（Cron） | Bearer | `api/notifications/cron/daily-digest/route.ts` |
 | `GET` | `/api/notifications/test` | 测试推送 | ✅ | `api/notifications/test/route.ts` |
 
@@ -517,12 +509,6 @@ const res = await request("/api/tasks");
 // → 自动添加 "x-app-locale": getResolvedLocale()
 // → session 走 __Host-session cookie，浏览器自动附带，无需客户端注入 header
 ```
-
-### 6.4 MCP 工具（`/api/mcp`）
-
-基于 `@modelcontextprotocol/sdk` Web Standard Streamable HTTP Transport，无状态（每请求独立）。AI Agent 可调用的工具由 `src/lib/mcp/server.ts` 定义，包含任务的 CRUD 操作，严格按 userId 隔离。
-
----
 
 ## 七、数据库设计
 

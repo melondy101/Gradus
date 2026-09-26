@@ -7,4 +7,3 @@ export { LandingCapabilities } from "./capabilities";
 export { LandingPrivacyBand } from "./privacy-band";
 export { LandingFinalCta } from "./final-cta";
 export { LandingFooter } from "./footer";
-export { SubscribeForm } from "./subscribe-form";

@@ -51,11 +51,7 @@ export function LandingFinalCta() {
       </div>
 
       <p className="mt-7 font-mono text-caption tracking-[.03em] text-text-3">
-        部署只需{" "}
-        <code className="rounded-[5px] border border-bd-card bg-white px-[6px] py-0.5">
-          DATABASE_URL
-        </code>{" "}
-        与一个模型密钥。
+        部署前请配置数据库、认证密钥与 AI 服务；完整清单见 .env.example。
       </p>
     </section>
   );

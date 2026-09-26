@@ -12,8 +12,6 @@ import {
   Bot,
   Sliders,
   ArrowRight,
-  Copy,
-  Check,
   Loader2,
   ShieldCheck,
   Zap,
@@ -56,7 +54,6 @@ export function MembershipModal({
   const [loadError, setLoadError] = useState(false);
   const [redeemInput, setRedeemInput] = useState("");
   const [redeeming, setRedeeming] = useState(false);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -105,14 +102,6 @@ export function MembershipModal({
     } finally {
       setRedeeming(false);
     }
-  }
-
-  function handleCopyPreset(code: string) {
-    navigator.clipboard.writeText(code).catch(() => {});
-    setCopiedCode(code);
-    setRedeemInput(code);
-    toast.success(`已复制「${code}」并填入输入框`);
-    setTimeout(() => setCopiedCode(null), 2000);
   }
 
   if (!open) return null;
@@ -533,56 +522,6 @@ export function MembershipModal({
                       )}
                     </button>
                   </form>
-                </div>
-
-                {/* Preset Test Codes (Direct click to use) */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      测试体验兑换码（点击一键填入并兑换）
-                    </h4>
-                    {isAdmin && (
-                      <button
-                        onClick={() => setActiveTab("manage")}
-                        className="text-[11px] text-primary hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-                      >
-                        <KeyRound className="h-3.5 w-3.5" />
-                        <span>生成与管理更多激活码</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {data?.presetCodes?.map((item) => (
-                      <div
-                        key={item.code}
-                        onClick={() => handleCopyPreset(item.code)}
-                        className="flex items-center justify-between rounded-xl border border-border/80 bg-muted/30 hover:bg-muted/60 p-3 transition-colors cursor-pointer group"
-                      >
-                        <div className="space-y-0.5 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                              {item.code}
-                            </span>
-                            <span className="rounded-sm bg-primary/10 text-primary font-bold text-[10px] px-1.5 py-0.5">
-                              {item.tierName} · {item.duration}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground truncate">
-                            {item.desc}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 p-1.5 rounded-lg text-muted-foreground group-hover:text-foreground group-hover:bg-background">
-                          {copiedCode === item.code ? (
-                            <Check className="h-4 w-4 text-emerald-500" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Redemption History */}

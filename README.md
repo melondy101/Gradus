@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./src/app/icon.svg" width="108" height="108" alt="拾级 Gradus Logo" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(79, 70, 229, 0.25);" />
+<img src="./src/app/icon.svg" width="108" height="108" alt="拾级 Gradus Logo" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(17, 17, 17, 0.15);" />
 
 # 拾级 · Gradus (TalkTask)
 
@@ -17,7 +17,6 @@
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Bun Runtime](https://img.shields.io/badge/Bun-1.3+-F472B6?style=flat-square&logo=bun&logoColor=white)](https://bun.sh/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_+_Drizzle-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://orm.drizzle.team/)
-[![Model Context Protocol](https://img.shields.io/badge/Protocol-MCP_Streamable_HTTP-8B5CF6?style=flat-square)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](./LICENSE)
 
 [🌐 在线体验](https://talk-task.vercel.app/) · [📖 产品设计 (PRD)](./docs/PRD.md) · [🛠️ 开发者指南 (AGENTS)](./AGENTS.md) · [🚀 20分钟快速部署 (DEPLOY)](./DEPLOY.md)
@@ -54,7 +53,7 @@
 └─────────────────────────────────────────────────────────────┘
           │
           ▼
-   交互式甘特图 & 任务仪表盘 (支持 MCP 供外部 Agent 同步)
+   交互式甘特图 & 任务仪表盘
 ```
 
 ### 1. 🧠 布鲁姆认知阶梯（Bloom's Taxonomy Staircase）
@@ -72,11 +71,7 @@
 - **每日槽位交错学习**：同主题每日容量上限控制，跨领域平滑穿插，保持每日认知负荷均衡。
 - **艾宾浩斯间隔复习节点（Spaced Repetition）**：关键里程碑自动生成阶段复习触发点，实现知识闭环巩固。
 
-### 4. 🔌 原生支持 MCP（Model Context Protocol）
-- 提供标准 `/api/mcp` Streamable HTTP 端点，支持无状态认证。
-- 可作为工具直接接入 **Cursor / Windsurf / Claude Desktop / OpenDevin** 等任意支持 MCP 的 AI Agent，让外部智能体直接理解你的学习计划并协同打卡。
-
-### 5. 👥 免登录即用 + 注册无缝接管（Guest-First Auth）
+### 4. 👥 免登录即用 + 注册无缝接管（Guest-First Auth）
 - 访客进入首屏自动通过轻量 JWT Cookie 签发独立临时沙箱，无需注册即可秒级试用。
 - 用户决定注册正式账号时，数据库在**单一事务**内原子化转移所有关联任务数据，平滑无感。
 
@@ -94,7 +89,6 @@
 | **数据库 & ORM** | PostgreSQL + Drizzle ORM | 强类型数据建模，Serverless 连接池优化 |
 | **AI 客户端** | 自托管 `appAi`（OpenAI 兼容 / BYOK） | 零平台锁定，支持 DeepSeek、Moonshot、GPT-4o 等 |
 | **资源检索引擎** | Tavily Search API + 自研抓取器 | 权威技术域名白名单过滤与实时可信度验证 |
-| **开放协议** | `@modelcontextprotocol/sdk` (MCP) | 标准化 Agent 工具协议集成 |
 | **定时任务** | Vercel Cron | 每日学习进度与复习节点自动推送 |
 
 ---
@@ -105,7 +99,7 @@
 - [Bun](https://bun.sh/) 1.3+（强烈推荐）或 Node.js 18+
 - [PostgreSQL](https://www.postgresql.org/) 数据库（可免费使用 [Neon](https://neon.tech/) 或 [Supabase](https://supabase.com/)）
 - OpenAI 兼容的 LLM API 密钥（如 [DeepSeek](https://platform.deepseek.com/)、Moonshot、OpenAI、本地 Ollama/vLLM）
-- *(可选)* [Tavily API Key](https://tavily.com/)（提供实时精准资源检索）
+- *(可选)* 至少一个资源搜索 API Key（Tavily、SerpAPI、Brave Search 或豆包）；按配置顺序自动回退
 
 ### 2. 克隆与安装
 
@@ -150,8 +144,12 @@ AI_PROVIDER_MODEL="deepseek-chat"
 # ==========================================
 # 可选项 (Optional Enhancements)
 # ==========================================
-# Tavily 实时资源搜索密钥（留空则降级为搜索引擎跳转模式）
+# 资源搜索：按 Tavily → SerpAPI → Brave → 豆包顺序回退。
+# 全部留空或均不可用时，资源会降级为搜索词跳转。
 TAVILY_API_KEY="tvly-xxxxxxxxxxxxxxxxxxxx"
+SERPAPI_API_KEY=""
+BRAVE_SEARCH_API_KEY=""
+DOUBAO_API_KEY=""
 
 # 站点标题与自定义描述
 NEXT_PUBLIC_APP_TITLE="拾级 · Gradus"
@@ -204,7 +202,7 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 
 ---
 
-## 📡 API 与 MCP 接口速览
+## 📡 API 接口速览
 
 ### 核心 REST API
 
@@ -218,25 +216,6 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 | `PATCH` | `/api/tasks/:id/subtasks/:sid` | 切换指定子任务的完成打卡状态 | 自动 Session |
 | `GET` | `/api/user/stats` | 获取用户专注时长、打卡连击与认知分布统计 | 自动 Session |
 
-### MCP 协议集成
-
-任何支持 Model Context Protocol 的客户端均可直接对接拾级服务：
-
-```json
-{
-  "mcpServers": {
-    "gradus-tasks": {
-      "url": "https://your-domain.com/api/mcp",
-      "headers": {
-        "Cookie": "__Host-session=YOUR_JWT_TOKEN"
-      }
-    }
-  }
-}
-```
-
----
-
 ## 🗺️ 演进路线（Roadmap）
 
 - [x] 完整的 5 阶段 AI 任务规划与自愈修复流水线
@@ -244,7 +223,6 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 - [x] Tavily 两阶段防编造真实资源检索与可信度评级
 - [x] 全局认知负荷排期与动态甘特图
 - [x] 访客即时体验与注册事务级合并
-- [x] 原生 MCP (Model Context Protocol) 接口
 - [x] 暗色模式深度适配与多套主题切换
 - [ ] 导出到系统日历（iCal / Google Calendar / 飞书日历）
 - [ ] 基于艾宾浩斯复习曲线的主动桌面通知与微信机器人推送

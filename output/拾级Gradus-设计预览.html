@@ -528,20 +528,6 @@ h3 .dot-accent{width:11px;height:11px}
 .foot-brand__word{font-size:22px;font-weight:900;margin-top:16px;display:flex;align-items:baseline;gap:10px}
 .foot-brand__word .mono{font-size:10px;letter-spacing:.24em;color:var(--on-dark-3);font-weight:500}
 .foot-brand__tag{font-size:14px;line-height:24px;color:var(--on-dark-2);margin-top:12px;max-width:340px}
-.subscribe{margin-top:30px}
-.subscribe__row{display:flex;gap:8px}
-.subscribe__input{
-  flex:1;min-width:0;height:44px;padding:0 14px;border-radius:var(--r-field);
-  background:rgba(245,242,234,.05);border:1px solid var(--bd-dark);color:var(--on-dark);
-  font-size:14px;outline:none;transition:border-color .16s,background .16s;
-}
-.subscribe__input::placeholder{color:var(--on-dark-3)}
-.subscribe__input:focus{border-color:var(--accent);background:rgba(245,242,234,.09)}
-.subscribe__hint{font-size:12px;color:var(--on-dark-3);margin-top:10px;transition:color .2s}
-.subscribe__hint.is-ok{color:var(--accent)}
-.subscribe.shake .subscribe__input{border-color:#E06C4A;animation:shake .32s}
-@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-
 .foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding-top:6px}
 .foot-cols a{
   display:block;font-size:14px;color:var(--on-dark-2);padding:7px 0;
@@ -1143,7 +1129,6 @@ h3 .dot-accent{width:11px;height:11px}
           <h3>整个项目<br>是开源的<i class="dot-accent"></i></h3>
           <p>Next.js + Drizzle + PostgreSQL，一条命令部署到你自己的服务器上。没有平台账号，没有厂商锁定。</p>
           <code class="mono">github.com/huang-yi-dae/TalkTask</code>
-          <div class="gh-card__star"><span>★</span><b>1.2k</b><em>Stars</em></div>
           <button class="btn btn--cream">在 GitHub 上查看</button>
           <button class="btn btn--on-dark">复制部署命令</button>
         </aside>
@@ -1204,7 +1189,7 @@ h3 .dot-accent{width:11px;height:11px}
         <button class="btn btn--ghost">先看演示数据</button>
         <button class="btn btn--ghost">自托管部署</button>
       </div>
-      <p class="hero-foot">部署只需 <code>DATABASE_URL</code> 与一个模型密钥。</p>
+      <p class="hero-foot">部署前请配置数据库、认证密钥与 AI 服务；完整清单见 .env.example。</p>
     </section>
 
     <!-- 8 Footer -->
@@ -1214,14 +1199,6 @@ h3 .dot-accent{width:11px;height:11px}
           <svg class="mark" style="width:40px;height:19px;color:#F5F2EA"><use href="#mark-mono"/></svg>
           <p class="foot-brand__word">拾级 <span class="mono">GRADUS</span></p>
           <p class="foot-brand__tag">面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。</p>
-          <form class="subscribe" id="subscribe">
-            <p class="label-mono" style="color:var(--on-dark-2)">更新提醒</p>
-            <div class="subscribe__row">
-              <input class="subscribe__input" type="email" placeholder="you@example.com">
-              <button class="btn btn--accent" type="submit">订阅</button>
-            </div>
-            <p class="subscribe__hint" id="subHint">每两周一封，只写更新。</p>
-          </form>
         </div>
         <div class="foot-cols">
           <div><p class="label-mono">产品</p><a href="#">今日面板</a><a href="#">甘特视图</a><a href="#">资源校验</a><a href="#">MCP 服务</a></div>
@@ -1668,7 +1645,7 @@ $$('.dock__btn').forEach(b => b.addEventListener('click', () => {
   if (b.dataset.view === 'app-modal') openVeilStatic();
 }));
 
-/* ── 3 · Landing：吸顶阴影 / 锚点高亮 / 订阅 ──────────── */
+/* ── 3 · Landing：吸顶阴影 / 锚点高亮 ─────────────────── */
 const lpNav = $('#lpNav');
 const navLinks = $$('.lp-nav__links a');
 const sections = navLinks
@@ -1690,19 +1667,6 @@ $$('a[href^="#sec-"]').forEach(a => a.addEventListener('click', e => {
   e.preventDefault();
   scrollTo({ top: t.offsetTop - 92, behavior: 'smooth' });
 }));
-
-const subForm = $('#subscribe');
-if (subForm) subForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const input = $('.subscribe__input', subForm);
-  const hint = $('#subHint');
-  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
-  subForm.classList.toggle('shake', !ok);
-  setTimeout(() => subForm.classList.remove('shake'), 400);
-  hint.textContent = ok ? '演示状态：已订阅，实际项目将写入你的库。' : '演示状态：邮箱格式不正确。';
-  hint.classList.toggle('is-ok', ok);
-  if (ok) input.value = '';
-});
 
 /* ── 4 · 屏一：复选框三态 + 统计联动（纯视觉） ────────── */
 const STATE_CYCLE = { todo: 'done', done: 'live', live: 'todo' };

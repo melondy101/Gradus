@@ -192,6 +192,7 @@ dist
 
 # Local planning / scratch / one-off scripts (not part of product)
 /.scratch/
+/.local/
 /.workbuddy/
 /gen_brief.py
 /gradus.md
@@ -205,8 +206,8 @@ dist
 /package-lock.json
 
 # 本机密钥/凭据类文件与临时脚手架：绝不入库（2026-09-22）
-keys-dump.txt
-watcha_oauth2接入文档.md
+/keys-dump.txt
+/watcha_oauth2接入文档.md
 .tmp-*
 .style-bridge-backup/
 

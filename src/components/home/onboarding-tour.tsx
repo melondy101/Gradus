@@ -264,25 +264,61 @@ export function OnboardingTour({
 
   const IconComponent = step.icon;
   const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
+  const spotlightPadding = 8;
+  const viewportWidth = typeof window === "undefined" ? 0 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 0 : window.innerHeight;
+  const spotlightTop = targetRect
+    ? Math.max(0, targetRect.top - spotlightPadding)
+    : 0;
+  const spotlightBottom = targetRect
+    ? Math.min(viewportHeight, targetRect.bottom + spotlightPadding)
+    : 0;
+  const spotlightLeft = targetRect
+    ? Math.max(0, targetRect.left - spotlightPadding)
+    : 0;
+  const spotlightRight = targetRect
+    ? Math.min(viewportWidth, targetRect.right + spotlightPadding)
+    : 0;
+  const maskRects: React.CSSProperties[] = targetRect
+    ? [
+        { top: 0, right: 0, left: 0, height: spotlightTop },
+        { top: spotlightBottom, right: 0, bottom: 0, left: 0 },
+        {
+          top: spotlightTop,
+          left: 0,
+          width: spotlightLeft,
+          height: spotlightBottom - spotlightTop,
+        },
+        {
+          top: spotlightTop,
+          right: 0,
+          width: viewportWidth - spotlightRight,
+          height: spotlightBottom - spotlightTop,
+        },
+      ]
+    : [{ inset: 0 }];
 
   return (
     <div className="onboarding-tour-root">
-      {/* ── 遮罩层 (Spotlight Mask) ── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(14, 13, 11, 0.45)",
-          backdropFilter: "blur(3px)",
-          zIndex: 10000,
-          pointerEvents: "auto",
-        }}
-        onClick={handleSkip}
-      />
+      {/* ── 遮罩层：四块窗帘只覆盖目标外部，聚焦内容保持清晰 ── */}
+      {maskRects.map((rect, index) => (
+        <motion.div
+          key={`tour-mask-${index}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          style={{
+            position: "fixed",
+            background: "rgba(14, 13, 11, 0.45)",
+            backdropFilter: "blur(3px)",
+            zIndex: 10000,
+            pointerEvents: "auto",
+            ...rect,
+          }}
+          onClick={handleSkip}
+        />
+      ))}
 
       {/* ── 高亮聚焦边框 (Target Spotlight Ring) ── */}
       {targetRect && (

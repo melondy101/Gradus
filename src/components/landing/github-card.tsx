@@ -1,4 +1,3 @@
-import { Star } from "lucide-react";
 import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
@@ -45,18 +44,6 @@ export function GithubCard({ className }: { className?: string }) {
       <code className="block break-all rounded-tile border border-accent/26 bg-accent/10 px-3 py-2.5 text-caption tracking-[.02em] text-accent">
         {REPO_LABEL}
       </code>
-
-      <div className="flex items-baseline gap-2 pt-1.5 pb-0.5">
-        <Star
-          size={15}
-          aria-hidden
-          className="shrink-0 self-center fill-accent text-accent"
-        />
-        <b className="text-[20px] font-black">1.2k</b>
-        <em className="font-mono text-caption font-medium tracking-[.05em] text-on-dark-3 not-italic">
-          Stars
-        </em>
-      </div>
 
       <Link
         href={REPO_URL}

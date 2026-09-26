@@ -48,11 +48,11 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg?v=brand-step", type: "image/svg+xml" },
+      { url: "/favicon.svg?v=brand-step", type: "image/svg+xml" },
     ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    shortcut: "/icon.svg?v=brand-step",
+    apple: "/icon.svg?v=brand-step",
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {

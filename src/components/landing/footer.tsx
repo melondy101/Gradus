@@ -5,7 +5,6 @@ import { cn } from "@/utils/utils";
 import { BandWrap, wrapClass } from "./band-wrap";
 import { FootCol } from "./foot-col";
 import { FootSocial } from "./foot-social";
-import { SubscribeForm } from "./subscribe-form";
 import type { FootLink } from "./foot-anchor";
 import { APP_URL, appViewUrl, REPO_URL } from "./links";
 
@@ -16,7 +15,6 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
       { text: "今日面板", href: APP_URL },
       { text: "甘特视图", href: appViewUrl("timeline") },
       { text: "资源校验", href: "#sec-cap" },
-      { text: "MCP 服务", href: `${REPO_URL}#mcp-协议集成`, external: true },
     ],
   },
   {
@@ -52,7 +50,7 @@ const LEGAL_LINK_CLASS =
 
 /**
  * 8 · Footer（深色带）—— 《品牌与产品设计说明》§2.8
- * Logo + 标语 + 邮件订阅 / 三列链接两端分布 / 底栏版权、法条与社交图标。
+ * Logo + 标语 / 三列链接两端分布 / 底栏版权、法条与社交图标。
  */
 export function LandingFooter() {
   return (
@@ -66,7 +64,6 @@ export function LandingFooter() {
           <p className="mt-3 max-w-[340px] text-[14px] leading-[24px] text-on-dark-2">
             面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。
           </p>
-          <SubscribeForm />
         </div>
 
         <div className="grid grid-cols-3 gap-8 pt-1.5">

@@ -1,22 +1,24 @@
+import { searchConfiguredProviders } from "./search-providers";
+
 /**
- * Tavily 搜索封装
+ * 资源搜索封装
  *
  * 设计思路（两阶段分离原则，来自 SMU/arXiv 引用验证研究）：
  *   Stage 2 不再让 AI "凭空推荐资源"，而是：
  *     Step A — AI 只生成搜索意图（关键词 + 目标域名），不生成任何 URL
- *     Step B — 本模块用代码调用 Tavily API，从白名单域名里检索真实资源
+ *     Step B — 本模块按已配置搜索服务的顺序，从白名单域名里检索真实资源
  *     Step C — 把真实 URL + 摘要注入 PLAN_PROMPT，AI 只能引用代码拿到的资源
  *
  *   核心原则（同 Perplexity 架构）：
  *   "Citations are embedded before generation, not retrofitted post-generation."
  *   资源在 AI 写计划之前就已经是真实存在的，LLM 无法编造 URL。
  *
- * 配置：
- *   TAVILY_API_KEY — 在 .env 里配置，没有时自动降级为 searchQuery-only 模式
+ * 配置顺序：
+ *   TAVILY_API_KEY → SERPAPI_API_KEY → BRAVE_SEARCH_API_KEY → DOUBAO_API_KEY
  *
  * 降级策略：
- *   有 Tavily Key → 真实搜索，trust_level = "verified"
- *   无 Tavily Key → 返回结构化搜索词，trust_level = "search_only"
+ *   任一服务可用 → 真实搜索，trust_level = "verified"
+ *   全部未配置或不可用 → 返回结构化搜索词，trust_level = "search_only"
  *                   用户点击时打开搜索引擎页面
  */
 
@@ -72,7 +74,7 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "docs.microsoft.com",
     "react.dev",
     "nodejs.org",
-    "typescript-lang.org",
+    "typescriptlang.org",
   ],
   // 数学与逻辑
   "数学": [
@@ -131,65 +133,6 @@ export function getWhitelistDomains(topicCategory: string): string[] {
   return common;
 }
 
-// ─── Tavily API 封装 ──────────────────────────────────────────────────────
-
-interface TavilySearchResult {
-  title: string;
-  url: string;
-  content: string;       // 内容摘要
-  score: number;         // 相关度分数 0~1
-  published_date?: string;
-}
-
-interface TavilyResponse {
-  results: TavilySearchResult[];
-  query: string;
-}
-
-/**
- * 调用 Tavily API 搜索，返回结构化结果
- * 无 API Key 时直接返回 null（由上层降级处理）
- */
-async function searchTavily(
-  query: string,
-  includeDomains: string[],
-  maxResults = 3,
-): Promise<TavilySearchResult[] | null> {
-  const apiKey = process.env.TAVILY_API_KEY;
-  if (!apiKey) return null;
-
-  try {
-    const res = await fetch("https://api.tavily.com/search", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        query,
-        search_depth: "basic",
-        include_domains: includeDomains,
-        max_results: maxResults,
-        include_answer: false,
-        include_raw_content: false,
-      }),
-      signal: AbortSignal.timeout(8000), // 8秒超时
-    });
-
-    if (!res.ok) {
-      console.warn(`[Tavily] HTTP ${res.status} for query: "${query}"`);
-      return null;
-    }
-
-    const data = (await res.json()) as TavilyResponse;
-    return data.results ?? null;
-  } catch (err) {
-    // 超时或网络错误：静默降级，不中断主流程
-    console.warn("[Tavily] Search failed, falling back to search_only mode:", err);
-    return null;
-  }
-}
-
 // ─── 搜索意图（AI 在 Stage 2 生成的结构）──────────────────────────────────
 
 export interface SearchIntent {
@@ -206,8 +149,8 @@ export interface SearchIntent {
  * 将 AI 生成的搜索意图转换为带 trust_level 的真实资源列表。
  *
  * 流程：
- *   1. 有 Tavily API Key → 真实搜索 → 返回 trust_level="verified" 资源
- *   2. 无 Tavily API Key → 返回 trust_level="search_only" 资源
+ *   1. 按已配置服务顺序搜索，得到真实结果 → 返回 trust_level="verified" 资源
+ *   2. 全部服务不可用 → 返回 trust_level="search_only" 资源
  *      （用户点击时跳转到搜索引擎，自己选择）
  *
  * @param intents       AI 生成的搜索意图数组
@@ -224,15 +167,18 @@ export async function resolveResources(
   const resolvedGroups = await Promise.all(
     intents.slice(0, 6).map(async (intent) => {
       try {
-        const tavilyResults = await searchTavily(intent.query, whitelistDomains, 2);
+        const searchResults = await searchConfiguredProviders(
+          intent.query,
+          whitelistDomains,
+          2,
+        );
 
-        if (tavilyResults && tavilyResults.length > 0) {
-          // ✅ 有 Tavily 结果：trust_level = "verified"
-          return tavilyResults.map((r): TrustableResource => ({
+        if (searchResults && searchResults.length > 0) {
+          return searchResults.map((r): TrustableResource => ({
             type: resourceTypeFromUrl(r.url, intent.resource_type),
             title: r.title,
             url: r.url,                              // ← 代码检索到的真实 URL
-            snippet: r.content.slice(0, 200),        // 内容摘要（最多 200 字符）
+            snippet: r.content?.slice(0, 200),       // 内容摘要（最多 200 字符）
             platform: extractPlatformName(r.url),
             trust_level: "verified",                 // ← 经过实际 HTTP 检索验证
             learning_phase: intent.learning_phase,
@@ -240,10 +186,10 @@ export async function resolveResources(
           }));
         }
       } catch {
-        // Tavily 检索异常或超时，降级到 search_only
+        // 搜索服务异常或超时，降级到 search_only
       }
 
-      // ⚠️ 无 Tavily 或搜索失败：trust_level = "search_only"，给用户搜索词
+      // ⚠️ 所有搜索服务均不可用：trust_level = "search_only"，给用户搜索词
       return [
         {
           type: mapResourceType(intent.resource_type),
