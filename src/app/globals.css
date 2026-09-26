@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* 设计系统审计文档里大量出现反引号包裹的 Tailwind 类名原文。Tailwind 的自动
+   源扫描不区分「源码里的 className」和「文档里被引用的字符串」，会把后者也当
+   成候选类生成规则——docs/design-system/audits/*.md 里的一句
+   `bottom-[calc(68px+env(...))]` 就会产出 `bottom: calc(68px + env(...))`
+   这条非法 CSS，让整个 globals.css 解析失败、全站 500。文档不是源码，排除。 */
+@source not "../../docs/**";
+
 @custom-variant dark (&:is(.dark *));
 
 /* ══════════════════════════════════════════════════════════════════════
