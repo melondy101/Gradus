@@ -31,7 +31,7 @@
 | GradusLogo | `GradusLogo` | gradus-logo.tsx | 品牌 logo（可带字标） | 顶栏、页脚 |
 | Toaster | `Toaster` | sonner.tsx | 全局 toast（底部居中） | 交互反馈 |
 
-> 2026-09-26 签字点② 删除：`select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`（零引用脚手架，见文末「已删除组件」）。现存 15 文件 / 20 导出。
+> 2026-09-26 签字点② 删除：`select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`（零引用脚手架，见文末「已删除组件」）。现存 15 文件 / 29 个导出符号（含类型）。
 
 ## 2. 逐组件契约
 
