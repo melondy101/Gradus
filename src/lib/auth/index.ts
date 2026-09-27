@@ -10,9 +10,12 @@
 //      cookie was tampered with. It only relies on the JWT path; no more
 //      demo-user fallback.
 
-import { readSessionCookieFromRequest } from "./cookie";
+import { buildClearSessionCookie, readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
-import { getUserById, getUserByEmailLower } from "@/lib/db/queries";
+import {
+  getUserByIdFromDatabase,
+  getUserByEmailLowerFromDatabase,
+} from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
 
 export type { User };
@@ -45,9 +48,9 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
       };
     }
 
-    let user = await getUserById(decoded.sub);
+    let user = await getUserByIdFromDatabase(decoded.sub);
     if (!user && decoded.email) {
-      user = await getUserByEmailLower(decoded.email.toLowerCase());
+      user = await getUserByEmailLowerFromDatabase(decoded.email.toLowerCase());
     }
 
     if (!user) {
@@ -55,8 +58,14 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
       return {
         ok: false,
         response: new Response(
-          JSON.stringify({ error: "账号不存在" }),
-          { status: 401, headers: { "Content-Type": "application/json" } },
+          JSON.stringify({ error: "账号状态已失效，请重试" }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              "Set-Cookie": buildClearSessionCookie(),
+            },
+          },
         ),
       };
     }

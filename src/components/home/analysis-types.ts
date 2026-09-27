@@ -16,6 +16,8 @@ export interface AnalysisEntry {
   taskId: string;
   taskTitle: string;
   rawInput: string;
+  /** 创建失败后重试需要保留原来的任务标签。 */
+  tags?: string[];
   topicCategory?: string;
   stream: StreamState;
   task: TaskWithSubtasks | null;

@@ -98,11 +98,12 @@ export function AiEntryDetail({
       <div className="flex flex-col gap-2">
         <Eyebrow kind="label" className="mb-0 text-on-dark-3">Adjustment</Eyebrow>
         <Textarea
+          onDark
           value={adjustment}
           onChange={(e) => onAdjustmentChange(e.target.value)}
           rows={2}
           placeholder="例：难度太高 / 专注某模块 / 增加实践内容"
-          className="resize-y border-bd-dark bg-on-dark/[.05] px-3 py-[9px] text-body leading-[1.5] text-on-dark placeholder:text-on-dark-3 focus:border-on-dark-3"
+          className="resize-y px-3 py-[9px] text-body leading-[1.5]"
         />
         <div className="flex gap-2">
           <Button

@@ -4,18 +4,28 @@ import { users, type User } from "../schema/users";
 import { memStore } from "../memory-store";
 import { ensureSchema } from "../ensure-schema";
 
-/** 仅按主键查；用于 cookie / JWT 解析后的"当前用户"加载。 */
+/**
+ * 仅按主键从持久化数据库查询。
+ *
+ * 认证与所有写入前置校验必须使用它：内存缓存可能比数据库行存活更久，
+ * 不能据此确认一个仍可拥有任务的账号。
+ */
+export async function getUserByIdFromDatabase(id: string): Promise<User | undefined> {
+  const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  if (rows[0]) memStore.users.set(rows[0].id, rows[0]);
+  return rows[0];
+}
+
+/**
+ * 按主键读取用户。仅供非认证的降级展示场景使用；数据库不可用时可回退缓存。
+ */
 export async function getUserById(id: string): Promise<User | undefined> {
   try {
-    const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    if (rows[0]) {
-      memStore.users.set(rows[0].id, rows[0]);
-      return rows[0];
-    }
+    return await getUserByIdFromDatabase(id);
   } catch (err) {
     console.error("[users] getUserById DB query failed:", { id, err });
+    return memStore.users.get(id);
   }
-  return memStore.users.get(id);
 }
 
 /** 按 email 查（精确匹配）。注册时主查使用 emailLower。 */
@@ -32,22 +42,27 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
   return Array.from(memStore.users.values()).find((u) => u.email === email);
 }
 
+/** 按小写邮箱从持久化数据库查询，供认证路径确认账号仍存在。 */
+export async function getUserByEmailLowerFromDatabase(
+  emailLower: string,
+): Promise<User | undefined> {
+  const rows = await db
+    .select()
+    .from(users)
+    .where(eq(users.emailLower, emailLower))
+    .limit(1);
+  if (rows[0]) memStore.users.set(rows[0].id, rows[0]);
+  return rows[0];
+}
+
 /** 按小写邮箱查。登录/注册唯一性检查统一走这里。 */
 export async function getUserByEmailLower(emailLower: string): Promise<User | undefined> {
   try {
-    const rows = await db
-      .select()
-      .from(users)
-      .where(eq(users.emailLower, emailLower))
-      .limit(1);
-    if (rows[0]) {
-      memStore.users.set(rows[0].id, rows[0]);
-      return rows[0];
-    }
+    return await getUserByEmailLowerFromDatabase(emailLower);
   } catch (err) {
     console.error("[users] getUserByEmailLower DB query failed:", { emailLower, err });
+    return Array.from(memStore.users.values()).find((u) => u.emailLower === emailLower);
   }
-  return Array.from(memStore.users.values()).find((u) => u.emailLower === emailLower);
 }
 
 export async function upsertUser(data: {

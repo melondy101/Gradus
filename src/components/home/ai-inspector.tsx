@@ -23,6 +23,7 @@ import {
 } from "./use-analysis-panel";
 import { deriveReviewHints } from "./ai-review-hints";
 import { CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 
 interface Props {
@@ -96,9 +97,18 @@ export function AiInspector({
       {focused && <AiPipelineSteps stream={focused.stream} tone="dark" size={nodeSize} />}
 
       {focused?.stream.errorMsg && (
-        <p className="font-mono text-body leading-[20px] text-error">
-          {focused.stream.errorMsg}
-        </p>
+        <div className="flex flex-col items-start gap-2">
+          <p className="font-mono text-body leading-[20px] text-error">
+            {focused.stream.errorMsg}
+          </p>
+          <Button
+            variant="accent"
+            size="xs"
+            onClick={() => regenAnalysis(focused.taskId, "")}
+          >
+            重新尝试
+          </Button>
+        </div>
       )}
 
       {focused && hints.length > 0 && (

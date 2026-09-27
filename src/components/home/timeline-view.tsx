@@ -5,6 +5,8 @@ import { T, BLOOM_CONFIG } from "@/lib/design-tokens";
 import { addDays, diffDays } from "@/lib/dates";
 import { fmtShortDate } from "@/components/task/task-dates";
 import { TimelineGanttRow } from "./timeline-gantt-row";
+import { getTimelineDayCount } from "./timeline-window";
+import { useGanttDragScroll } from "./use-gantt-drag-scroll";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 
 interface TimelineViewProps {
@@ -25,6 +27,7 @@ export function TimelineView({
   onSelectSubtask,
   onToggleSubtask,
 }: TimelineViewProps) {
+  const { scrollRef, scrollProps } = useGanttDragScroll();
   // 跨任务排序/布局只消费数据层派生的 absoluteStart/End（相对 startDay 不做跨任务比较）。
   const today0 = todayUtc0();
   const dated = subtasks
@@ -41,7 +44,7 @@ export function TimelineView({
     (acc, s) => Math.max(acc, s.absoluteEnd ? new Date(s.absoluteEnd).getTime() : 0),
     windowStart.getTime()
   );
-  const dayCount = Math.min(Math.max(diffDays(windowStart, new Date(maxEnd)) + 1, 14), 30);
+  const dayCount = getTimelineDayCount(windowStart, new Date(maxEnd));
   const todayIdx = diffDays(windowStart, today0);
   const daysArray = Array.from({ length: dayCount }, (_, i) => addDays(windowStart, i));
 
@@ -91,6 +94,9 @@ export function TimelineView({
 
       {/* 甘特图容器 */}
       <div
+        ref={scrollRef}
+        {...scrollProps}
+        className="cursor-grab select-none active:cursor-grabbing"
         style={{
           background: T.surface,
           border: `1px solid ${T.line}`,
@@ -114,11 +120,16 @@ export function TimelineView({
         >
           <div
             style={{
+              position: "sticky",
+              left: 0,
+              zIndex: 3,
               padding: "0 16px",
               fontSize: 12,
               fontWeight: 600,
               color: T.muted,
               fontFamily: "var(--mono)",
+              background: T.soft,
+              borderRight: `1px solid ${T.line}`,
             }}
           >
             任务 / 计划

@@ -49,14 +49,20 @@ export function TimelineGanttRow({
     >
       {/* 左侧任务信息 */}
       <div
+        data-gantt-interactive
         onClick={() => onSelectSubtask(item)}
         style={{
+          position: "sticky",
+          left: 0,
+          zIndex: 2,
           padding: "6px 16px",
           display: "flex",
           alignItems: "center",
           gap: 8,
           cursor: "pointer",
           overflow: "hidden",
+          background: zebra ? `${T.soft}33` : T.surface,
+          borderRight: `1px solid ${T.line}`,
         }}
       >
         <button
@@ -141,6 +147,7 @@ export function TimelineGanttRow({
           </div>
         ) : (
           <motion.div
+            data-gantt-interactive
             onClick={() => onSelectSubtask(item)}
             whileHover={{ scale: 1.02 }}
             style={{

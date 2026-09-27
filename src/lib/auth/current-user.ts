@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 import { readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
-import { getUserById, getUserByEmailLower } from "@/lib/db/queries";
+import {
+  getUserByIdFromDatabase,
+  getUserByEmailLowerFromDatabase,
+} from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
 
 /**
@@ -28,12 +31,17 @@ export interface CurrentUserView {
 }
 
 async function resolveUserFromDecoded(decoded: { sub: string; email?: string; name?: string }): Promise<User | null> {
-  let user = await getUserById(decoded.sub);
-  if (!user && decoded.email) {
-    user = await getUserByEmailLower(decoded.email.toLowerCase());
-  }
+  try {
+    let user = await getUserByIdFromDatabase(decoded.sub);
+    if (!user && decoded.email) {
+      user = await getUserByEmailLowerFromDatabase(decoded.email.toLowerCase());
+    }
 
-  return user || null;
+    return user || null;
+  } catch (error) {
+    console.error("[auth] unable to resolve current user from database:", error);
+    return null;
+  }
 }
 
 /**

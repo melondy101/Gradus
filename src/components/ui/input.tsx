@@ -49,18 +49,22 @@ export function Input({
 export function Textarea({
   className,
   invalid,
+  onDark,
   ...props
-}: React.ComponentProps<"textarea"> & { invalid?: boolean }) {
+}: React.ComponentProps<"textarea"> & { invalid?: boolean; onDark?: boolean }) {
   return (
     <textarea
       data-slot="textarea"
       aria-invalid={invalid || undefined}
       className={cn(
-        "w-full rounded-field border border-bd-field bg-cream-light px-4 py-3 text-body-lg leading-[1.6] text-ink outline-none",
-        "placeholder:text-text-3 resize-none",
+        "w-full rounded-field border px-4 py-3 text-body-lg leading-[1.6] outline-none resize-none",
+        onDark
+          ? "border-bd-dark bg-on-dark/5 text-on-dark placeholder:text-on-dark-3 focus:border-accent focus:bg-on-dark/10 focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]"
+          : "border-bd-field bg-cream-light text-ink placeholder:text-text-3 focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
         "transition-[border-color,background-color,box-shadow] duration-[.16s] ease-out",
-        "focus:border-ink focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,197,24,.28)]",
-        invalid && "border-error",
+        invalid && (onDark
+          ? "border-error-on-dark focus:border-error-on-dark"
+          : "border-error focus:border-error"),
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}

@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { createTask } from "@/lib/api/tasks";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
 import { INIT_STREAM, type AnalysisEntry, type Phase } from "./analysis-types";
+import { getAnalysisRetry } from "./analysis-retry";
 import { useAnalysisRunner } from "./use-analysis-runner";
 export type { AnalysisEntry, Phase, Resource, StreamState } from "./analysis-types";
 export { getEtaLabel, isRunningPhase, PIPELINE_STAGES, stageIndexOf } from "./analysis-pipeline";
@@ -16,16 +17,31 @@ export function useAnalysisPanel() {
     abort(); const tempId = `temp-${Date.now()}`;
     try {
       const task = await createTask(goal.trim(), tags);
-      setEntries((items) => [{ taskId: task.id, taskTitle: goal.trim(), rawInput: goal.trim(), stream: INIT_STREAM, task: null }, ...items]);
+      setEntries((items) => [{ taskId: task.id, taskTitle: goal.trim(), rawInput: goal.trim(), tags, stream: INIT_STREAM, task: null }, ...items]);
       setFocusedId(task.id); await run(task.id, goal.trim(), "");
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      setEntries((items) => [{ taskId: tempId, taskTitle: goal.trim(), rawInput: goal.trim(), stream: { phase: "error", label: "创建失败", deltaLen: 0, errorMsg }, task: null }, ...items]); setFocusedId(tempId);
+      setEntries((items) => [{ taskId: tempId, taskTitle: goal.trim(), rawInput: goal.trim(), tags, stream: { phase: "error", label: "创建失败", deltaLen: 0, errorMsg }, task: null }, ...items]); setFocusedId(tempId);
     }
   }, [abort, run]);
   const regenAnalysis = useCallback((taskId: string, adjustment: string) => {
-    abort(); setEntries((items) => { const entry = items.find((item) => item.taskId === taskId); if (entry) void run(taskId, entry.rawInput, adjustment); return items.map((item) => item.taskId === taskId ? { ...item, task: null, stream: INIT_STREAM } : item); }); setFocusedId(taskId);
-  }, [abort, run]);
+    const entry = entries.find((item) => item.taskId === taskId);
+    if (!entry) return;
+
+    const retry = getAnalysisRetry(entry, adjustment);
+    if (retry.kind === "create") {
+      setEntries((items) => items.filter((item) => item.taskId !== taskId));
+      void startAnalysis(retry.goal, retry.tags);
+      return;
+    }
+
+    abort();
+    setEntries((items) => items.map((item) => item.taskId === taskId
+      ? { ...item, task: null, stream: INIT_STREAM }
+      : item));
+    setFocusedId(taskId);
+    void run(retry.taskId, entry.rawInput, retry.adjustment);
+  }, [abort, entries, run, startAnalysis]);
   const removeEntry = useCallback((taskId: string) => { setEntries((items) => items.filter((item) => item.taskId !== taskId)); setFocusedId((current) => current === taskId ? null : current); }, []);
   const hydrateFromDB = useCallback((tasks: TaskWithSubtasks[]) => setEntries((items) => { const ids = new Set(items.map((item) => item.taskId)); const added = tasks.filter((task) => !ids.has(task.id) && task.subtasks.length).map((task) => ({ taskId: task.id, taskTitle: task.title, rawInput: task.rawInput || task.title, topicCategory: (task.subtasks[0] as { topic?: string }).topic, stream: { ...INIT_STREAM, phase: "done" as Phase }, task })); return added.length ? [...items, ...added] : items; }), []);
   const focusTask = useCallback((taskId: string) => setFocusedId(taskId), []);
