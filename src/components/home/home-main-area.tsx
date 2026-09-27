@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import type { NavView } from "@/components/layout/icon-rail";
 import type { UserStats } from "@/lib/api/user-stats";
 import type { HomeFilters } from "./use-home-filters";
@@ -28,6 +29,7 @@ export interface HomeMainAreaProps {
 
 /** 首页中央工作区：今日聚焦 / 所有计划 / 拾级天梯 / 时间甘特 四视图分发。 */
 export function HomeMainArea(props: HomeMainAreaProps) {
+  const router = useRouter();
   const { currentView, filters, overlays, panel, subtaskActions } = props;
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
@@ -93,6 +95,7 @@ export function HomeMainArea(props: HomeMainAreaProps) {
                 panel.setFocusedId(taskId);
                 panel.focusTask(taskId);
               }}
+              onOpenTaskDetail={(taskId) => router.push(`/task/${taskId}`)}
               onNewPlan={() => overlays.setShowInput(true)}
               onDeleteTask={(task) =>
                 subtaskActions.handleRequestDelete(task.id, task.title, task.subtasks?.length)

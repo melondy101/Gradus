@@ -5,7 +5,6 @@
  * 状态胶囊复用 Badge live/done/plan 三态（与复选框、甘特条同一语言）。
  */
 
-import { X } from "lucide-react";
 import { T } from "@/lib/design-tokens";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
 import { parseTaskTags } from "@/lib/task-tags";
@@ -18,13 +17,14 @@ import { cn } from "@/utils/utils";
 interface Props {
   task: TaskWithSubtasks;
   onOpen: (taskId: string) => void;
+  onOpenDetail: (taskId: string) => void;
   onDelete?: (task: TaskWithSubtasks) => void;
 }
 
 const RING_R = 18;
 const RING_C = 2 * Math.PI * RING_R;
 
-export function PlanCard({ task, onOpen, onDelete }: Props) {
+export function PlanCard({ task, onOpen, onOpenDetail, onDelete }: Props) {
   const subtasks = task.subtasks || [];
   const total = subtasks.length;
   const completed = subtasks.filter((s) => s.completed).length;
@@ -117,28 +117,34 @@ export function PlanCard({ task, onOpen, onDelete }: Props) {
         )}
       </div>
 
-      {/* 底部：起止与操作 */}
-      <CardFooter className="justify-between text-body-sm">
-        <span className="text-text-3">
-          {task.startDate ? `始于 ${String(task.startDate).slice(5, 10)}` : "今日启动"}
-        </span>
+      {/* 底部：独立操作入口 */}
+      <CardFooter className="justify-end pt-2 text-body-lg">
         <span className="flex items-center gap-2">
           {onDelete && (
             <Button
-              size="icon-xs"
+              size="xs"
               variant="ghost"
-              title="删除此计划"
               aria-label={`删除计划 ${task.title}`}
-              className="hover:bg-error/10 hover:text-error"
+              className="h-auto px-0 text-body-lg text-error hover:bg-error-soft hover:text-error"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(task);
               }}
             >
-              <X size={13} />
+              删除
             </Button>
           )}
-          <span className="font-semibold text-accent-ink">进入详情 →</span>
+          <Button
+            size="xs"
+            variant="link"
+            className="h-auto px-0 text-body-lg font-semibold text-accent-ink"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenDetail(task.id);
+            }}
+          >
+            进入详情 →
+          </Button>
         </span>
       </CardFooter>
     </Card>

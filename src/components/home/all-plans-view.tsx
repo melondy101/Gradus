@@ -10,6 +10,7 @@ import { PlanCard } from "./plan-card";
 interface AllPlansViewProps {
   tasks: TaskWithSubtasks[];
   onSelectTask: (taskId: string) => void;
+  onOpenTaskDetail: (taskId: string) => void;
   onNewPlan: () => void;
   onDeleteTask?: (task: TaskWithSubtasks) => void;
 }
@@ -17,6 +18,7 @@ interface AllPlansViewProps {
 export function AllPlansView({
   tasks,
   onSelectTask,
+  onOpenTaskDetail,
   onNewPlan,
   onDeleteTask,
 }: AllPlansViewProps) {
@@ -56,6 +58,7 @@ export function AllPlansView({
             key={task.id}
             task={task}
             onOpen={onSelectTask}
+            onOpenDetail={onOpenTaskDetail}
             onDelete={onDeleteTask}
           />
         ))}
