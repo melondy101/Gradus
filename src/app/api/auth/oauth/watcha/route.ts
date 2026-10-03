@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 /**
  * GET /api/auth/oauth/watcha
@@ -29,6 +30,11 @@ export async function GET(request: NextRequest) {
   // 生成防伪 state
   const state = crypto.randomUUID();
   const isBinding = request.nextUrl.searchParams.get("intent") === "bind";
+  if (isBinding) {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
+    if (auth.user.email?.endsWith("@anon.local")) return NextResponse.json({ error: "请先登录账号再绑定观猹" }, { status: 401 });
+  }
 
   const authUrl = new URL(authBaseUrl);
   authUrl.searchParams.set("client_id", clientId);

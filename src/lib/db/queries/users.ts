@@ -113,6 +113,7 @@ export async function upsertUser(data: {
     avatarUrl: data.avatarUrl ?? null,
     watchaOpenId: data.watchaOpenId ?? null,
     passwordHash: data.passwordHash ?? "",
+    sessionVersion: 0,
     membershipTier: data.membershipTier ?? "free",
     membershipExpiresAt: data.membershipExpiresAt ?? null,
     aiGenerateCount: data.aiGenerateCount ?? 0,

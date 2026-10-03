@@ -9,3 +9,10 @@ test("OAuth callbacks are excluded from automatic guest-session renewal", async 
   expect(response.headers.get("x-middleware-next")).toBe("1");
   expect(config.matcher[0]).toContain("auth/oauth/");
 });
+
+test("credential changes and recovery own their response cookies without middleware renewing an old session", async () => {
+  for (const path of ["/api/user/account/email", "/api/user/account/password", "/api/user/account/merge", "/api/auth/reset-password"]) {
+    const response = await middleware(new NextRequest(`https://example.com${path}`));
+    expect(response.headers.getSetCookie()).toEqual([]);
+  }
+});

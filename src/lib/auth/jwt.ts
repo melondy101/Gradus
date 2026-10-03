@@ -14,6 +14,7 @@ export interface SessionPayload {
   sub: string;
   name: string;
   email: string;
+  version?: number;
 }
 
 export interface DecodedSession extends SessionPayload {
@@ -29,7 +30,7 @@ export async function signSession(payload: SessionPayload): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const secret = new TextEncoder().encode(getAuthSecret());
 
-  return await new SignJWT({ name: payload.name, email: payload.email })
+  return await new SignJWT({ name: payload.name, email: payload.email, version: payload.version ?? 0 })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setSubject(payload.sub)
     .setIssuedAt(now)
@@ -62,6 +63,7 @@ export async function verifySession(token: string): Promise<DecodedSession | nul
       sub: payload.sub,
       name: payload.name,
       email: payload.email,
+      version: typeof payload.version === "number" ? payload.version : 0,
       iat: payload.iat,
       exp: payload.exp,
     };

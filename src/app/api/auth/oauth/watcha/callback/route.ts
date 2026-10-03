@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { tasks, users } from "@/lib/db/schema";
-import { getUserById } from "@/lib/db/queries";
+import { getUserByIdFromDatabase as getUserById } from "@/lib/db/queries";
 import { signSession, verifySession } from "@/lib/auth/jwt";
 import { readSessionCookieFromRequest } from "@/lib/auth/cookie";
 import { oauthRedirect } from "@/lib/auth/oauth-response";
@@ -125,6 +125,9 @@ export async function GET(request: NextRequest) {
     let bindingUser: Awaited<ReturnType<typeof getUserById>> | null = null;
     if (decoded) {
       const cookieUser = await getUserById(decoded.sub);
+      if (request.cookies.get("watcha_oauth_intent")?.value === "bind" && (!cookieUser || cookieUser.sessionVersion !== (decoded.version ?? 0))) {
+        return oauthError(origin, "session_expired");
+      }
       if (
         cookieUser &&
         cookieUser.passwordHash === "" &&
@@ -145,7 +148,7 @@ export async function GET(request: NextRequest) {
         .from(users)
         .where(eq(users.watchaOpenId, String(watchaUid)))
         .limit(1);
-      let existingUser = byOpenId[0];
+      const existingUser = byOpenId[0];
 
       if (bindingUser) {
         if (existingUser && existingUser.id !== bindingUser.id) {
@@ -160,22 +163,8 @@ export async function GET(request: NextRequest) {
           id: bindingUser.id,
           email: bindingUser.email || watchaEmail,
           name: bindingUser.name || watchaName,
+          version: bindingUser.sessionVersion,
         };
-      }
-
-      if (!existingUser && watchaEmail) {
-        const byEmail = await tx
-          .select()
-          .from(users)
-          .where(eq(users.emailLower, watchaEmail.toLowerCase()))
-          .limit(1);
-        existingUser = byEmail[0];
-        if (existingUser) {
-          await tx
-            .update(users)
-            .set({ watchaOpenId: String(watchaUid), updatedAt: new Date() })
-            .where(eq(users.id, existingUser.id));
-        }
       }
 
       if (existingUser) {
@@ -190,12 +179,14 @@ export async function GET(request: NextRequest) {
           id: existingUser.id,
           email: existingUser.email || watchaEmail,
           name: existingUser.name || watchaName,
+          version: existingUser.sessionVersion,
         };
       }
 
       const id = crypto.randomUUID();
-      const email =
-        watchaEmail || `watcha_${crypto.randomUUID()}@watcha.user`;
+      // Existing email accounts can only be linked after password verification.
+      // Provider email alone does not prove ownership of a local account.
+      const email = `watcha_${crypto.randomUUID()}@watcha.user`;
       await tx.insert(users).values({
         id,
         email,
@@ -214,7 +205,7 @@ export async function GET(request: NextRequest) {
         await tx.delete(users).where(eq(users.id, tempUserId));
       }
 
-      return { id, email, name: watchaName };
+      return { id, email, name: watchaName, version: 0 };
     });
 
     // 5. 签发与普通登录相同的本站 JWT 会话 Cookie。
@@ -222,6 +213,7 @@ export async function GET(request: NextRequest) {
       sub: finalUser.id,
       name: finalUser.name,
       email: finalUser.email,
+      version: finalUser.version,
     });
 
     return oauthRedirect(new URL("/?auth_success=1", origin), sessionToken);
@@ -231,7 +223,7 @@ export async function GET(request: NextRequest) {
       origin,
       err instanceof WatchaBindingConflictError
         ? "watcha_account_already_bound"
-        : err instanceof Error ? err.message : "oauth_callback_failed"
+        : "oauth_callback_failed"
     );
   }
 }

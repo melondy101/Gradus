@@ -1,4 +1,5 @@
 import { cn } from "@/utils/utils";
+import Image from "next/image";
 
 /** 方形图标按钮 —— §1.4 的 radius 12 方圆角 + 白卡细描边 */
 export function IconButton({
@@ -34,20 +35,21 @@ export function Avatar({
   className,
   name = "访客",
   size = 34,
+  src,
   ...props
-}: React.HTMLAttributes<HTMLSpanElement> & { name?: string; size?: number }) {
+}: React.HTMLAttributes<HTMLSpanElement> & { name?: string; size?: number; src?: string | null }) {
   const initial = name.trim().charAt(0).toUpperCase() || "拾";
   return (
     <span
       aria-hidden="true"
       style={{ width: size, height: size, fontSize: Math.round(size * 0.41) }}
       className={cn(
-        "grid shrink-0 place-items-center rounded-full bg-ink font-black text-cream",
+        "relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-ink font-black text-cream",
         className
       )}
       {...props}
     >
-      {initial}
+      {src ? <Image src={src} alt="" fill unoptimized className="object-cover" /> : initial}
     </span>
   );
 }

@@ -1,26 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { updateUser } from "@/lib/db/queries";
-
-function profileView(user: {
-  id: string;
-  email: string | null;
-  name: string | null;
-  avatarUrl: string | null;
-  watchaOpenId: string | null;
-  membershipTier: string;
-  membershipExpiresAt: Date | null;
-}) {
-  return {
-    id: user.id,
-    email: user.email ?? "",
-    name: user.name ?? "",
-    avatarUrl: user.avatarUrl,
-    watchaBound: Boolean(user.watchaOpenId),
-    membershipTier: user.membershipTier,
-    membershipExpiresAt: user.membershipExpiresAt?.toISOString() ?? null,
-  };
-}
+import { userView as profileView } from "@/lib/auth/user-view";
+import { validateAvatar } from "@/lib/auth/account-validation";
 
 /**
  * GET /api/user/profile
@@ -42,13 +24,17 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
 
-  const body = await request.json().catch(() => null) as { name?: unknown } | null;
+  const body = await request.json().catch(() => null) as { name?: unknown; avatarUrl?: unknown } | null;
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   if (!name || name.length > 80) {
     return NextResponse.json({ ok: false, error: "显示名称需为 1 到 80 个字符" }, { status: 400 });
   }
 
-  const user = await updateUser(auth.userId, { name });
+  if (body?.avatarUrl !== undefined) {
+    const error = validateAvatar(body.avatarUrl);
+    if (error) return NextResponse.json({ error }, { status: 400 });
+  }
+  const user = await updateUser(auth.userId, { name, ...(body?.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl as string | null } : {}) });
   if (!user) {
     return NextResponse.json({ ok: false, error: "账号不存在" }, { status: 404 });
   }

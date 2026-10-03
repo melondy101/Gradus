@@ -3,9 +3,10 @@ import { readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
 import {
   getUserByIdFromDatabase,
-  getUserByEmailLowerFromDatabase,
 } from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
+import { userView } from "./user-view";
+import { sessionMatchesUser } from "./session-version";
 
 /**
  * 解析"当前请求的用户"。
@@ -24,20 +25,18 @@ export interface CurrentUserView {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
+  passwordSet?: boolean;
   /** 仅暴露绑定状态，绝不把第三方 OpenID 送入客户端。 */
   watchaBound?: boolean;
   membershipTier?: string;
   membershipExpiresAt?: string | null;
 }
 
-async function resolveUserFromDecoded(decoded: { sub: string; email?: string; name?: string }): Promise<User | null> {
+async function resolveUserFromDecoded(decoded: { sub: string; version?: number }): Promise<User | null> {
   try {
-    let user = await getUserByIdFromDatabase(decoded.sub);
-    if (!user && decoded.email) {
-      user = await getUserByEmailLowerFromDatabase(decoded.email.toLowerCase());
-    }
-
-    return user || null;
+    const user = await getUserByIdFromDatabase(decoded.sub);
+    return user && sessionMatchesUser(user, decoded) ? user : null;
   } catch (error) {
     console.error("[auth] unable to resolve current user from database:", error);
     return null;
@@ -59,14 +58,7 @@ export async function getCurrentUserFromRequest(
   const user = await resolveUserFromDecoded(decoded);
   if (!user) return null;
 
-  return {
-    id: user.id,
-    name: user.name ?? decoded.name ?? "",
-    email: user.email ?? decoded.email ?? "",
-    watchaBound: Boolean(user.watchaOpenId),
-    membershipTier: user.membershipTier ?? "free",
-    membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
-  };
+  return userView(user);
 }
 
 /**
@@ -86,12 +78,5 @@ export async function getCurrentUser(): Promise<CurrentUserView | null> {
   const user = await resolveUserFromDecoded(decoded);
   if (!user) return null;
 
-  return {
-    id: user.id,
-    name: user.name ?? decoded.name ?? "",
-    email: user.email ?? decoded.email ?? "",
-    watchaBound: Boolean(user.watchaOpenId),
-    membershipTier: user.membershipTier ?? "free",
-    membershipExpiresAt: user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toISOString() : null,
-  };
+  return userView(user);
 }

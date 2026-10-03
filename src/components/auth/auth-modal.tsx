@@ -22,6 +22,8 @@ import {
   type SendCodeResult,
 } from "@/lib/api/auth";
 import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { ResetPasswordModal } from "./reset-password-modal";
 
 type Mode = "login" | "register";
 
@@ -35,6 +37,7 @@ export function AuthModal({
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
+  const [resetOpen, setResetOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -198,6 +201,8 @@ export function AuthModal({
 
   const isRegister = mode === "register";
 
+  if (resetOpen) return <ResetPasswordModal onBack={() => setResetOpen(false)} onClose={onClose} />;
+
   return (
     <Modal
       open={open}
@@ -327,6 +332,8 @@ export function AuthModal({
             </button>
           </div>
         </Field>
+
+        {!isRegister ? <Button type="button" variant="link" size="sm" disabled={busy} onClick={() => setResetOpen(true)}>忘记密码？</Button> : null}
 
         <button
           type="submit"

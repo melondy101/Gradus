@@ -12,9 +12,9 @@
 
 import { buildClearSessionCookie, readSessionCookieFromRequest } from "./cookie";
 import { verifySession } from "./jwt";
+import { sessionMatchesUser } from "./session-version";
 import {
   getUserByIdFromDatabase,
-  getUserByEmailLowerFromDatabase,
 } from "@/lib/db/queries";
 import type { User } from "@/lib/db/schema";
 
@@ -48,12 +48,8 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
       };
     }
 
-    let user = await getUserByIdFromDatabase(decoded.sub);
-    if (!user && decoded.email) {
-      user = await getUserByEmailLowerFromDatabase(decoded.email.toLowerCase());
-    }
-
-    if (!user) {
+    const user = await getUserByIdFromDatabase(decoded.sub);
+    if (!user || !sessionMatchesUser(user, decoded)) {
       // JWT 合法但 userId 在 DB 中不存在（账号被删）—— 拒绝
       return {
         ok: false,

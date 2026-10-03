@@ -36,6 +36,7 @@ export async function ensureSchema(): Promise<void> {
           ALTER TABLE users ADD COLUMN IF NOT EXISTS email varchar(256);
           ALTER TABLE users ADD COLUMN IF NOT EXISTS email_lower varchar(256);
           ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text DEFAULT '' NOT NULL;
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version integer DEFAULT 0 NOT NULL;
           ALTER TABLE users ADD COLUMN IF NOT EXISTS name text;
           ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url text;
           ALTER TABLE users ADD COLUMN IF NOT EXISTS watcha_openid varchar(128);

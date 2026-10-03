@@ -11,6 +11,7 @@ export const users = pgTable(
     emailLower: varchar("email_lower", { length: 256 }).unique(),
     // bcryptjs hash。临时账号为空字符串（`passwordHash = ''`）。
     passwordHash: text("password_hash").notNull().default(""),
+    sessionVersion: integer("session_version").notNull().default(0),
     name: text("name"),
     avatarUrl: text("avatar_url"),
     // 观猹 (Watcha.cn) OAuth OpenID

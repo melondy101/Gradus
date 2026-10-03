@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmailLower, upsertUser } from "@/lib/db/queries";
+import { getUserByEmailLowerFromDatabase as getUserByEmailLower, upsertUser } from "@/lib/db/queries";
 import { verifyPassword, hashPassword } from "@/lib/auth/password";
 import { signSession } from "@/lib/auth/jwt";
 import { checkRateLimit, getClientIp } from "@/lib/auth/ratelimit";
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
     sub: user.id,
     name: user.name ?? "",
     email: user.email ?? emailLower,
+    version: user.sessionVersion,
   });
 
   const res = NextResponse.json({

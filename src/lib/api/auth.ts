@@ -86,7 +86,7 @@ export async function fetchMe(): Promise<
   const res = await apiFetch<MeResult>("/api/auth/me", { cache: "no-store" });
   if (res.ok) return res;
   // apiFetch 的 http 错误分支已解析并透传 JSON 信封（见 result.ts）
-  if (res.kind === "http" && (res.data as MeResult | undefined)?.error === "账号不存在") {
+  if (res.kind === "http" && (res.status === 401 || (res.data as MeResult | undefined)?.error === "账号不存在")) {
     return { ...res, accountMissing: true };
   }
   return res;

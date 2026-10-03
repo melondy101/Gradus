@@ -35,6 +35,10 @@
 
 ## 2. 逐组件契约
 
+### Avatar 图片支持
+
+`Avatar`（`@/components/ui/icon-button`）支持可选 `src?: string | null`：有图片时在圆形容器内裁切展示，无图片时保持首字头像。账户设置、个人中心与侧栏入口共用此原语。
+
 ### Button — `import { Button } from "@/components/ui/button"`
 - 底层：`@base-ui/react` useRender，支持 `render` 合成。
 - props：`variant?: "default"|"outline"|"secondary"|"ghost"|"destructive"|"link"|"accent"|"app"|"cream"|"onDark"`（默认 `"default"`＝墨底奶油字）；`size?: "default"|"xs"|"sm"|"lg"|"icon"|"icon-xs"|"icon-sm"|"icon-lg"|"full"`（默认 `"default"`）；其余透传 button 属性。

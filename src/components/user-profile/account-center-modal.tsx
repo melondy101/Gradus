@@ -3,6 +3,8 @@
 import React from "react";
 import { Crown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { Avatar } from "@/components/ui/icon-button";
+import { loginEmail } from "@/lib/auth/account-validation";
 import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { THEMES, type ThemeId } from "@/lib/theme-config";
@@ -34,12 +36,10 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
     <Modal open={open} onClose={onClose} title="个人中心" eyebrow="PROFILE · APPEARANCE" width={560} layer="detail">
       <div className="space-y-6">
         <section className="flex items-center gap-3 rounded-card border border-bd-card bg-cream-light p-4">
-          <div className="grid size-11 shrink-0 place-items-center rounded-full bg-accent-soft text-lg font-black text-accent-ink">
-            {displayName[0]?.toUpperCase() ?? "?"}
-          </div>
+          <Avatar name={displayName} src={user.avatarUrl} size={44} />
           <div className="min-w-0">
             <h3 className="truncate text-[15px] font-black text-ink">{displayName}</h3>
-            <p className="truncate text-xs text-text-2">{user.email ?? "临时学习账户"}</p>
+            <p className="truncate text-caption text-text-2">{loginEmail(user.email) || (user.watchaOpenId ? "观猹账号 · 未绑定邮箱" : "临时学习账户")}</p>
             <span className="mt-1 inline-flex rounded-pill bg-accent-soft px-2 py-0.5 font-mono text-[10px] font-bold text-accent-ink">
               {isAdmin ? "系统管理员" : tierConfig.name}
             </span>
@@ -74,7 +74,7 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
           <button type="button" onClick={() => setProfileOpen(true)}
             className="flex min-h-11 w-full items-center gap-3 border-b border-bd-card px-4 text-left text-body font-semibold text-ink transition-colors hover:bg-cream-light focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent">
             <UserRound size={16} className="shrink-0 text-text-2" aria-hidden="true" />
-            <span className="flex-1">资料与账号绑定</span><span className="text-body-sm font-medium text-text-2">编辑资料 · 观猹</span>
+            <span className="flex-1">资料与账号</span><span className="text-body-sm font-medium text-text-2">头像 · 邮箱 · 密码</span>
           </button>
           <button type="button" onClick={() => openMembership("overview")}
             className="flex min-h-11 w-full items-center gap-3 border-b border-bd-card px-4 text-left text-sm font-semibold text-ink transition-colors hover:bg-cream-light focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent">
