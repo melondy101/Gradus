@@ -4,10 +4,8 @@ import { db } from "@/lib/db/client";
 import { tasks, users } from "@/lib/db/schema";
 import { getUserById } from "@/lib/db/queries";
 import { signSession, verifySession } from "@/lib/auth/jwt";
-import {
-  buildSetSessionCookie,
-  readSessionCookieFromRequest,
-} from "@/lib/auth/cookie";
+import { readSessionCookieFromRequest } from "@/lib/auth/cookie";
+import { oauthRedirect } from "@/lib/auth/oauth-response";
 
 class WatchaBindingConflictError extends Error {}
 
@@ -226,11 +224,7 @@ export async function GET(request: NextRequest) {
       email: finalUser.email,
     });
 
-    const response = NextResponse.redirect(new URL("/?auth_success=1", origin));
-    response.headers.append("set-cookie", buildSetSessionCookie(sessionToken));
-    response.cookies.delete("watcha_oauth_state");
-    response.cookies.delete("watcha_oauth_intent");
-    return response;
+    return oauthRedirect(new URL("/?auth_success=1", origin), sessionToken);
   } catch (err) {
     console.error("[Watcha OAuth] Callback error:", err);
     return oauthError(
@@ -243,10 +237,7 @@ export async function GET(request: NextRequest) {
 }
 
 function oauthError(origin: string, error: string): NextResponse {
-  const response = NextResponse.redirect(
+  return oauthRedirect(
     new URL(`/?auth_error=${encodeURIComponent(error)}`, origin)
   );
-  response.cookies.delete("watcha_oauth_state");
-  response.cookies.delete("watcha_oauth_intent");
-  return response;
 }

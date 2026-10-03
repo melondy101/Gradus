@@ -54,7 +54,10 @@ export function updateCurrentUser(user: CurrentUserView | null): void {
     moduleUser !== null &&
     moduleUser.id === user.id &&
     moduleUser.email === user.email &&
-    moduleUser.name === user.name
+    moduleUser.name === user.name &&
+    moduleUser.watchaBound === user.watchaBound &&
+    moduleUser.membershipTier === user.membershipTier &&
+    moduleUser.membershipExpiresAt === user.membershipExpiresAt
   ) {
     return;
   }

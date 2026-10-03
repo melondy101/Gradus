@@ -27,14 +27,19 @@ import { readSessionCookieFromRequest, buildSetSessionCookie } from "@/lib/auth/
  */
 export const config = {
   matcher: [
-    // 受保护的 API：除了 auth/register|login、notifications/cron/* 与 calendar/subscribe 之外的所有 /api/*
-    "/api/((?!auth/register|auth/login|notifications/cron|calendar/subscribe).*)",
+    // OAuth redirects own their cookies; other public auth/cron endpoints are excluded too.
+    "/api/((?!auth/register|auth/login|auth/oauth/|notifications/cron|calendar/subscribe).*)",
   ],
 };
 
 export const runtime = "nodejs";
 
 export async function middleware(request: NextRequest) {
+  // OAuth owns its redirect/session cookies; never renew an old guest session
+  // over the account selected by the callback.
+  if (request.nextUrl.pathname.startsWith("/api/auth/oauth/")) {
+    return NextResponse.next();
+  }
   const token = readSessionCookieFromRequest(request);
   const decoded = token ? await verifySession(token) : null;
 
