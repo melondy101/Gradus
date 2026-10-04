@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth, type AuthResult } from "./index";
 import type { User } from "@/lib/db/schema";
+import { configuredAdminId } from "./admin-config";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? "";
 
@@ -8,8 +9,8 @@ export function isAdminEmail(email?: string | null): boolean {
   return Boolean(ADMIN_EMAIL && email?.trim().toLowerCase() === ADMIN_EMAIL);
 }
 
-export function isAdminUser(user?: { email?: string | null } | null): boolean {
-  return isAdminEmail(user?.email);
+export function isAdminUser(user?: { id?: string; email?: string | null } | null): boolean {
+  return isAdminEmail(user?.email) && (!configuredAdminId() || user?.id === configuredAdminId());
 }
 
 /**
@@ -26,7 +27,7 @@ export async function requireAdmin(
     return { ok: false, response: auth.response as unknown as NextResponse };
   }
 
-  if (!isAdminEmail(auth.user.email)) {
+  if (!isAdminUser(auth.user)) {
     return {
       ok: false,
       response: NextResponse.json(

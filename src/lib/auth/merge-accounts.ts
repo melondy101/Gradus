@@ -3,6 +3,7 @@ import { notifications, redemptionRecords, tasks, users, type User } from "@/lib
 import type { AccountTx } from "./account-code";
 import { AccountError } from "./account-error";
 import { verifyPassword } from "./password";
+import { isManagedAdminAccount } from "./admin-config";
 
 export function mergedMembership(source: User, target: User, now = new Date()) {
   const rank: Record<string, number> = { free: 0, pro: 1, premium: 2 };
@@ -21,8 +22,7 @@ export async function mergeAccounts(tx: AccountTx, sourceId: string, targetEmail
   const target = locked.find(u => u.id === found.id);
   if (!source || source.sessionVersion !== version) throw new AccountError("会话已失效，请重新登录", 401);
   if (!target || !await verifyPassword(password, target.passwordHash)) throw new AccountError("邮箱或密码不正确", 401);
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  if ([source, target].some(u => u.id === "admin-system-root" || (adminEmail && u.emailLower === adminEmail))) throw new AccountError("管理员账号不支持合并", 403);
+  if ([source, target].some(isManagedAdminAccount)) throw new AccountError("管理员账号不支持合并", 403);
   if (!source.watchaOpenId) throw new AccountError("请先使用观猹账号登录，再绑定旧账号");
   if (target.watchaOpenId && target.watchaOpenId !== source.watchaOpenId) throw new AccountError("旧账号已绑定另一个观猹账号", 409);
   await tx.update(tasks).set({ userId: target.id, updatedAt: new Date() }).where(eq(tasks.userId, source.id));

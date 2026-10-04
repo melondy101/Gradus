@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "bun test",
+    "test:security": "bun test src/lib/ssrf-guard.test.ts src/lib/public-dns.test.ts src/lib/safe-fetch.test.ts src/lib/auth/reserved-identity.test.ts src/lib/auth/admin-identity.test.ts src/lib/auth/admin-config.test.ts && bun run scripts/tests/register-security.ts && bun run scripts/tests/admin-oauth-security.ts",
     "audit:design": "node scripts/design-audit.mjs",
     "audit:parity": "node scripts/design-parity.mjs",
     "audit:modals": "node scripts/modal-probe.mjs",

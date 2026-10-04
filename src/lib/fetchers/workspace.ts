@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * 语雀 / 飞书文档抓取
  *
@@ -56,7 +57,7 @@ async function fetchYuque(url: string): Promise<FetchedContent | null> {
   if (token && parsed) {
     try {
       const apiUrl = `https://www.yuque.com/api/v2/repos/${parsed.namespace}/docs/${parsed.slug}`;
-      const res = await fetch(apiUrl, {
+      const res = await safeFetch(apiUrl, {
         headers: {
           "X-Auth-Token": token,
           "User-Agent": "AutoTask/1.0",
@@ -111,7 +112,7 @@ async function fetchYuque(url: string): Promise<FetchedContent | null> {
 
   // ── 无 Token 或 API 失败 → HTML 抓取（公开文档）+ 友好提示 ──────────────
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         "Accept": "text/html",
@@ -211,7 +212,7 @@ async function fetchFeishu(url: string): Promise<FetchedContent | null> {
         ? `https://open.feishu.cn/open-apis/docx/v1/documents/${parsed.token}/raw_content`
         : `https://open.feishu.cn/open-apis/doc/v2/${parsed.token}/content`;
 
-      const res = await fetch(apiUrl, {
+      const res = await safeFetch(apiUrl, {
         headers: {
           "Authorization": `Bearer ${userToken}`,
           "Content-Type": "application/json; charset=utf-8",
@@ -232,7 +233,7 @@ async function fetchFeishu(url: string): Promise<FetchedContent | null> {
           // 获取文档标题
           let docTitle = "飞书文档";
           try {
-            const metaRes = await fetch(
+            const metaRes = await safeFetch(
               `https://open.feishu.cn/open-apis/docx/v1/documents/${parsed.token}`,
               { headers: { "Authorization": `Bearer ${userToken}` }, signal: AbortSignal.timeout(4000) }
             );
@@ -262,7 +263,7 @@ async function fetchFeishu(url: string): Promise<FetchedContent | null> {
 
   // ── 无 Token → HTML 抓取 + 友好引导 ──────────────────────────────────
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         "Accept": "text/html",

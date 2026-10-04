@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * arXiv 论文抓取
  * 支持:
@@ -49,7 +50,7 @@ function extractAbstractFromHtml(html: string): string {
 
 /** 从 arXiv abs 页面提取摘要（无需 API） */
 async function fetchAbsPage(arxivId: string): Promise<{ title: string; abstract: string; authors: string; categories: string[] }> {
-  const res = await fetch(`https://arxiv.org/abs/${arxivId}`, {
+  const res = await safeFetch(`https://arxiv.org/abs/${arxivId}`, {
     headers: { "User-Agent": "AutoTask/1.0 (research-reader)" },
     signal: AbortSignal.timeout(8000),
   });
@@ -84,7 +85,7 @@ async function fetchAbsPage(arxivId: string): Promise<{ title: string; abstract:
 /** 尝试从 ar5iv 获取章节列表（HTML 版本） */
 async function fetchSectionsFromAr5iv(arxivId: string): Promise<string[]> {
   try {
-    const res = await fetch(`https://ar5iv.org/abs/${arxivId}`, {
+    const res = await safeFetch(`https://ar5iv.org/abs/${arxivId}`, {
       headers: { "User-Agent": "AutoTask/1.0" },
       signal: AbortSignal.timeout(10000),
     });

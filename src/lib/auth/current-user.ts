@@ -33,7 +33,7 @@ export interface CurrentUserView {
   membershipExpiresAt?: string | null;
 }
 
-async function resolveUserFromDecoded(decoded: { sub: string; version?: number }): Promise<User | null> {
+async function resolveUserFromDecoded(decoded: { sub: string; version?: number; adminConfig?: string }): Promise<User | null> {
   try {
     const user = await getUserByIdFromDatabase(decoded.sub);
     return user && sessionMatchesUser(user, decoded) ? user : null;

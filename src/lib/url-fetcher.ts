@@ -159,7 +159,7 @@ async function fetchGithubRepo(url: string): Promise<FetchedContent | null> {
 
   try {
     // 1. 仓库基本信息
-    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
+    const repoRes = await safeFetch(`https://api.github.com/repos/${owner}/${repoName}`, {
       headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "AutoTask/1.0" },
       signal: AbortSignal.timeout(TIMEOUT),
     });
@@ -169,7 +169,7 @@ async function fetchGithubRepo(url: string): Promise<FetchedContent | null> {
     // 2. README 内容（raw）
     let readmeText = "";
     try {
-      const readmeRes = await fetch(
+      const readmeRes = await safeFetch(
         `https://raw.githubusercontent.com/${owner}/${repoName}/${repoInfo.default_branch}/README.md`,
         { signal: AbortSignal.timeout(TIMEOUT) }
       );

@@ -1,22 +1,5 @@
-/**
- * ssrf-guard.ts
- *
- * SSRF 防护：服务端抓取用户可控 URL 前的安全校验。
- *
- * 拦截规则（对齐 OWASP SSRF 防护）：
- *   1. 只允许 http / https，拒绝 file: / gopher: / ftp: 等危险协议
- *   2. 拒绝直接以 IP 书写的私网/环回/link-local/保留/CGNAT 地址
- *      （169.254.169.254 是云元数据服务，SSRF 头号目标）
- *   3. 拒绝十进制/十六进制/八进制等非点分格式的 IP（常见绕过手法，
- *      如 http://2130706433 == 127.0.0.1、http://0x7f000001）
- *   4. 拒绝 localhost / *.local / *.internal 等本地主机名
- *   5. safeFetch：手动跟随重定向，每一跳的 Location 都重新过校验，
- *      防止「公开 URL → 302 → 内网地址」的重定向绕过。
- *
- * 说明：这是「已知坏地址」黑名单式快速拦截，覆盖绝大多数攻击。
- * 对于短 TTL DNS rebinding 的 TOCTOU 攻击，需在网络层 pin IP，
- * 属更高成本方案，此处不做（应用场景为抓取公开学习资源）。
- */
+import { isIP } from "node:net";
+export { safeFetch } from "./safe-fetch";
 
 /** 把可能是十进制/十六进制/八进制的单个 IPv4 octet 或整段归一化为点分十进制；无法识别返回 null */
 function normalizeIpv4(host: string): string | null {
@@ -83,7 +66,8 @@ function isPrivateIp(host: string): boolean {
   // IPv6 环回 / 未指定 / link-local / unique-local
   const v6 = host.replace(/^\[|\]$/g, "").toLowerCase();
   if (v6 === "::1" || v6 === "::") return true;
-  if (v6.startsWith("fe80:") || v6.startsWith("fc") || v6.startsWith("fd")) return true;
+  if (isIP(v6) === 6 && !/^[23][0-9a-f]{3}:/.test(v6)) return true;
+  if (v6.startsWith("2002:") || /^2001:0{1,4}:/.test(v6)) return true;
 
   // IPv4-mapped IPv6，两种写法都要还原为点分 IPv4 后判定：
   //   点分：   ::ffff:169.254.169.254
@@ -112,7 +96,7 @@ function isPrivateIp(host: string): boolean {
 
 /** 危险的本地主机名 */
 function isLocalHostname(host: string): boolean {
-  const h = host.toLowerCase();
+  const h = host.toLowerCase().replace(/\.+$/, "");
   return (
     h === "localhost" ||
     h.endsWith(".localhost") ||
@@ -136,58 +120,8 @@ export function isSafePublicUrl(rawUrl: string): boolean {
   // 只允许 http / https
   if (u.protocol !== "http:" && u.protocol !== "https:") return false;
   const host = u.hostname;
-  if (!host) return false;
+  if (!host || u.username || u.password) return false;
   if (isLocalHostname(host)) return false;
   if (isPrivateIp(host)) return false;
   return true;
-}
-
-/**
- * SSRF 安全的 fetch：手动跟随重定向，每一跳都重新校验目标地址，
- * 阻断「公开 URL → 3xx 重定向 → 内网/元数据地址」的绕过。
- *
- * - 初始 URL 与每个 Location 都必须通过 isSafePublicUrl
- * - 最多跟随 maxRedirects 跳（默认 4），超出视为异常
- * - 保留调用方传入的其余 fetch 选项（method/headers/signal 等）
- *
- * @throws 当任一跳地址不安全、重定向缺少/超限时抛错（调用方普遍已 try/catch 降级）
- */
-export async function safeFetch(
-  input: string,
-  init: RequestInit = {},
-  maxRedirects = 4,
-  maxSizeBytes = 2 * 1024 * 1024 // 最大 2MB
-): Promise<Response> {
-  let currentUrl = input;
-
-  for (let i = 0; i <= maxRedirects; i++) {
-    if (!isSafePublicUrl(currentUrl)) {
-      throw new Error("SSRF blocked: unsafe URL");
-    }
-
-    const signal = init.signal || AbortSignal.timeout(5000);
-    const res = await fetch(currentUrl, { ...init, signal, redirect: "manual" });
-
-    // 检查响应头 Content-Length
-    const contentLength = res.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > maxSizeBytes) {
-      throw new Error("Response payload exceeds maximum allowed size (2MB)");
-    }
-
-    // 非重定向状态直接返回
-    if (res.status < 300 || res.status >= 400) {
-      return res;
-    }
-
-    const location = res.headers.get("location");
-    if (!location) {
-      // 3xx 但无 Location：无法继续，原样返回让上层处理
-      return res;
-    }
-
-    // 相对跳转按当前 URL 解析为绝对地址，再进入下一轮校验
-    currentUrl = new URL(location, currentUrl).toString();
-  }
-
-  throw new Error("SSRF blocked: too many redirects");
 }

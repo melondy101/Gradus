@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * npm / PyPI 包页面抓取
  *
@@ -40,7 +41,7 @@ export async function fetchNpm(url: string): Promise<FetchedContent | null> {
   if (!pkgName) return null;
 
   try {
-    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName).replace("%40", "@")}`, {
+    const res = await safeFetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName).replace("%40", "@")}`, {
       headers: { "Accept": "application/json", "User-Agent": "AutoTask/1.0" },
       signal: AbortSignal.timeout(10000),
     });
@@ -148,7 +149,7 @@ export async function fetchPypi(url: string): Promise<FetchedContent | null> {
   if (!pkgName) return null;
 
   try {
-    const res = await fetch(`https://pypi.org/pypi/${pkgName}/json`, {
+    const res = await safeFetch(`https://pypi.org/pypi/${pkgName}/json`, {
       headers: { "Accept": "application/json", "User-Agent": "AutoTask/1.0" },
       signal: AbortSignal.timeout(10000),
     });

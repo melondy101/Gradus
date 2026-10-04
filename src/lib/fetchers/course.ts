@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * Coursera / edX 课程页抓取
  *
@@ -197,7 +198,7 @@ export function detectCoursePlatform(url: string): CoursePlatform | null {
 
 export async function fetchCourse(url: string, platform: CoursePlatform): Promise<FetchedContent | null> {
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml",

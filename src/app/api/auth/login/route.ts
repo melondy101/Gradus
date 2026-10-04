@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmailLowerFromDatabase as getUserByEmailLower, upsertUser } from "@/lib/db/queries";
-import { verifyPassword, hashPassword } from "@/lib/auth/password";
+import { getUserByEmailLowerFromDatabase as getUserByEmailLower } from "@/lib/db/queries";
+import { verifyPassword } from "@/lib/auth/password";
+import { loginConfiguredAdmin } from "@/lib/auth/admin-login";
+import { adminConfigFingerprint, configuredAdminEmail, isManagedAdminAccount } from "@/lib/auth/admin-config";
+import { accountErrorResponse } from "@/lib/auth/account-error";
 import { signSession } from "@/lib/auth/jwt";
 import { checkRateLimit, getClientIp } from "@/lib/auth/ratelimit";
 import { buildSetSessionCookie } from "@/lib/auth/cookie";
@@ -45,30 +48,17 @@ export async function POST(request: NextRequest) {
   }
 
   const emailLower = rawEmail.toLowerCase();
-  let user = await getUserByEmailLower(emailLower);
+  let user;
 
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = configuredAdminEmail();
   if (adminEmail && emailLower === adminEmail) {
-    if (!adminPassword) {
-      return NextResponse.json(
-        { error: "管理员登录尚未完成安全配置" },
-        { status: 503 }
-      );
-    }
-    if (password !== adminPassword) {
+    try { user = await loginConfiguredAdmin(password); }
+    catch (error) { return accountErrorResponse(error); }
+  } else {
+    user = await getUserByEmailLower(emailLower);
+    if (user && isManagedAdminAccount(user)) {
       return NextResponse.json({ error: "邮箱或密码不正确" }, { status: 401 });
     }
-
-    user = await upsertUser({
-      id: user?.id || "admin-system-root",
-      email: adminEmail,
-      emailLower: adminEmail,
-      name: user?.name || "系统管理员",
-      passwordHash: await hashPassword(adminPassword),
-      membershipTier: "premium",
-      membershipExpiresAt: new Date("2099-12-31T23:59:59Z"),
-    });
   }
 
   // 始终执行一次 hash verify，让相同输入的耗时一致 —— 避免攻击者通过响应
@@ -93,6 +83,7 @@ export async function POST(request: NextRequest) {
     name: user.name ?? "",
     email: user.email ?? emailLower,
     version: user.sessionVersion,
+    adminConfig: emailLower === adminEmail ? adminConfigFingerprint(user.id) : undefined,
   });
 
   const res = NextResponse.json({

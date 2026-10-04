@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * 掘金 / 知乎 / Medium 正文提取
  *
@@ -135,7 +136,7 @@ const PLATFORM_LABELS: Record<ArticlePlatform, string> = {
 
 export async function fetchArticle(url: string, platform: ArticlePlatform): Promise<FetchedContent | null> {
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml",

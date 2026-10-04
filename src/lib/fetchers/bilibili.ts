@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * Bilibili 视频信息增强
  *
@@ -30,7 +31,7 @@ async function resolveVideoId(url: string): Promise<VideoId | null> {
   // b23.tv 短链 → 先 HEAD 追踪重定向
   if (url.includes("b23.tv")) {
     try {
-      const res = await fetch(url, {
+      const res = await safeFetch(url, {
         method: "HEAD",
         redirect: "follow",
         signal: AbortSignal.timeout(6000),
@@ -119,7 +120,7 @@ export async function fetchBilibili(url: string): Promise<FetchedContent | null>
       ? `https://api.bilibili.com/x/web-interface/view?bvid=${videoId.value}`
       : `https://api.bilibili.com/x/web-interface/view?aid=${videoId.value}`;
 
-    const res = await fetch(apiUrl, {
+    const res = await safeFetch(apiUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; AutoTask/1.0)",
         "Referer": "https://www.bilibili.com/",
@@ -136,7 +137,7 @@ export async function fetchBilibili(url: string): Promise<FetchedContent | null>
     // 2. 视频标签（可选，单独接口）
     let tagNames: string[] = [];
     try {
-      const tagRes = await fetch(
+      const tagRes = await safeFetch(
         `https://api.bilibili.com/x/tag/archive/tags?bvid=${v.bvid}`,
         {
           headers: { "User-Agent": "Mozilla/5.0 (compatible; AutoTask/1.0)", "Referer": "https://www.bilibili.com/" },

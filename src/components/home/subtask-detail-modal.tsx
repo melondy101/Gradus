@@ -9,7 +9,7 @@ import {
   URL_STATUS_CONFIG,
   FRESHNESS_CONFIG,
   AUTHORITY_LABEL_CONFIG,
-} from "@/lib/resource-validator";
+} from "@/lib/resource-display";
 
 import { T } from "@/lib/design-tokens";
 import { Button } from "@/components/ui/button";

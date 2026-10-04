@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/cookie";
 import { verifyEmailCode } from "@/lib/email/verification";
 import { isRealEmailConfigured } from "@/lib/email/mailer";
+import { isReservedAdminEmail } from "@/lib/auth/reserved-identity";
 
 /**
  * POST /api/auth/register
@@ -72,7 +73,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "密码过长" }, { status: 400 });
   }
 
-  // 校验验证码（若配置了 QQ邮箱/SMTP/Resend 发信服务 或 输入了验证码）
+  // 管理员由配置密码登录入口初始化，公开注册不能授予管理员身份。
+  if (isReservedAdminEmail(rawEmail)) {
+    return NextResponse.json({ error: "该邮箱不支持公开注册，请使用管理员登录" }, { status: 403 });
+  }
+
+  // 校验验证码（若配置了 QQ邮箱/SMTP 发信服务 或 输入了验证码）
   const emailServiceConfigured = isRealEmailConfigured();
   if (emailServiceConfigured || code) {
     if (!code) {

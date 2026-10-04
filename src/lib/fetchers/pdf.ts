@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * PDF 直链抓取
  *
@@ -148,7 +149,7 @@ export function isPdfUrl(url: string): boolean {
 export async function fetchPdf(url: string): Promise<FetchedContent | null> {
   try {
     // 1. HEAD 检查 Content-Type
-    const head = await fetch(url, {
+    const head = await safeFetch(url, {
       method: "HEAD",
       headers: { "User-Agent": "AutoTask/1.0" },
       signal: AbortSignal.timeout(6000),
@@ -157,7 +158,7 @@ export async function fetchPdf(url: string): Promise<FetchedContent | null> {
     if (!ct.includes("pdf") && !isPdfUrl(url)) return null;
 
     // 2. 下载前 MAX_BYTES
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "AutoTask/1.0",
         "Range": `bytes=0-${MAX_BYTES - 1}`,

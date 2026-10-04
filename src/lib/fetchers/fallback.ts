@@ -1,3 +1,4 @@
+import { safeFetch } from "../ssrf-guard";
 /**
  * 通用 fallback 增强
  *
@@ -176,7 +177,7 @@ export async function fetchWithFallback(
 
   // 尝试基础 fetch 拿 title 和 og 信息
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml",

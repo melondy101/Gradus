@@ -18,6 +18,12 @@ describe("isSafePublicUrl — 协议", () => {
 });
 
 describe("isSafePublicUrl — 本地主机名", () => {
+  test("拒绝尾随点本地名称、IPv6 link-local 完整网段和组播", () => {
+    for (const url of ["http://localhost./", "http://foo.local./", "http://[fe90::1]/", "http://[ff02::1]/", "http://user:pass@example.com/"]) {
+      expect(isSafePublicUrl(url)).toBe(false);
+    }
+    expect(isSafePublicUrl("https://example.com./")).toBe(true);
+  });
   test("拒绝 localhost 及本地后缀", () => {
     expect(isSafePublicUrl("http://localhost/")).toBe(false);
     expect(isSafePublicUrl("http://foo.localhost/")).toBe(false);

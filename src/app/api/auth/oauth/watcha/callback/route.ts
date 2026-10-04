@@ -6,8 +6,12 @@ import { getUserByIdFromDatabase as getUserById } from "@/lib/db/queries";
 import { signSession, verifySession } from "@/lib/auth/jwt";
 import { readSessionCookieFromRequest } from "@/lib/auth/cookie";
 import { oauthRedirect } from "@/lib/auth/oauth-response";
+import { sessionMatchesUser } from "@/lib/auth/session-version";
+import { adminConfigFingerprint, isManagedAdminAccount } from "@/lib/auth/admin-config";
+import { syncConfiguredAdmin } from "@/lib/auth/admin-login";
 
 class WatchaBindingConflictError extends Error {}
+class WatchaSessionExpiredError extends Error {}
 
 /**
  * GET /api/auth/oauth/watcha/callback
@@ -121,11 +125,14 @@ export async function GET(request: NextRequest) {
     // 3. 检查当前是否有临时访客账号，准备合并任务。
     const cookieToken = readSessionCookieFromRequest(request);
     const decoded = cookieToken ? await verifySession(cookieToken) : null;
+    if (request.cookies.get("watcha_oauth_intent")?.value === "bind" && !decoded) {
+      return oauthError(origin, "session_expired");
+    }
     let tempUserId: string | null = null;
     let bindingUser: Awaited<ReturnType<typeof getUserById>> | null = null;
     if (decoded) {
       const cookieUser = await getUserById(decoded.sub);
-      if (request.cookies.get("watcha_oauth_intent")?.value === "bind" && (!cookieUser || cookieUser.sessionVersion !== (decoded.version ?? 0))) {
+      if (request.cookies.get("watcha_oauth_intent")?.value === "bind" && (!cookieUser || !sessionMatchesUser(cookieUser, decoded))) {
         return oauthError(origin, "session_expired");
       }
       if (
@@ -142,7 +149,14 @@ export async function GET(request: NextRequest) {
 
     // 4. 以观猹稳定 ID 为首选、邮箱为既有账户兼容规则，原子完成绑定与迁移。
     //    只有这一步成功后才会签发本站会话，避免 "观猹已授权但本站未登录"。
-    const finalUser = await db.transaction(async (tx) => {
+    let finalUser = await db.transaction(async (tx) => {
+      if (bindingUser) {
+        const [lockedUser] = await tx.select().from(users).where(eq(users.id, bindingUser.id)).for("update");
+        if (!lockedUser || !decoded || !sessionMatchesUser(lockedUser, decoded)) {
+          throw new WatchaSessionExpiredError();
+        }
+        bindingUser = lockedUser;
+      }
       const byOpenId = await tx
         .select()
         .from(users)
@@ -208,12 +222,19 @@ export async function GET(request: NextRequest) {
       return { id, email, name: watchaName, version: 0 };
     });
 
+    let adminConfig: string | undefined;
+    if (isManagedAdminAccount(finalUser)) {
+      const admin = await syncConfiguredAdmin(finalUser.id);
+      finalUser = { id: admin.id, email: admin.email ?? "", name: admin.name ?? "", version: admin.sessionVersion };
+      adminConfig = adminConfigFingerprint(admin.id);
+    }
     // 5. 签发与普通登录相同的本站 JWT 会话 Cookie。
     const sessionToken = await signSession({
       sub: finalUser.id,
       name: finalUser.name,
       email: finalUser.email,
       version: finalUser.version,
+      adminConfig,
     });
 
     return oauthRedirect(new URL("/?auth_success=1", origin), sessionToken);
@@ -223,6 +244,7 @@ export async function GET(request: NextRequest) {
       origin,
       err instanceof WatchaBindingConflictError
         ? "watcha_account_already_bound"
+        : err instanceof WatchaSessionExpiredError ? "session_expired"
         : "oauth_callback_failed"
     );
   }
