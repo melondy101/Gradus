@@ -27,6 +27,8 @@
 
 2026-10-19 进一步核对：观猹管理页显示拾级产品“已发布”，公开页仍标注“完全免费”。爱猹收同一应用的正式环境已按用户上线意向开通；正式 10 次包 `sku_01m5a9h6kf1k3yb2yfdmfqtmkb` 和 30 次包 `sku_01m5a9nd30s5ccdnb42sxfwtyf` 已建立，并以“额度权益／次数”初始化支付宝托管配置，均处于“配置中”。正式权益 ID 和生产 Key 尚未配置到拾级；收款账号、档位价格、首次签约审核及真实交易均未完成。平台提示绑定的收款账号不能更换，需用户本人使用实际收款支付宝账号继续。观猹的“已发布”只证明产品展示已上线，不代表正式收款可用。PAYATHON 参赛中心账号已登录，但报名资料尚未填写，作品暂不可提交；投稿草稿与待办见 `docs/submissions/payathon-2026.md`。
 
+同日将提交 `29a3b3e` 推送到 `main`，Vercel 生产部署 `dpl_BwDXHfeYvYmGukGVjwxy3mV7QSZn` 已 `READY`，公开首页和 `/api/auth/config` 均返回 HTTP 200。生产环境没有 `GRADUS_COMMERCE_ENABLED`、`GRADUS_PAYMENT_PROVIDER`、`WATCHA_PAY_*` 变量，因此收款入口保持关闭。Neon 主分支已出现四张新增支付/额度表及预期索引，来自运行时 `ensureSchema`；迁移账本仍需在正式开放前核对，不能只以建表成功代替迁移完成。全量 Bun 测试 177 通过、5 跳过，lint 0 错误/9 条既有警告。本机原样构建因 `.env.production.local` 的无效 `DATABASE_URL` 占位值失败；只在构建进程临时覆盖为语法有效的非生产连接串后构建通过，未修改私密文件。
+
 2026-10-18 复核：全量 `bun run test` 为 177 通过、5 跳过；`bun run lint` 为 0 错误、9 条既有警告；`bun run build` 成功。账号合并保护以同一隔离测试账号实测：爱猹收模式返回 409；支付服务切回默认支付宝模式后，原合并校验继续运行。`ds:imports` 通过，`ds:vars` 报告既有 6 处局部变量，`ds:tokens` 被未改动的 `src/components/layout/icon-rail.tsx` 现有 2 处基线回归拦住。Vercel 生产部署仍是提交 `dc524d0`；支付代码仅发布到预览分支。
 
 ## 产品边界
