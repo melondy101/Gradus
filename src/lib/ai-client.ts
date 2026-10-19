@@ -46,6 +46,11 @@ type ChatDeltaChunk = {
       content?: string;
     };
   }>;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    prompt_cache_hit_tokens?: number;
+  } | null;
 };
 
 type StreamErrorBody = {
@@ -217,7 +222,11 @@ async function callByokProvider(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ ...params, model }),
+    body: JSON.stringify({
+      ...params, model,
+      ...(params.stream === true && new URL(base).hostname === "api.deepseek.com"
+        ? { stream_options: { include_usage: true } } : {}),
+    }),
     cache: "no-store",
   });
   if (!res.ok) {

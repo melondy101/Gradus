@@ -6,6 +6,13 @@ import { resolveResources, type SearchIntent, type TrustableResource } from "@/l
 import { validateResources } from "@/lib/resource-validator";
 import { extractUrl, fetchUrlContent, formatContentForPrompt } from "@/lib/url-fetcher";
 import { checkAiUsageQuota, incrementAiUsage } from "@/lib/membership/quota";
+import { commerceEnabled, paymentProvider } from "@/lib/commerce/catalog";
+import { CreditExhaustedError, reserveAiCredit, settleAiCredit } from "@/lib/commerce/credits";
+import { getWatchaPayConfig, WatchaPayError } from "@/lib/commerce/watcha-pay";
+import { selectWatchaQuota } from "@/lib/commerce/watcha-quota";
+import { deliverWatchaUsage, pendingWatchaUsage, prepareWatchaUsage,
+  type WatchaPlanPayload } from "@/lib/commerce/watcha-usage";
+import { isTempUser } from "@/lib/membership/quota";
 import {
   INTENT_PROMPT,
   RESOURCE_INTENT_PROMPT,
@@ -65,7 +72,8 @@ async function callAI(
   systemPrompt: string,
   userMessage: string,
   onDelta?: (delta: string) => void,
-  timeoutMs = 45000
+  timeoutMs = 45000,
+  runId?: string,
 ): Promise<string> {
   const streamPromise = appAi.chat({
     messages: [
@@ -89,6 +97,12 @@ async function callAI(
       accumulated += delta;
       onDelta?.(delta);
     }
+    if (chunk.usage) console.info("[ai-usage]", JSON.stringify({
+      runId, model: process.env.AI_PROVIDER_MODEL ?? "provider-default",
+      promptTokens: chunk.usage.prompt_tokens ?? 0,
+      completionTokens: chunk.usage.completion_tokens ?? 0,
+      cachedPromptTokens: chunk.usage.prompt_cache_hit_tokens ?? 0,
+    }));
   }
   return accumulated;
 }
@@ -97,13 +111,14 @@ async function callAIWithRetry(
   systemPrompt: string,
   userMessage: string,
   onDelta?: (delta: string) => void,
-  timeoutMs = 45000
+  timeoutMs = 45000,
+  runId?: string,
 ): Promise<string> {
   try {
-    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs);
+    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs, runId);
   } catch (err) {
     console.warn("[AutoTask] AI call failed, retrying once...", err);
-    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs);
+    return await callAI(systemPrompt, userMessage, onDelta, timeoutMs, runId);
   }
 }
 
@@ -179,23 +194,77 @@ export async function POST(
     if (typeof body.adjustment === "string") adjustment = body.adjustment.trim().slice(0, 1000);
   } catch { /* ignore */ }
 
-  // 每日 AI 规划生成 / 调整修改次数上限校验（分级管理，只读检查，不提前消耗配额）
-  const usageCheck = await checkAiUsageQuota(auth.user.id, Boolean(adjustment));
-  if (!usageCheck.allowed) {
+  const paidMode = commerceEnabled();
+  let reservationId: string | null = null;
+  const watchaMode = paidMode && paymentProvider() === "watcha";
+  const watchaConfig = watchaMode ? getWatchaPayConfig() : null;
+  let watchaEntitlementId: string | null = null;
+  let pendingAttempt = null;
+  try {
+    pendingAttempt = watchaMode ? await pendingWatchaUsage(auth.user.id, id) : null;
+  } catch (error) {
     releaseLock();
-    return NextResponse.json(
-      {
+    console.error("[AutoTask] pending Watcha lookup failed", error);
+    return NextResponse.json({ error: "额度服务暂不可用，请稍后重试" }, { status: 503 });
+  }
+  if (pendingAttempt) {
+    if (!watchaConfig) {
+      releaseLock();
+      return NextResponse.json({ error: "额度服务暂不可用，请稍后重试" }, { status: 503 });
+    }
+    try {
+      const delivered = await deliverWatchaUsage(watchaConfig, pendingAttempt);
+      return NextResponse.json({ ok: true, result: {
+        subtasks: delivered.saved, totalDays: delivered.totalDays,
+        taskName: delivered.payload.taskName, rawInput: delivered.payload.rawInput,
+        startDate: delivered.payload.startDate, topicCategory: delivered.payload.topicCategory,
+        priorLevel: delivered.payload.priorLevel, bloomTarget: delivered.payload.bloomTarget,
+        reviewNodes: delivered.payload.reviewNodes, verifiedCount: delivered.payload.verifiedCount,
+        reachableCount: delivered.payload.reachableCount,
+      } });
+    } catch (error) {
+      console.error("[AutoTask] pending Watcha delivery failed", error);
+      return NextResponse.json({ error: "上次规划正在恢复，请稍后重试" }, { status: 503 });
+    } finally { releaseLock(); }
+  }
+  if (paidMode) {
+    try {
+      reservationId = await reserveAiCredit(auth.user.id, id);
+    } catch (error) {
+      if (error instanceof CreditExhaustedError) {
+        if (watchaConfig && !isTempUser(auth.user)) {
+          try {
+            watchaEntitlementId = (await selectWatchaQuota(watchaConfig, auth.userId))?.entitlementId ?? null;
+          } catch (quotaError) {
+            console.error("[AutoTask] Watcha balance check failed", quotaError);
+            releaseLock();
+            return NextResponse.json({ error: "额度暂时无法确认，请稍后重试" }, { status: 503 });
+          }
+        }
+        if (!watchaEntitlementId) {
+          releaseLock();
+          return NextResponse.json({ error: error.message, code: "AI_CREDITS_EXHAUSTED" }, { status: 403 });
+        }
+      } else {
+        releaseLock();
+        console.error("[AutoTask] credit reservation failed", error);
+        return NextResponse.json({ error: "额度服务暂不可用，请稍后重试" }, { status: 503 });
+      }
+    }
+  } else {
+    const usageCheck = await checkAiUsageQuota(auth.user.id, Boolean(adjustment));
+    if (!usageCheck.allowed) {
+      releaseLock();
+      return NextResponse.json({
         error: usageCheck.reason || "今日 AI 使用次数已达上限",
-        code: usageCheck.code,
-        current: usageCheck.current,
-        limit: usageCheck.limit,
-        tier: usageCheck.tier,
-      },
-      { status: 403 }
-    );
+        code: usageCheck.code, current: usageCheck.current,
+        limit: usageCheck.limit, tier: usageCheck.tier,
+      }, { status: 403 });
+    }
   }
 
   const rawGoal = task.rawInput || task.title;
+  let planSaved = false;
 
   try {
     // ── Stage 0: URL 内容抓取（如果输入包含 URL）───────────────
@@ -219,6 +288,7 @@ export async function POST(
       INTENT_PROMPT,
       enrichedGoal + (adjustment ? `\n调整要求：${adjustment}` : ""),
       undefined,
+      45000, id,
     );
 
     interface IntentResult {
@@ -257,6 +327,7 @@ export async function POST(
           .replace(/{PRIOR_LEVEL}/g, priorLevel)
           .replace("{KEYWORDS}", keywords),
         undefined,
+        45000, id,
       );
 
       interface IntentListResult { search_intents?: SearchIntent[] }
@@ -282,6 +353,7 @@ export async function POST(
         .replace("{RESOURCES}", JSON.stringify(resources.map((r, i) => ({ index: i, ...r }))))
         .replace("{ADJUSTMENT}", adjustment || "无"),
       undefined,
+      45000, id,
     );
 
     interface PlanSubtask {
@@ -305,7 +377,8 @@ export async function POST(
       VALIDATE_PROMPT
         .replace("{GOAL}", rawGoal)
         .replace(/{PRIOR_LEVEL}/g, priorLevel)
-        .replace("{PLAN}", JSON.stringify(plan.subtasks))
+        .replace("{PLAN}", JSON.stringify(plan.subtasks)),
+      undefined, 45000, id,
     );
 
     interface ValidateResult { pass?: boolean; score?: number; suggestions?: string }
@@ -338,6 +411,7 @@ export async function POST(
           .replace("{ADJUSTMENT}", adjustment || "无")
         + `\n\n审核意见（请按此修正）：${revisionNote}`,
         undefined,
+        45000, id,
       );
       const revised = parseJson<PlanResult>(revisedRaw);
       if (revised?.subtasks?.length) finalPlan = revised;
@@ -345,7 +419,7 @@ export async function POST(
 
     // ── DB Write + 交错排期 ───────────────────────────────────────
     const rawInput = task.rawInput || task.title;
-    await updateTaskTitleAndRawInput(id, taskName, rawInput);
+    if (!watchaEntitlementId) await updateTaskTitleAndRawInput(id, taskName, rawInput);
 
     const existingSchedule = await getScheduledTasksByUser(auth.user.id);
     const today = todayMidnight();
@@ -361,7 +435,7 @@ export async function POST(
       }));
 
     const newStartDate = computeNewTaskStartDate(otherTasks, today);
-    await updateTaskStartDate(id, newStartDate);
+    if (!watchaEntitlementId) await updateTaskStartDate(id, newStartDate);
 
     const sorted = [...finalPlan.subtasks!].sort((a, b) => {
       const bloomA = a.bloom_level ?? 2;
@@ -409,24 +483,36 @@ export async function POST(
       subtaskItems.map((s) => ({ startDay: s.startDay, durationDays: s.durationDays }))
     );
 
-    // 清理可能已存在的旧子任务（如调整或重试时），保证原子替换
-    await deleteSubtasksByTaskId(id);
-    const saved = await createSubtasks(id, subtaskItems);
-    if (!saved || saved.length === 0) {
-      throw new Error("写入子任务计划失败");
+    let saved;
+    let totalDays;
+    if (watchaEntitlementId && watchaConfig) {
+      const payload: WatchaPlanPayload = {
+        taskName, rawInput, startDate: newStartDate.toISOString(), topicCategory,
+        priorLevel, bloomTarget, reviewNodes, verifiedCount, reachableCount, subtaskItems,
+      };
+      const attempt = await prepareWatchaUsage(auth.user.id, id, watchaEntitlementId, payload);
+      const delivered = await deliverWatchaUsage(watchaConfig, attempt);
+      saved = delivered.saved;
+      totalDays = delivered.totalDays;
+    } else {
+      // 清理可能已存在的旧子任务（如调整或重试时），保证原子替换
+      await deleteSubtasksByTaskId(id);
+      saved = await createSubtasks(id, subtaskItems);
+      if (!saved || saved.length === 0) throw new Error("写入子任务计划失败");
+      totalDays = saved.reduce((max, s) => Math.max(max, s.startDay + s.durationDays), 0);
+      await updateTaskTotalDays(id, totalDays);
+      await updateTaskStatus(id, "done");
     }
-
-    const totalDays = saved.reduce(
-      (max, s) => Math.max(max, s.startDay + s.durationDays), 0
-    );
-    await updateTaskTotalDays(id, totalDays);
-    await updateTaskStatus(id, "done");
+    planSaved = true;
 
     // 成功完成规划并落库后，才正式递增 AI 使用额度
-    try {
-      await incrementAiUsage(auth.user.id, Boolean(adjustment));
-    } catch (quotaErr) {
-      console.warn("[AutoTask] incrementAiUsage failed:", quotaErr);
+    if (paidMode && reservationId) await settleAiCredit(reservationId, true);
+    if (!paidMode) {
+      try {
+        await incrementAiUsage(auth.user.id, Boolean(adjustment));
+      } catch (quotaErr) {
+        console.warn("[AutoTask] incrementAiUsage failed:", quotaErr);
+      }
     }
 
     // 发送站内通知
@@ -459,13 +545,21 @@ export async function POST(
       },
     });
   } catch (err) {
+    if (reservationId) {
+      try { await settleAiCredit(reservationId, planSaved); }
+      catch (refundError) { console.error("[AutoTask] credit release failed", refundError); }
+    }
     const errMsg = err instanceof Error ? err.message : "Unknown error";
     const errStack = err instanceof Error ? err.stack : undefined;
     console.error("[AutoTask] analyze pipeline error:", errMsg, errStack);
     // 失败时将任务状态置为 draft，避免前端卡死在 processing 状态
-    try {
-      await updateTaskStatus(id, "draft");
-    } catch { /* ignore */ }
+    if (!planSaved && !watchaEntitlementId) {
+      try { await updateTaskStatus(id, "draft"); }
+      catch { /* ignore */ }
+    }
+    if (err instanceof WatchaPayError && err.status === 409 && err.code === "insufficient_quota") {
+      return NextResponse.json({ error: "爱猹收次数不足，请购买次数包后重试", code: "AI_CREDITS_EXHAUSTED" }, { status: 403 });
+    }
     return NextResponse.json(
       {
         ok: false,

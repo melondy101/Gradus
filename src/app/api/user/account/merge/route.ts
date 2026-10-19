@@ -6,6 +6,7 @@ import { accountResponse } from "@/lib/auth/account-response";
 import { accountLimit } from "@/lib/auth/account-limit";
 import { loginEmail } from "@/lib/auth/account-validation";
 import { AccountError, accountErrorResponse } from "@/lib/auth/account-error";
+import { paymentProvider } from "@/lib/commerce/catalog";
 
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -13,6 +14,10 @@ export async function POST(request: NextRequest) {
   try {
     const limited = await accountLimit(request);
     if (limited) return limited;
+    // Paid Watcha quota is keyed by the original user ID. Merging deletes that ID.
+    if (paymentProvider() === "watcha") {
+      throw new AccountError("爱猹收权益暂不支持跨账号迁移，请保留当前账号使用，暂勿合并", 409);
+    }
     const body = await request.json().catch(() => null);
     const email = loginEmail(typeof body?.email === "string" ? body.email : "");
     const password = typeof body?.password === "string" ? body.password : "";

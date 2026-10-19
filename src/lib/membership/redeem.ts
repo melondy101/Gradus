@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { redemptionCodes, redemptionRecords, users } from "@/lib/db/schema";
+import { aiCreditGrants, redemptionCodes, redemptionRecords, users } from "@/lib/db/schema";
 import { TIER_CONFIGS, type MembershipTier } from "./tiers";
 
 export interface RedeemResult {
@@ -75,6 +75,13 @@ export async function redeemMembershipCode(userId: string, rawCode: string): Pro
         .update(users)
         .set({ membershipTier: targetTier, membershipExpiresAt: newExpiresAt, updatedAt: new Date() })
         .where(eq(users.id, userId));
+
+      // In commerce mode, redeemed memberships also receive a finite AI balance.
+      await tx.insert(aiCreditGrants).values({
+        userId, source: "redeem", total: (targetTier === "premium" ? 100 : 40) * Math.ceil(durationDays / 30),
+        remaining: (targetTier === "premium" ? 100 : 40) * Math.ceil(durationDays / 30),
+        expiresAt: newExpiresAt,
+      });
 
       const tierName = TIER_CONFIGS[targetTier]?.name || targetTier.toUpperCase();
       return {

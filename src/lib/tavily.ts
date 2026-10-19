@@ -14,7 +14,7 @@ import { searchConfiguredProviders } from "./search-providers";
  *   资源在 AI 写计划之前就已经是真实存在的，LLM 无法编造 URL。
  *
  * 配置顺序：
- *   TAVILY_API_KEY → SERPAPI_API_KEY → BRAVE_SEARCH_API_KEY → DOUBAO_API_KEY
+ *   DOUBAO_API_KEY → TAVILY_API_KEY → SERPAPI_API_KEY → BRAVE_SEARCH_API_KEY
  *
  * 降级策略：
  *   任一服务可用 → 真实搜索，trust_level = "verified"
@@ -75,6 +75,10 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "react.dev",
     "nodejs.org",
     "typescriptlang.org",
+    "developer.aliyun.com",
+    "cloud.tencent.com",
+    "learn.microsoft.com",
+    "vuejs.org",
   ],
   // 数学与逻辑
   "数学": [
@@ -83,6 +87,8 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "mathworld.wolfram.com",
     "en.wikipedia.org",
     "ocw.mit.edu",
+    "smartedu.cn",
+    "xuetangx.com",
   ],
   // 语言学习
   "语言": [
@@ -91,6 +97,7 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "lingvist.com",
     "theguardian.com",
     "en.wikipedia.org",
+    "icourse163.org",
   ],
   // 自然科学
   "科学": [
@@ -99,6 +106,7 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "coursera.org",
     "en.wikipedia.org",
     "pubs.acs.org",
+    "kepuchina.cn",
   ],
   // 人文社科
   "人文": [
@@ -107,6 +115,7 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "en.wikipedia.org",
     "gutenberg.org",
     "jstor.org",
+    "xuetangx.com",
   ],
   // 通用教育平台（所有领域都加）
   "_common": [
@@ -115,6 +124,9 @@ export const DOMAIN_WHITELIST: Record<string, string[]> = {
     "khanacademy.org",
     "en.wikipedia.org",
     "youtube.com",
+    "smartedu.cn",
+    "xuetangx.com",
+    "icourse163.org",
   ],
 };
 

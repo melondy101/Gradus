@@ -11,6 +11,15 @@ export interface MembershipResponse {
   };
   membership: UserQuotaSummary;
   tiers: Record<MembershipTier, TierConfig>;
+  commerce?: {
+    enabled: boolean;
+    provider: "alipay" | "watcha";
+    paymentReady: boolean;
+    canPurchase: boolean;
+    balance: number;
+    balanceVerified: boolean;
+    availableSkus: string[];
+  };
   history?: Array<{
     id: string;
     code: string;

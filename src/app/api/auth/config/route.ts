@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isRealEmailConfigured, getEmailProviderType } from "@/lib/email/mailer";
+import { paymentProvider } from "@/lib/commerce/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export async function GET() {
     ok: true,
     // 只有服务端具备完整机密客户端凭据时，前端才渲染观猹快捷登录入口。
     watchaEnabled: Boolean(watchaClientId && watchaClientSecret),
+    accountMergeEnabled: paymentProvider() !== "watcha",
     // 是否已配置真实邮件投递服务（QQ 邮箱 SMTP）
     emailConfigured,
     resendConfigured: emailConfigured, // 兼容过渡字段

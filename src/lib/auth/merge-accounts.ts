@@ -1,5 +1,5 @@
 import { eq, inArray, asc, sql } from "drizzle-orm";
-import { notifications, redemptionRecords, tasks, users, type User } from "@/lib/db/schema";
+import { aiCreditGrants, aiUsageReservations, notifications, paymentOrders, redemptionRecords, tasks, users, type User } from "@/lib/db/schema";
 import type { AccountTx } from "./account-code";
 import { AccountError } from "./account-error";
 import { verifyPassword } from "./password";
@@ -27,6 +27,22 @@ export async function mergeAccounts(tx: AccountTx, sourceId: string, targetEmail
   if (target.watchaOpenId && target.watchaOpenId !== source.watchaOpenId) throw new AccountError("旧账号已绑定另一个观猹账号", 409);
   await tx.update(tasks).set({ userId: target.id, updatedAt: new Date() }).where(eq(tasks.userId, source.id));
   await tx.update(notifications).set({ userId: target.id }).where(eq(notifications.userId, source.id));
+  const grants = await tx.select().from(aiCreditGrants).where(eq(aiCreditGrants.userId, source.id));
+  const targetGrants = await tx.select().from(aiCreditGrants).where(eq(aiCreditGrants.userId, target.id));
+  for (const grant of grants) {
+    const duplicate = targetGrants.find(item => item.source === grant.source && (grant.source === "trial" || grant.source === "legacy"));
+    if (duplicate && grant.source === "trial") {
+      await tx.update(aiCreditGrants).set({ remaining: Math.min(grant.remaining, duplicate.remaining) })
+        .where(eq(aiCreditGrants.id, duplicate.id));
+      await tx.update(aiCreditGrants).set({ userId: target.id, source: "merged_trial", remaining: 0 })
+        .where(eq(aiCreditGrants.id, grant.id));
+    } else {
+      await tx.update(aiCreditGrants).set({ userId: target.id, source: duplicate ? "merged_legacy" : grant.source })
+        .where(eq(aiCreditGrants.id, grant.id));
+    }
+  }
+  await tx.update(aiUsageReservations).set({ userId: target.id }).where(eq(aiUsageReservations.userId, source.id));
+  await tx.update(paymentOrders).set({ userId: target.id }).where(eq(paymentOrders.userId, source.id));
   const records = await tx.select().from(redemptionRecords).where(eq(redemptionRecords.userId, source.id));
   if (records.length) {
     const existing = await tx.select({ code: redemptionRecords.code }).from(redemptionRecords).where(eq(redemptionRecords.userId, target.id));

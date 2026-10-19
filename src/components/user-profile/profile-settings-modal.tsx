@@ -16,8 +16,13 @@ export function ProfileSettingsModal({ open, onClose, user }: { open: boolean; o
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [watchaEnabled, setWatchaEnabled] = useState(false);
+  const [accountMergeEnabled, setAccountMergeEnabled] = useState<boolean | null>(null);
   useEffect(() => {
-    if (open) getAuthConfig().then(result => setWatchaEnabled(result.ok && Boolean(result.data.watchaEnabled)));
+    if (!open) return;
+    getAuthConfig().then(result => {
+      setWatchaEnabled(result.ok && Boolean(result.data.watchaEnabled));
+      setAccountMergeEnabled(result.ok ? result.data.accountMergeEnabled === true : null);
+    });
   }, [open, user?.id]);
   const profile = current ?? { id: user.id, name: user.name ?? "", email: user.email ?? "", avatarUrl: user.avatarUrl, watchaBound: Boolean(user.watchaOpenId), passwordSet: false };
   const shared = { user: profile, busy, onBusy: setBusy };
@@ -33,7 +38,10 @@ export function ProfileSettingsModal({ open, onClose, user }: { open: boolean; o
           onClick={() => router.push("/api/auth/oauth/watcha?intent=bind")}>绑定观猹账号</Button> : null}
         {!watchaEnabled ? <p className="text-caption text-text-2">站点尚未启用观猹登录。</p> : null}
       </section>
-      {profile.watchaBound ? <MergeAccountForm key={profile.id} busy={busy} onBusy={setBusy} /> : null}
+      {profile.watchaBound && accountMergeEnabled === true
+        ? <MergeAccountForm key={profile.id} busy={busy} onBusy={setBusy} /> : null}
+      {profile.watchaBound && accountMergeEnabled === false
+        ? <p className="border-t border-bd-card pt-4 text-caption text-text-2">爱猹收启用期间暂不开放账号合并，避免已购次数留在被删除的账号。请继续使用当前账号。</p> : null}
     </div>
   </Modal>;
 }

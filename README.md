@@ -144,12 +144,21 @@ AI_PROVIDER_MODEL="deepseek-chat"
 # ==========================================
 # 可选项 (Optional Enhancements)
 # ==========================================
-# 资源搜索：按 Tavily → SerpAPI → Brave → 豆包顺序回退。
+# 资源搜索：按豆包 → Tavily → SerpAPI → Brave 顺序回退。
 # 全部留空或均不可用时，资源会降级为搜索词跳转。
 TAVILY_API_KEY="tvly-xxxxxxxxxxxxxxxxxxxx"
 SERPAPI_API_KEY=""
 BRAVE_SEARCH_API_KEY=""
 DOUBAO_API_KEY=""
+
+# PAYATHON 网页收款仅在指定部署启用；完整接入步骤见 docs/plans/2026-10-14-payathon-implementation.md
+# GRADUS_COMMERCE_ENABLED="true"
+# GRADUS_PUBLIC_ORIGIN="https://talk-task.vercel.app"
+# ALIPAY_ENV="sandbox"
+# ALIPAY_APP_ID=""
+# ALIPAY_SELLER_ID=""
+# ALIPAY_PRIVATE_KEY=""
+# ALIPAY_PUBLIC_KEY=""
 
 # 站点标题与自定义描述
 NEXT_PUBLIC_APP_TITLE="拾级 · Gradus"

@@ -28,7 +28,7 @@ import { readSessionCookieFromRequest, buildSetSessionCookie } from "@/lib/auth/
 export const config = {
   matcher: [
     // OAuth redirects own their cookies; other public auth/cron endpoints are excluded too.
-    "/api/((?!auth/register|auth/login|auth/oauth/|auth/reset-password|user/account/|notifications/cron|calendar/subscribe).*)",
+    "/api/((?!auth/register|auth/login|auth/oauth/|auth/reset-password|user/account/|notifications/cron|calendar/subscribe|payments/alipay/notify).*)",
   ],
 };
 
@@ -37,7 +37,7 @@ export const runtime = "nodejs";
 export async function middleware(request: NextRequest) {
   // OAuth owns its redirect/session cookies; never renew an old guest session
   // over the account selected by the callback.
-  if (["/api/auth/oauth/", "/api/auth/reset-password", "/api/user/account/"].some(path => request.nextUrl.pathname.startsWith(path))) {
+  if (["/api/auth/oauth/", "/api/auth/reset-password", "/api/user/account/", "/api/payments/alipay/notify"].some(path => request.nextUrl.pathname.startsWith(path))) {
     return NextResponse.next();
   }
   const token = readSessionCookieFromRequest(request);

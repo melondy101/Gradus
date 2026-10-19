@@ -26,6 +26,8 @@ import {
 } from "@/lib/api/membership";
 import { TIER_CONFIGS, type MembershipTier } from "@/lib/membership/tiers";
 import { CodeManagerTab } from "./code-manager-tab";
+import { PurchaseTab } from "./purchase-tab";
+import { WatchaPurchaseTab } from "./watcha-purchase-tab";
 import { useSessionUser } from "@/lib/auth-shim";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 import { Modal } from "@/components/ui/modal";
@@ -194,7 +196,7 @@ export function MembershipModal({
           }`}
         >
           <Zap className="h-4 w-4" />
-          <span>会员等级对比</span>
+          <span>{data?.commerce?.enabled ? "购买权益" : "会员等级对比"}</span>
         </button>
 
         {isAdmin && (
@@ -375,6 +377,16 @@ export function MembershipModal({
                           </div>
                         </div>
 
+                        {data.commerce?.enabled && (
+                          <div className="rounded-xl border border-border bg-card p-3.5 space-y-2">
+                            <span className="text-xs font-medium text-foreground">可用 AI 规划次数</span>
+                            <p className="text-xl font-bold text-foreground">{data.commerce.balanceVerified ? `${data.commerce.balance} 次` : "暂未查全"}</p>
+                            <p className="text-[11px] text-muted-foreground">{data.commerce.balanceVerified
+                              ? (data.commerce.provider === "watcha" ? "生成与重生成共用次数；交付中断可重试恢复。" : "生成与重生成共用次数，失败不扣次。")
+                              : "爱猹收余额暂时无法确认，请稍后刷新。"}</p>
+                          </div>
+                        )}
+                        {!data.commerce?.enabled && <>
                         {/* 3. AI Adjust / Fine-Tuning Limit */}
                         <div className="rounded-xl border border-border bg-card p-3.5 space-y-2.5">
                           <div className="flex items-center justify-between">
@@ -440,6 +452,7 @@ export function MembershipModal({
                             </span>
                           </div>
                         </div>
+                        </>}
                       </div>
                     </div>
 
@@ -450,7 +463,12 @@ export function MembershipModal({
                         <span>当前已享特权清单 ({currentConfig.name})</span>
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        {currentConfig.features.map((feat, i) => (
+                        {(data.commerce?.enabled
+                          ? [`最多同时拥有 ${data.membership.tasks.limit} 个学习任务`,
+                            data.commerce.balanceVerified ? `可用 AI 规划 ${data.commerce.balance} 次` : "爱猹收余额待查询",
+                            data.commerce.provider === "watcha" ? "扣次后交付中断可重试恢复" : "成功规划后扣减，生成失败不扣次",
+                            "兑换码权益继续有效"]
+                          : currentConfig.features).map((feat, i) => (
                           <div
                             key={i}
                             className="flex items-center gap-2 text-muted-foreground"
@@ -482,8 +500,9 @@ export function MembershipModal({
                       <span>输入会员兑换码</span>
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      兑换成功后将立即解锁对应等级的任务容量与更多每日 AI
-                      生成/调整配额。
+                      {data?.commerce?.enabled
+                        ? "兑换成功后将解锁对应任务容量和有效期内的 AI 规划次数。"
+                        : "兑换成功后将立即解锁对应等级的任务容量与更多每日 AI 生成/调整配额。"}
                     </p>
                   </div>
 
@@ -551,7 +570,13 @@ export function MembershipModal({
               </motion.div>
             )}
 
-            {activeTab === "tiers" && (
+            {activeTab === "tiers" && data?.commerce?.enabled && (data.commerce.provider === "watcha"
+              ? <WatchaPurchaseTab key="watcha-purchase" balance={data.commerce.balance}
+                  balanceVerified={data.commerce.balanceVerified} paymentReady={data.commerce.paymentReady}
+                  canPurchase={data.commerce.canPurchase} availableSkus={data.commerce.availableSkus} />
+              : <PurchaseTab key="purchase" balance={data.commerce.balance}
+                  paymentReady={data.commerce.paymentReady} canPurchase={data.commerce.canPurchase} />)}
+            {activeTab === "tiers" && !data?.commerce?.enabled && (
               <motion.div
                 key="tiers"
                 initial={{ opacity: 0, y: 6 }}

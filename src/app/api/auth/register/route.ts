@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { tasks, users } from "@/lib/db/schema";
+import { aiCreditGrants, aiUsageReservations, tasks, users } from "@/lib/db/schema";
 import { getUserByEmailLower, getUserById } from "@/lib/db/queries";
 import { hashPassword } from "@/lib/auth/password";
 import { signSession, verifySession } from "@/lib/auth/jwt";
@@ -137,6 +137,8 @@ export async function POST(request: NextRequest) {
 
       // 迁移临时账号的任务（如有）
       if (tempUserId) {
+        await tx.update(aiCreditGrants).set({ userId: newUserId }).where(eq(aiCreditGrants.userId, tempUserId));
+        await tx.update(aiUsageReservations).set({ userId: newUserId }).where(eq(aiUsageReservations.userId, tempUserId));
         await tx
           .update(tasks)
           .set({ userId: newUserId, updatedAt: new Date() })

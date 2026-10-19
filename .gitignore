@@ -221,3 +221,4 @@ output/playwright/
 .agents/
 .cursor/
 .zcode/
+.env*

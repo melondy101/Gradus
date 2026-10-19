@@ -10,6 +10,7 @@ import type { CurrentUserView } from "@/lib/auth/current-user";
 export interface AuthConfig {
   ok?: boolean;
   watchaEnabled?: boolean;
+  accountMergeEnabled?: boolean;
   emailConfigured?: boolean;
   emailProvider?: "qq" | "smtp" | "mock";
   emailVerificationEnabled?: boolean;

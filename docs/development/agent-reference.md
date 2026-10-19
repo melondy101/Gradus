@@ -26,6 +26,7 @@ Use `.env.example` as the complete variable list. Production requires:
 
 - `src/middleware.ts` creates or renews a temporary JWT session for protected API requests. Cron and public registration/login routes are excluded.
 - `src/lib/auth/index.ts` exposes `requireAuth(request)`. Call it first in a protected handler and scope every operation to the returned `userId`.
+- `requireAuth` must confirm the user against the persistent database, never an in-process fallback cache. If a valid JWT has no matching user row, it clears that stale session; the next protected request receives a fresh temporary account through middleware.
 - `src/lib/auth-shim.ts` provides client-side `auth` and `useSessionUser`; `src/lib/auth/user-provider.tsx` provides the server-rendered user to the client store.
 - Sessions use the `__Host-session` cookie. Do not add browser-side authorization headers.
 - Registration merges the active temporary account's task data. When changing session behavior, preserve this ownership boundary.

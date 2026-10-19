@@ -23,13 +23,16 @@ export async function searchConfiguredProviders(
   includeDomains: string[],
   maxResults: number,
 ): Promise<SearchProviderResult[] | null> {
-  for (const provider of SEARCH_PROVIDERS) {
+  for (const provider of [...SEARCH_PROVIDERS].sort((a, b) => Number(b.id === "doubao") - Number(a.id === "doubao"))) {
     if (!provider.apiKey() || isUnavailable(provider.id)) continue;
 
     try {
       const results = await provider.search(query, includeDomains, maxResults);
       const trustedResults = filterToWhitelist(results, includeDomains);
-      if (trustedResults.length > 0) return trustedResults;
+      if (trustedResults.length > 0) {
+        console.info(`[search] provider=${provider.id} trusted_results=${trustedResults.length}`);
+        return trustedResults;
+      }
     } catch (error) {
       if (error instanceof SearchProviderError && error.status === 429) {
         unavailableUntil.set(provider.id, Date.now() + RATE_LIMIT_COOLDOWN_MS);

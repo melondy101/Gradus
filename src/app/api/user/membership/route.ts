@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/auth";
 import { getUserQuotaSummary } from "@/lib/membership/quota";
 import { TIER_CONFIGS } from "@/lib/membership/tiers";
 import { getUserRedemptionHistory } from "@/lib/db/queries/membership";
+import { getCommerceSummary } from "@/lib/commerce/summary";
+import { isTempUser } from "@/lib/membership/quota";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -21,5 +23,6 @@ export async function GET(request: NextRequest) {
     membership: quota,
     tiers: TIER_CONFIGS,
     history,
+    commerce: await getCommerceSummary(auth.user.id, !isTempUser(auth.user)),
   });
 }
