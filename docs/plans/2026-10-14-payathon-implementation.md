@@ -35,6 +35,8 @@
 
 Vercel 生产部署 `3dbf927` 已 `READY` 并绑定 `talk-task.vercel.app`，首页与 `/api/auth/config` 均为 HTTP 200。Neon 主分支四张相关表存在，但 Drizzle 迁移账本只记录前两条；此状态需在正式开启收款前处理，不能直接执行未验证的生产迁移。
 
+同日复核 PAYATHON 参赛中心：报名已生效，类型为个人报名，当前作品数为 0。新建作品表单支持 Vibe Pay 主赛道，拾级应选“网页应用（Web及H5）”；作品标题最多 20 字、简介最多 200 字、详情最多 2000 字，作品链接、图标、图片、附件可选。已据此更新 `docs/submissions/payathon-2026.md`，尚未提交作品，也未勾选原创授权承诺。
+
 2026-10-18 复核：全量 `bun run test` 为 177 通过、5 跳过；`bun run lint` 为 0 错误、9 条既有警告；`bun run build` 成功。账号合并保护以同一隔离测试账号实测：爱猹收模式返回 409；支付服务切回默认支付宝模式后，原合并校验继续运行。`ds:imports` 通过，`ds:vars` 报告既有 6 处局部变量，`ds:tokens` 被未改动的 `src/components/layout/icon-rail.tsx` 现有 2 处基线回归拦住。Vercel 生产部署仍是提交 `dc524d0`；支付代码仅发布到预览分支。
 
 ## 产品边界
