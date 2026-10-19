@@ -29,6 +29,10 @@
 
 同日将提交 `29a3b3e` 推送到 `main`，Vercel 生产部署 `dpl_BwDXHfeYvYmGukGVjwxy3mV7QSZn` 已 `READY`，公开首页和 `/api/auth/config` 均返回 HTTP 200。生产环境没有 `GRADUS_COMMERCE_ENABLED`、`GRADUS_PAYMENT_PROVIDER`、`WATCHA_PAY_*` 变量，因此收款入口保持关闭。Neon 主分支已出现四张新增支付/额度表及预期索引，来自运行时 `ensureSchema`；迁移账本仍需在正式开放前核对，不能只以建表成功代替迁移完成。全量 Bun 测试 177 通过、5 跳过，lint 0 错误/9 条既有警告。本机原样构建因 `.env.production.local` 的无效 `DATABASE_URL` 占位值失败；只在构建进程临时覆盖为语法有效的非生产连接串后构建通过，未修改私密文件。
 
+2026-10-19 用户完成支付宝侧配置后复核：正式 10/30 次包在爱猹收均显示“已上架”，权益分别为 10/30 次，价格分别为 ¥9.90/¥24.90。在线调试请求显示正式权益 ID 分别为 `ent_01m5a9h6kf90tr87ccqas2yn26` 与 `ent_01m5a9nd3035h2gt1t60vzndwf`。正式环境 API Key 管理页仍显示“创建第一个 API Key”，因此尚不能用正式环境查询或扣次；Vercel 生产支付开关保持关闭，也尚无真实付款交付证据。PAYATHON 报名页在本次新标签中要求重新登录，暂不能确认报名是否生效。
+
+同日经用户明确授权，创建正式服务端 API Key `Gradus Vercel Production 2026-10`，仅将其作为 Vercel Production 敏感变量保存；本机暂存文件已删除，密钥未入库。正式 10/30 次权益 ID、`GRADUS_PAYMENT_PROVIDER=watcha`、`GRADUS_PUBLIC_ORIGIN=https://talk-task.vercel.app` 已配置，`GRADUS_COMMERCE_ENABLED=false` 明确保持购买入口关闭。爱猹收正式环境在线调试以合成用户 `test_user_001` 分别查询两个商品，均返回 HTTP 200、`access=purchase_required`、`remaining=0` 和购买入口；只执行“检查权益”，没有购买或扣减。
+
 2026-10-18 复核：全量 `bun run test` 为 177 通过、5 跳过；`bun run lint` 为 0 错误、9 条既有警告；`bun run build` 成功。账号合并保护以同一隔离测试账号实测：爱猹收模式返回 409；支付服务切回默认支付宝模式后，原合并校验继续运行。`ds:imports` 通过，`ds:vars` 报告既有 6 处局部变量，`ds:tokens` 被未改动的 `src/components/layout/icon-rail.tsx` 现有 2 处基线回归拦住。Vercel 生产部署仍是提交 `dc524d0`；支付代码仅发布到预览分支。
 
 ## 产品边界
