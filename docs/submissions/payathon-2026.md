@@ -62,5 +62,5 @@
 
 1. 报名人填写 [PAYATHON 报名资料](https://aipay.alipay.com/community/events/payathon-2026/me/registration) 并等待生效；之后读取实际作品表单并完成材料映射。
 2. 爱猹收 [10 次包](https://pay.watcha.cn/console/applications/app_01m4wz8tc1wfse5a6dyh1hk8f5/skus/sku_01m5a9h6kf1k3yb2yfdmfqtmkb)与[30 次包](https://pay.watcha.cn/console/applications/app_01m4wz8tc1wfse5a6dyh1hk8f5/skus/sku_01m5a9nd30s5ccdnb42sxfwtyf)已分别显示“已上架”，档位和价格为 10 次 ¥9.90 / 30 次 ¥24.90。仍须核对支付宝签约审核和实际可收款状态；初期每日收款限额可能仍生效，不能仅凭“已上架”推断限额解除。
-3. 正式 API Key、两个正式权益 ID、正式回跳域名和支付提供方已配置到 Vercel Production，购买开关仍为 `false`。待新部署生效后，核对生产数据库新增支付表、扣次表与迁移账本，并验证拾级站内新用户的无权益响应和失败关闭行为，再考虑启用购买入口。
+3. 正式 API Key、两个正式权益 ID、正式回跳域名和支付提供方已配置到 Vercel Production，新部署已就绪，购买开关仍为 `false`。生产数据库已有新增支付表和扣次表，但迁移账本未同步；还需验证拾级站内新用户的无权益响应和失败关闭行为，再考虑启用购买入口。
 4. 由获准且与收款方不同的测试买家完成真实购买与交付验证。记录真实交易证据后，再更新观猹产品分类、发布公告并提交赛事作品。

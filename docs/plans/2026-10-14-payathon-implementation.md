@@ -33,6 +33,8 @@
 
 同日经用户明确授权，创建正式服务端 API Key `Gradus Vercel Production 2026-10`，仅将其作为 Vercel Production 敏感变量保存；本机暂存文件已删除，密钥未入库。正式 10/30 次权益 ID、`GRADUS_PAYMENT_PROVIDER=watcha`、`GRADUS_PUBLIC_ORIGIN=https://talk-task.vercel.app` 已配置，`GRADUS_COMMERCE_ENABLED=false` 明确保持购买入口关闭。爱猹收正式环境在线调试以合成用户 `test_user_001` 分别查询两个商品，均返回 HTTP 200、`access=purchase_required`、`remaining=0` 和购买入口；只执行“检查权益”，没有购买或扣减。
 
+Vercel 生产部署 `3dbf927` 已 `READY` 并绑定 `talk-task.vercel.app`，首页与 `/api/auth/config` 均为 HTTP 200。Neon 主分支四张相关表存在，但 Drizzle 迁移账本只记录前两条；此状态需在正式开启收款前处理，不能直接执行未验证的生产迁移。
+
 2026-10-18 复核：全量 `bun run test` 为 177 通过、5 跳过；`bun run lint` 为 0 错误、9 条既有警告；`bun run build` 成功。账号合并保护以同一隔离测试账号实测：爱猹收模式返回 409；支付服务切回默认支付宝模式后，原合并校验继续运行。`ds:imports` 通过，`ds:vars` 报告既有 6 处局部变量，`ds:tokens` 被未改动的 `src/components/layout/icon-rail.tsx` 现有 2 处基线回归拦住。Vercel 生产部署仍是提交 `dc524d0`；支付代码仅发布到预览分支。
 
 ## 产品边界
