@@ -39,6 +39,16 @@ Vercel 生产部署 `3dbf927` 已 `READY` 并绑定 `talk-task.vercel.app`，首
 
 2026-10-18 复核：全量 `bun run test` 为 177 通过、5 跳过；`bun run lint` 为 0 错误、9 条既有警告；`bun run build` 成功。账号合并保护以同一隔离测试账号实测：爱猹收模式返回 409；支付服务切回默认支付宝模式后，原合并校验继续运行。`ds:imports` 通过，`ds:vars` 报告既有 6 处局部变量，`ds:tokens` 被未改动的 `src/components/layout/icon-rail.tsx` 现有 2 处基线回归拦住。Vercel 生产部署仍是提交 `dc524d0`；支付代码仅发布到预览分支。
 
+## 2026-10-20 生产预检与迁移对齐
+
+继续验收时，`bun run test` 为 177 通过、5 跳过；`bun run test:security` 的 35 项测试与两项路由探针通过；`bun run lint` 为 0 错误、9 条既有警告。使用仅在构建进程有效的占位 `DATABASE_URL` 后，`bun run build` 成功。本地直连首页一度连接失败，但 Vercel 托管抓取正式首页与公开配置接口均返回 HTTP 200；正式部署 `dpl_9dxdBAMwn6hySkW61Zvg6QdoxSwH` 仍为 READY，近 24 小时无聚合运行错误。Vercel Production 的支付提供方为 `watcha`，正式 Key 与两个权益 ID 为敏感变量，`GRADUS_COMMERCE_ENABLED=false` 保持不变。
+
+生产 Neon 原有四张支付／扣次表与索引，但 Drizzle 账本仅有 `0000`、`0001` 两条。只读结构检查进一步发现 8 项旧迁移期应有的索引／约束缺失，包括 `redemption_records(user_id, code)` 防重复唯一索引及 `users(watcha_openid)` 唯一约束；前置重复值检查均为 0。先从生产分支建立隔离排练分支 `payathon-migration-rehearsal-20261020`（`br-summer-wind-ay12zfab`），在副本上补齐并核对，再以带迁移账本和重复值前置校验的单一事务应用到生产。完成后生产账本为 10 条，8 项索引／约束齐全，用户仍为 168 行、兑换记录仍为 0 行；排练分支设为 2026-10-27 自动到期。
+
+新增的 `0002`–`0009` 账本哈希已按 Git 中 SQL 文件的原始字节校正，避免 Windows 检出时换行符转换导致与 Vercel 构建不同。历史 `0000` 哈希原本与当前 Git 文件因换行符不同而不一致，未改旧记录；Drizzle 迁移器按 `created_at` 判断待执行项。未在生产连接上直接运行 `bun run db:migrate`，生产支付开关也未打开。此次操作没有付款、扣次或发布公告。
+
+同日通过登录后台再次看到正式 10/30 次包均“已上架”，价格分别 ¥9.90／¥24.90，正式 Key 已启用。观猹产品公开页仍标“完全免费”，有 3 条猹评及待处理的真实反馈。PAYATHON 参赛中心显示报名“已生效／个人报名”，作品数仍为 0；投稿文案与个人待办已更新到 `docs/submissions/payathon-2026.md`。
+
 ## 产品边界
 
 本次选择 Vibe Pay 的 AI 网页应用基础收款能力。公开站点 `https://talk-task.vercel.app` 可单独启用收款；其他自托管部署默认继续使用原有每日配额和兑换码。专业版是单次购买的 30 天权益，不自动续费。
