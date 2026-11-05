@@ -7,7 +7,9 @@ import {
   useSubtaskRows,
   useTaskList,
 } from "@/features/tasks/use-tasks";
-import { IconRail, type NavView } from "@/components/layout/icon-rail";
+import type { NavView } from "@/components/layout/nav-items";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { TopNav } from "@/components/layout/top-nav";
 import { useAnalysisPanel } from "./right-panel";
 import { HomeOverlaysStack } from "./home-overlays";
 import { HomeWorkspace } from "./home-workspace";
@@ -26,12 +28,12 @@ import { useHomeTaskToggle } from "./use-home-task-toggle";
  * 数据 = useHomeData + tasks store；派生 = useHomeFilters；
  * 弹层 = useHomeOverlays + HomeOverlaysStack；快捷键 = useHomeHotkeys；
  * 打卡 = useHomeTaskToggle（统一 mutation）；改期/跳过/删除 = useSubtaskActions；
- * 布局 = HomeWorkspace（中央列 + 右栏）与 IconRail。
+ * 布局 = TopNav（顶部横向导航，时间色谱共用外壳）+ HomeWorkspace（中央列 + 右栏）
+ * + MobileTabBar（移动端底部 Tab）。
  */
 export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
   const user = useSessionUser((s) => s.auth.user);
   const [currentView, setCurrentView] = useState<NavView>(initialView);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const tasksList = useTaskList();
   const subtaskRows = useSubtaskRows();
@@ -44,14 +46,22 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
   });
   const overlays = useHomeOverlays(user, tasksList);
   const detailSubtask = useSubtaskRowById(overlays.detailSubtaskId);
+  const detailTask = tasksList.find((task) => task.id === overlays.detailTaskId) ?? null;
 
   const data = useHomeData({
     userId: user?.id ?? null,
     entries: panel.entries,
     hydrateFromDB: panel.hydrateFromDB,
-    onLoggedOut: () => overlays.setDetailSubtaskId(null),
+    onLoggedOut: () => {
+      overlays.setDetailSubtaskId(null);
+      overlays.setDetailTaskId(null);
+    },
   });
   const filters = useHomeFilters(subtaskRows, tasksList);
+  const handleViewPlan = (taskId: string, view: Extract<NavView, "steps" | "timeline">) => {
+    filters.setSelectedTaskId(taskId);
+    setCurrentView(view);
+  };
   const handleToggleSubtask = useHomeTaskToggle({
     notify: showToast,
     patchPanel: panel.patchSubtaskCompleted,
@@ -79,20 +89,21 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
         background: "var(--background)",
         height: "100%",
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         fontFamily: "var(--sans)",
         overflow: "hidden",
       }}
     >
-      <IconRail
+      <TopNav
         currentView={currentView}
         onSelectView={setCurrentView}
-        collapsed={sidebarCollapsed}
-        onToggleCollapsed={() => setSidebarCollapsed((c) => !c)}
         todayPendingCount={filters.todayPendingCount}
         totalPlansCount={tasksList.length}
-        onOpenCommandPalette={() => overlays.setCommandPaletteOpen(true)}
+        selectedTag={filters.selectedTag}
+        onClearTag={filters.clearTag}
+        onOpenPalette={() => overlays.setCommandPaletteOpen(true)}
         onNewPlan={() => overlays.setShowInput(true)}
+        showLevelBadge={!!user && subtaskRows.length > 0}
       />
 
       <HomeWorkspace
@@ -104,8 +115,16 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
         subtaskActions={subtaskActions}
         stats={stats}
         narrow={isTablet}
-        showLevelBadge={!!user && subtaskRows.length > 0}
         onToggleSubtask={handleToggleSubtask}
+        onViewPlan={handleViewPlan}
+      />
+
+      <MobileTabBar
+        currentView={currentView}
+        onSelectView={setCurrentView}
+        todayPendingCount={filters.todayPendingCount}
+        totalPlansCount={tasksList.length}
+        onNewPlan={() => overlays.setShowInput(true)}
       />
 
       <HomeOverlaysStack
@@ -113,9 +132,11 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
         subtaskActions={subtaskActions}
         panel={panel}
         detailSubtask={detailSubtask}
+        detailTask={detailTask}
         subtaskRows={subtaskRows}
         onToggleSubtask={handleToggleSubtask}
         onSwitchView={setCurrentView}
+        onViewPlan={handleViewPlan}
       />
     </div>
   );

@@ -4,7 +4,10 @@
  * AI 检查面板外壳（§3 屏一右列 / §4.4 深色带语言）。
  *
  * variant="rail" —— 应用外壳右侧固定栏（计划 / 天梯 / 甘特视图使用），可折叠，移动端为底部抽屉。
- * variant="card" —— 屏一双列右列的深底卡（与 rail 共用同一份 <AiInspector>）。
+ * variant="card" —— 屏一双列右列的暖底卡（与 rail 共用同一份 <AiInspector>）。
+ *
+ * 配色：时间色谱原型右栏（`.side` / `.review`）—— 暖纸底 + 墨字 + 细分隔线，
+ * 与四个主视图同一套语言；深色带语言已随时间色谱重构退场。
  *
  * 数据全部由 home-page 通过 props 注入（useAnalysisPanel 输出），此处不请求任何接口。
  * 移动端抽屉走 ui/modal 的 placement="bottom" 变体（drawer 层 150）。
@@ -48,6 +51,8 @@ export interface RightPanelProps {
   ) => void;
   /** 点击子任务 → 跳到对应日期卡片并高亮（#subtask-card-{id}） */
   onJumpToSubtask?: (subtaskId: string) => void;
+  /** 进入该视图时右栏的默认收展状态；用户手动切换后覆盖默认值 */
+  defaultCollapsed?: boolean;
   /** rail = 应用外壳右栏；card = 屏一双列右列深底卡 */
   variant?: "rail" | "card";
 }
@@ -61,11 +66,13 @@ export function RightPanel({
   onRequestDelete,
   onToggleSubtask,
   onJumpToSubtask,
+  defaultCollapsed = false,
   variant = "rail",
 }: RightPanelProps) {
   const { isMobile } = useResponsive();
-  const [collapsed, setCollapsed] = useState(false);
+  const [manualCollapsed, setManualCollapsed] = useState<boolean | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const collapsed = manualCollapsed ?? defaultCollapsed;
 
   const isLive = (e: AnalysisEntry) =>
     e.stream.phase !== "idle" &&
@@ -78,7 +85,7 @@ export function RightPanel({
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
     if (runningCount > 0) {
-      setCollapsed(false);
+      setManualCollapsed(false);
       if (isMobile) setSheetOpen(true);
     }
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -105,10 +112,10 @@ export function RightPanel({
     />
   );
 
-  // ── 屏一右列：<Card tone="dark"> —— §4.4「深色卡给 AI 建议」 ──────────
+  // ── 屏一右列：暖底软卡（时间色谱右栏语言） ─────────────────────────
   if (variant === "card") {
     return (
-      <Card tone="dark" className="gap-0 px-5 pt-[18px] pb-4">
+      <Card tone="soft" className="gap-0 px-5 pt-4 pb-4">
         {inspector("md")}
       </Card>
     );
@@ -119,13 +126,13 @@ export function RightPanel({
     return (
       <>
         <Button
-          variant="onDark"
+          variant="default"
           onClick={() => setSheetOpen(true)}
           aria-label="打开 AI 分析面板"
           className={cn(
             // 抬到 TabBar（56px+safe-area）之上，避免整体被盖（体检报告 2026-09-26 阻断#4）
-            "fixed right-[26px] bottom-[calc(68px+env(safe-area-inset-bottom,0px))] z-[40] h-auto gap-2.5 border-0 bg-band-dark py-3 pr-[18px] pl-3.5",
-            "text-body font-bold text-on-dark shadow-[0_22px_46px_-18px_rgba(14,13,11,.55)]",
+            "fixed right-[26px] bottom-[calc(68px+env(safe-area-inset-bottom,0px))] z-[40] h-auto gap-2.5 border-ink bg-ink py-3 pr-4 pl-3",
+            "text-body font-bold text-cream shadow-[0_22px_46px_-18px_rgba(14,13,11,.45)]",
           )}
         >
           <Sparkles size={15} className="text-accent" />
@@ -142,25 +149,25 @@ export function RightPanel({
           layer="drawer"
           width="100%"
           height="82vh"
-          className="border-0 bg-band-dark text-on-dark"
+          className="border-0 bg-cream text-ink"
           bodyClassName="flex flex-col overflow-hidden p-0"
         >
-          <div className="flex flex-none items-center gap-2.5 border-b border-bd-dark px-4 py-3">
+          <div className="flex flex-none items-center gap-2.5 border-b border-bd-card px-4 py-3">
             <div className="min-w-0 flex-1">
-              <Eyebrow tone="accent">AI Review</Eyebrow>
-              <div className="mt-1 text-body-lg font-bold text-on-dark">
+              <Eyebrow>AI Review</Eyebrow>
+              <div className="mt-1 text-body-lg font-bold text-ink">
                 意图 · 资源 · 计划 · 核查
               </div>
             </div>
             <Button
-              variant="onDark"
+              variant="outline"
               size="xs"
               onClick={() => setSheetOpen(false)}
             >
               收起
             </Button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5 [scrollbar-width:thin]">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:thin]">
             {inspector("sm")}
           </div>
         </Modal>
@@ -168,28 +175,28 @@ export function RightPanel({
     );
   }
 
-  // ── 桌面端：固定右栏（可折叠至 36px） ────────────────────────────────
+  // ── 桌面端：固定右栏（可折叠至 36px），暖纸底 ────────────────────────
   return (
     <aside
       className={cn(
-        "flex flex-none flex-col overflow-hidden border-0 border-l border-bd-dark bg-band-dark text-on-dark",
+        "flex flex-none flex-col overflow-hidden border-0 border-l border-bd-card bg-cream text-ink",
         "transition-[width] duration-[250ms] ease-[cubic-bezier(.4,0,.2,1)]",
         collapsed ? "w-9" : "w-[350px]",
       )}
     >
-      <div className="flex flex-none items-center gap-2 border-b border-bd-dark px-3 py-[13px]">
+      <div className="flex flex-none items-center gap-2 border-b border-bd-card px-3 py-3">
         {!collapsed && (
           <div className="min-w-0 flex-1">
-            <Eyebrow tone="accent">AI Review</Eyebrow>
-            <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-on-dark">
-              {runningCount > 0 && <Bell size={13} className="text-accent" />}
+            <Eyebrow>AI Review</Eyebrow>
+            <div className="mt-1 flex items-center gap-1.5 text-body font-bold text-ink">
+              {runningCount > 0 && <Bell size={13} className="text-error" />}
               AI 分析面板
             </div>
           </div>
         )}
         <Button
-          variant="onDark"
-          onClick={() => setCollapsed((c) => !c)}
+          variant="outline"
+          onClick={() => setManualCollapsed(!collapsed)}
           title={collapsed ? "展开面板" : "收起面板"}
           aria-label={collapsed ? "展开 AI 分析面板" : "收起 AI 分析面板"}
           className="size-[26px] flex-none rounded-field p-0"
@@ -198,7 +205,7 @@ export function RightPanel({
         </Button>
       </div>
       {!collapsed && (
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           {inspector("md")}
         </div>
       )}

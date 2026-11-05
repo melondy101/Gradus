@@ -24,6 +24,7 @@ export function useHomeFilters(
   const { t, i18n } = useTranslation();
   const [showOnlyPending, setShowOnlyPending] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -46,6 +47,12 @@ export function useHomeFilters(
   }, []);
 
   const clearTag = useCallback(() => setSelectedTag(null), []);
+  const clearTaskFilter = useCallback(() => setSelectedTaskId(null), []);
+  const selectedTask = useMemo(
+    () => selectedTaskId ? tasksList.find((task) => task.id === selectedTaskId) ?? null : null,
+    [selectedTaskId, tasksList],
+  );
+  const activeTaskId = selectedTask?.id ?? null;
 
   const sections = buildTimelineSections(subtaskRows, t, i18n.language);
   const todayPendingCount =
@@ -86,10 +93,14 @@ export function useHomeFilters(
     return tasksList.filter((task) => parseTaskTags(task.tags).includes(selectedTag));
   }, [tasksList, selectedTag]);
 
-  const displayedSubtaskRows = useMemo(() => {
-    if (!selectedTag) return subtaskRows;
-    return subtaskRows.filter((r) => parseTaskTags(r.taskTags).includes(selectedTag));
-  }, [subtaskRows, selectedTag]);
+  const displayedSubtaskRows = useMemo(
+    () => subtaskRows.filter((row) => {
+      if (activeTaskId && row.taskId !== activeTaskId) return false;
+      if (selectedTag && !parseTaskTags(row.taskTags).includes(selectedTag)) return false;
+      return true;
+    }),
+    [subtaskRows, activeTaskId, selectedTag],
+  );
 
   const todaySection: TimelineSection =
     displayedSections.find((sec) => sec.key === "today") ?? {
@@ -112,6 +123,10 @@ export function useHomeFilters(
     selectedTag,
     setSelectedTag,
     clearTag,
+    selectedTaskId: activeTaskId,
+    selectedTask,
+    setSelectedTaskId,
+    clearTaskFilter,
     availableTags,
     todayPendingCount,
     displayedFlatRows,

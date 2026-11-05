@@ -85,6 +85,10 @@
   --text-body-lg: 15px;
   --text-title-sm: 17px;
   --text-title: 19px;
+  --text-title-lg: 24px;
+  --text-display-sm: 28px;
+  --text-display: 40px;
+  --text-display-lg: 48px;
 
   /* Shadcn 语义映射 */
   --color-background:           var(--background);
@@ -424,6 +428,12 @@ body {
   font-family: var(--font-sans);
   letter-spacing: -0.01em;
   font-weight: 700;
+}
+
+/* 时间色谱：书卷气衬线用于页面标题、计划标题与统计数字 */
+.font-chromatic {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  letter-spacing: -0.02em;
 }
 
 

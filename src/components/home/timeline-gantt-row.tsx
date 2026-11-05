@@ -1,10 +1,16 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { T, BLOOM_CONFIG } from "@/lib/design-tokens";
+/**
+ * 接续排期的一行（对照 `timeline.html` 的 `.gantt-label` / `.day-cell` / `.gantt-bar`）：
+ * 左侧固定列（勾选 + 子任务名 + 所属计划），右侧按日对齐的网格与色条。
+ * 色条颜色 = 认知层级（BLOOM_CHROMATIC），长度 = 持续天数；今天所在列淡朱砂底。
+ */
+
+import { T, bloomChromatic } from "@/lib/design-tokens";
 import { fmtShortDate } from "@/components/task/task-dates";
+import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
+import { bloomOf } from "./subtask-line-model";
 
 export interface TimelineGanttRowProps {
   item: SubtaskWithTask;
@@ -15,11 +21,12 @@ export interface TimelineGanttRowProps {
   startIdx: number | null;
   duration: number;
   zebra: boolean;
+  /** 左侧固定列宽度（移动端收窄，给日期列留空间） */
+  labelWidth: number;
   onSelectSubtask: (subtask: SubtaskWithTask) => void;
   onToggleSubtask: (subtask: SubtaskWithTask) => void;
 }
 
-/** 甘特单行：左侧任务信息 + 右侧按日对齐的条柱。布局消费数据层 absolute 日期派生的列下标。 */
 export function TimelineGanttRow({
   item,
   dayCount,
@@ -27,154 +34,104 @@ export function TimelineGanttRow({
   startIdx,
   duration,
   zebra,
+  labelWidth,
   onSelectSubtask,
   onToggleSubtask,
 }: TimelineGanttRowProps) {
-  const bloom = BLOOM_CONFIG[(item.bloomLevel || 1) as keyof typeof BLOOM_CONFIG] || BLOOM_CONFIG[1];
+  const { level, config } = bloomOf(item);
+  const color = bloomChromatic(level);
+  /** 金 / 赭两级底色偏亮，用墨字才读得清 */
+  const lightBar = level === 2 || level === 3;
   const start = item.absoluteStart ? new Date(item.absoluteStart) : null;
   const end = item.absoluteEnd ? new Date(item.absoluteEnd) : null;
-  const dateLabel = start && end ? `${fmtShortDate(start)} → ${fmtShortDate(end)} · 共${duration}天` : "排期未定";
+  const dateLabel = start && end
+    ? `${fmtShortDate(start)} → ${fmtShortDate(end)} · 共${duration}天`
+    : "排期未定";
 
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `240px repeat(${dayCount}, minmax(36px, 1fr))`,
-        borderBottom: `1px solid ${T.line}`,
-        alignItems: "center",
-        minHeight: 46,
-        transition: "background 0.1s",
-        background: zebra ? `${T.soft}33` : "transparent",
-      }}
+      className={cn("grid items-stretch border-b border-bd-card", zebra && "bg-cream")}
+      style={{ gridTemplateColumns: `${labelWidth}px repeat(${dayCount}, minmax(64px, 1fr))` }}
     >
-      {/* 左侧任务信息 */}
       <div
         data-gantt-interactive
         onClick={() => onSelectSubtask(item)}
-        style={{
-          position: "sticky",
-          left: 0,
-          zIndex: 2,
-          padding: "6px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          cursor: "pointer",
-          overflow: "hidden",
-          background: zebra ? `${T.soft}33` : T.surface,
-          borderRight: `1px solid ${T.line}`,
-        }}
+        className={cn(
+          "sticky left-0 z-20 flex cursor-pointer items-center gap-2 border-r border-ink px-4 py-3",
+          zebra ? "bg-cream" : "bg-cream-light"
+        )}
       >
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          type="button"
+          role="checkbox"
+          aria-checked={item.completed}
+          aria-label={item.completed ? "标记为未完成" : "标记完成"}
+          onClick={(event) => {
+            event.stopPropagation();
             onToggleSubtask(item);
           }}
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: 4,
-            border: `1.5px solid ${item.completed ? bloom.color : T.line}`,
-            background: item.completed ? "var(--ink)" : "transparent",
-            color: "var(--cream)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            fontSize: 10,
-            fontWeight: 700,
-            flexShrink: 0,
-          }}
+          className="grid size-[20px] shrink-0 place-items-center border border-ink text-micro font-bold transition-colors duration-[.16s] hover:bg-ink hover:text-cream"
+          style={item.completed ? { background: T.ink, color: T.bg } : undefined}
         >
-          {item.completed ? "✓" : ""}
+          {item.completed ? "✓" : null}
         </button>
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: item.completed ? T.muted : T.ink,
-              textDecoration: item.completed ? "line-through" : "none",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
+
+        <div className="min-w-0">
+          <b
+            className={cn(
+              "block overflow-hidden text-ellipsis whitespace-nowrap text-body font-bold",
+              item.completed ? "text-text-3 line-through decoration-bd-check" : "text-ink"
+            )}
           >
             {item.title}
-          </div>
-          <div style={{ fontSize: 10, color: T.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {item.taskTitle}
-          </div>
+          </b>
+          <span className="mt-0.5 block overflow-hidden text-ellipsis whitespace-nowrap text-caption text-text-2">
+            {item.taskTitle} · L{level} {config.name}
+          </span>
         </div>
       </div>
 
-      {/* 右侧甘特条柱区域 */}
       <div
+        className="relative grid min-h-[61px]"
         style={{
           gridColumn: `2 / span ${dayCount}`,
-          display: "grid",
-          gridTemplateColumns: `repeat(${dayCount}, minmax(36px, 1fr))`,
-          height: "100%",
-          alignItems: "center",
-          position: "relative",
+          gridTemplateColumns: `repeat(${dayCount}, minmax(64px, 1fr))`,
         }}
       >
-        {/* 今日基准列（与表头同一语言：点缀黄淡底） */}
-        {todayIdx >= 0 && (
-          <div
-            style={{
-              gridColumn: todayIdx + 1,
-              alignSelf: "stretch",
-              background: "var(--accent)",
-              opacity: 0.12,
-              zIndex: 0,
-              pointerEvents: "none",
-            }}
+        {Array.from({ length: dayCount }, (_, index) => (
+          <span
+            key={index}
+            aria-hidden="true"
+            className={cn(
+              "border-r border-bd-card last:border-r-0",
+              index === todayIdx && "bg-error-soft"
+            )}
           />
-        )}
+        ))}
 
         {startIdx === null ? (
-          <div
-            style={{
-              gridColumn: `1 / span ${dayCount}`,
-              paddingLeft: 12,
-              fontSize: 11,
-              color: T.muted,
-              zIndex: 1,
-            }}
-          >
-            排期未定
-          </div>
+          <span className="z-10 self-center pl-3 text-caption text-text-3">排期未定</span>
         ) : (
-          <motion.div
+          <button
+            type="button"
             data-gantt-interactive
             onClick={() => onSelectSubtask(item)}
-            whileHover={{ scale: 1.02 }}
+            title={`${item.title} ${dateLabel}`}
+            className={cn(
+              "z-10 mx-1 h-[30px] cursor-pointer self-center overflow-hidden border-0 px-2 text-left text-caption font-bold whitespace-nowrap",
+              "transition-[box-shadow,opacity] duration-[.16s]",
+              "shadow-[2px_2px_0_var(--bd-check)] hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            )}
             style={{
               gridColumn: `${startIdx + 1} / span ${duration}`,
-              background: item.completed ? `${bloom.color}50` : bloom.color,
-              borderRadius: 6,
-              height: 26,
-              margin: "0 4px",
-              display: "flex",
-              alignItems: "center",
-              padding: "0 8px",
-              color: "var(--card)",
-              fontSize: 11,
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow: `0 2px 6px ${bloom.color}30`,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              zIndex: 1,
+              gridRow: 1,
+              background: color,
+              color: lightBar ? T.ink : T.bg,
             }}
-            title={`${item.title} ${dateLabel}`}
           >
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {item.title}
-            </span>
-          </motion.div>
+            {item.completed ? "✓ " : ""}
+            {item.title}
+          </button>
         )}
       </div>
     </div>

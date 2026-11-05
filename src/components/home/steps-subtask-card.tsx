@@ -1,17 +1,15 @@
 "use client";
 
 /**
- * 天梯任务行卡（?view=steps）—— 左侧 4px Bloom 色条 + CheckBox 三态原子件，
- * 替换旧版自绘 20px 复选按钮与整排内联样式。
+ * 天梯任务行（对照 `steps.html` 的 `.step-task`）：
+ * 8px 层级色轨 + 墨框方勾 + 标题/所属计划 + 右侧层级与时长。
+ * 已完成：删除线 + 灰字；点击行打开子任务详情。
  */
+
 import type { SubtaskWithTask } from "@/lib/api/tasks";
-import { T } from "@/lib/design-tokens";
-import { Tag } from "@/components/ui/badge";
-import { CheckBox } from "@/components/ui/check-box";
-import { Card } from "@/components/ui/card";
-import { BLOOM_TAG_CLASS, bloomOf } from "./subtask-line-model";
-import { BLOOM_BORDER_CLASS } from "./task-accent";
+import { T, bloomChromatic } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
+import { bloomOf } from "./subtask-line-model";
 
 interface Props {
   item: SubtaskWithTask;
@@ -21,64 +19,68 @@ interface Props {
 
 export function StepsSubtaskCard({ item, onToggle, onSelect }: Props) {
   const { level, config } = bloomOf(item);
+  const color = bloomChromatic(level);
+
   return (
-    <Card
-      size="sm"
+    <li
       role="button"
       tabIndex={0}
       aria-label={`查看子任务 ${item.title}`}
       onClick={() => onSelect(item)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
           onSelect(item);
         }
       }}
       className={cn(
-        "cursor-pointer flex-row items-center gap-3 border-l-4 p-3",
-        "transition-[border-color,box-shadow,transform] duration-[.15s] ease-out",
-        "hover:-translate-y-px hover:shadow-md",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-        BLOOM_BORDER_CLASS[level],
-        item.completed && "opacity-75"
+        "group grid cursor-pointer grid-cols-[8px_25px_minmax(0,1fr)_auto] items-center gap-3",
+        "border-b border-bd-card py-4 transition-colors duration-[.16s]",
+        "hover:bg-cream-light focus-visible:bg-cream-light focus-visible:outline-none"
       )}
     >
-      <CheckBox
-        state={item.completed ? "done" : "todo"}
-        size={20}
-        onClick={(e) => {
-          e.stopPropagation();
+      <span className="h-12 w-2" style={{ background: color }} aria-hidden="true" />
+
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={item.completed}
+        aria-label={item.completed ? "标记为未完成" : "标记完成"}
+        onClick={(event) => {
+          event.stopPropagation();
           onToggle(item);
         }}
-      />
+        className="grid size-[25px] shrink-0 place-items-center border border-ink text-body-sm font-bold transition-colors duration-[.16s] hover:bg-ink hover:text-cream"
+        style={item.completed ? { background: T.ink, color: T.bg } : undefined}
+      >
+        {item.completed ? "✓" : null}
+      </button>
 
-      <div className="min-w-0 flex-1">
-        <div
+      <div className="min-w-0">
+        <h3
           className={cn(
-            "text-body font-semibold leading-snug",
-            item.completed ? "text-text-2 line-through" : "text-ink"
+            "overflow-hidden text-ellipsis whitespace-nowrap text-body-lg leading-snug font-bold",
+            item.completed
+              ? "text-text-3 line-through decoration-bd-check"
+              : "text-ink group-hover:text-error"
           )}
         >
           {item.title}
-        </div>
-        <div className="mt-0.5 flex items-center gap-2 text-caption text-text-2">
-          <span className="truncate">标 {item.taskTitle}</span>
-          {item.deepWorkHours && (
-            <span className="font-mono whitespace-nowrap">
-              ⏱ {item.deepWorkHours}h 深度专注
-            </span>
-          )}
-        </div>
+        </h3>
+        <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-body-sm text-text-2">
+          {item.taskTitle}
+          {item.deepWorkHours ? ` · ${item.deepWorkHours}h 深度专注` : ""}
+        </p>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <Tag className={cn("bg-transparent", BLOOM_TAG_CLASS[level])} style={{ background: config.bg }}>
-          {config.name}
-        </Tag>
-        <span className="font-mono text-caption whitespace-nowrap" style={{ color: T.subtle }}>
+      <div className="text-right">
+        <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
+          L{level} {config.name}
+        </b>
+        <span className="mt-1 block font-mono text-caption whitespace-nowrap text-text-3">
           {item.durationDays} 天
         </span>
       </div>
-    </Card>
+    </li>
   );
 }

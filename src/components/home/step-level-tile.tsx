@@ -1,22 +1,18 @@
 "use client";
 
 /**
- * 天梯单层台阶（?view=steps）—— 容器走 <Card> 原子件，选中态直接用
- * BLOOM_CONFIG 的层级令牌色（var(--bloom-N)），不再各写内联样式。
+ * 天梯的一级台阶（对照 `steps.html` 的 `.level-card`）：
+ * 顶部 8px 层级色、等宽层级编号、衬线台阶名、完成数与细进度条。
+ * 选中态用墨框 + 3px 硬阴影，与计划卡的交互语言一致。
  */
-import { T } from "@/lib/design-tokens";
-import { Card } from "@/components/ui/card";
-import { Tag } from "@/components/ui/badge";
+
+import { bloomChromatic } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
 
 interface Props {
   level: number;
   name: string;
   nameEn: string;
-  /** var() 形态的层级色，与 BLOOM_CONFIG 同源 */
-  color: string;
-  bg: string;
-  border: string;
   completedCount: number;
   totalCount: number;
   pct: number;
@@ -28,71 +24,43 @@ export function StepLevelTile({
   level,
   name,
   nameEn,
-  color,
-  bg,
-  border,
   completedCount,
   totalCount,
   pct,
   selected,
   onToggleSelect,
 }: Props) {
-  const isFinished = totalCount > 0 && completedCount === totalCount;
+  const color = bloomChromatic(level);
+
   return (
-    <Card
-      size="sm"
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       aria-pressed={selected}
       aria-label={`筛选阶梯 ${level} ${name}`}
       onClick={onToggleSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onToggleSelect();
-        }
-      }}
-      style={selected ? { background: bg, borderColor: color } : undefined}
+      style={{ borderTopColor: color }}
       className={cn(
-        "cursor-pointer gap-2 p-3.5 transition-[border-color,box-shadow,transform] duration-[.15s] ease-out",
-        "hover:-translate-y-px hover:border-bd-check hover:shadow-md",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        "min-h-[116px] cursor-pointer border border-bd-card border-t-8 bg-cream-light px-3 py-3 text-left",
+        "transition-[border-color,box-shadow,transform] duration-[.16s] ease-out",
+        selected
+          ? "border-ink shadow-[3px_3px_0_var(--ink)]"
+          : "hover:border-ink hover:shadow-[3px_3px_0_var(--bd-check)]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       )}
     >
-      <div className="flex items-center justify-between">
-        <Tag
-          className="bg-transparent"
-          style={{ background: bg, borderColor: border, color: "var(--bloom-5)" }}
-        >
-          阶 {level}
-        </Tag>
-        <span className="font-mono text-caption text-text-2">
-          {completedCount}/{totalCount}
-        </span>
-      </div>
-
-      <div>
-        <div className="text-[14px] font-bold text-ink">{name}</div>
-        <div className="text-caption text-text-2">{nameEn}</div>
-      </div>
-
-      {/* 台阶微型进度条 */}
-      <div
-        className="h-1 overflow-hidden rounded-full"
-        style={{ background: T.soft }}
-        aria-hidden="true"
-      >
-        <div
-          className="h-full rounded-full transition-[width] duration-[.4s] ease-out"
+      <span className="font-mono text-micro tracking-[.16em] text-text-3">
+        L{level} / {nameEn.toUpperCase()}
+      </span>
+      <h3 className="mt-2 font-chromatic text-title-sm leading-none text-ink">{name}</h3>
+      <span className="mt-3 block text-body-sm text-text-2">
+        {completedCount} / {totalCount} 完成
+      </span>
+      <span className="mt-2 block h-[3px] bg-bd-card" aria-hidden="true">
+        <span
+          className="block h-full transition-[width] duration-[.4s] ease-out"
           style={{ width: `${Math.round(pct * 100)}%`, background: color }}
         />
-      </div>
-
-      {isFinished && (
-        <div className="flex items-center gap-[3px] text-micro font-semibold text-success">
-          ✓ 阶梯通关
-        </div>
-      )}
-    </Card>
+      </span>
+    </button>
   );
 }

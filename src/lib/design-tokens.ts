@@ -119,3 +119,53 @@ export const BLOOM_COLORS: Record<number, string> = {
   5: "var(--bloom-5, #3A3833)",
   6: "var(--bloom-6, #F5C518)",
 };
+
+// ─── 时间色谱：计划与认知层级的第二套色彩语言 ────────────────────────
+// 取自时间色谱设计稿的传统色样本。只用于计划色谱与计划页强调，
+// 不替代 Bloom 暖灰阶梯在任务执行视图里的语义。
+export const PLAN_CHROMATIC = {
+  vermilion: "#B7432F",
+  jade: "#789888",
+  gold: "#B8A65D",
+  ochre: "#CC8438",
+  indigo: "#344C67",
+  sienna: "#A45B46",
+} as const;
+
+export const PLAN_CHROMATIC_COLORS = [
+  PLAN_CHROMATIC.vermilion,
+  PLAN_CHROMATIC.jade,
+  PLAN_CHROMATIC.gold,
+  PLAN_CHROMATIC.ochre,
+  PLAN_CHROMATIC.indigo,
+  PLAN_CHROMATIC.sienna,
+] as const;
+
+// ─── 六级认知 · 时间色谱色板 ──────────────────────────────────────────
+// 时间色谱设计稿的 L1→L6：青苔绿 → 金 → 赭 → 朱砂 → 赭红 → 靛。
+// 天梯台阶、甘特色条、今日路线色轨共用同一套，避免每个视图自造色板；
+// 只承载「认知层级」语义，不参与状态色（成功 / 警告 / 错误）。
+export const BLOOM_CHROMATIC: Record<number, string> = {
+  1: "#789888",
+  2: "#B8A65D",
+  3: "#CC8438",
+  4: "#D84C32",
+  5: "#A45B46",
+  6: "#344C67",
+};
+
+/** 层级色浅底（标签、行悬停），与 BLOOM_CHROMATIC 同源 */
+export const BLOOM_CHROMATIC_TINT: Record<number, string> = {
+  1: "#7898881F",
+  2: "#B8A65D1F",
+  3: "#CC84381F",
+  4: "#D84C321F",
+  5: "#A45B461F",
+  6: "#344C671F",
+};
+
+export function bloomChromatic(level: number): string {
+  const safe = Math.min(6, Math.max(1, level));
+  return BLOOM_CHROMATIC[safe] ?? BLOOM_CHROMATIC[3];
+}
+

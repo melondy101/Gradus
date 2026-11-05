@@ -4,6 +4,7 @@ import React, { useSyncExternalStore } from "react";
 import { Sun, Moon } from "lucide-react";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { IconButton } from "@/components/ui/icon-button";
+import { cn } from "@/utils/utils";
 
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -18,7 +19,7 @@ function getServerSnapshot() {
   return false;
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { themeId, setThemeId } = useAppTheme();
   const isDocDark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const isDark = themeId === "ink" || isDocDark;
@@ -32,7 +33,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "切换至浅色模式" : "切换至深色模式"}
-      className="size-9 rounded-[10px] border-border bg-secondary text-foreground"
+      className={cn("size-9 rounded-icon border-border bg-secondary text-foreground", className)}
     >
       {isDark ? (
         <Sun size={17} className="text-warning" />

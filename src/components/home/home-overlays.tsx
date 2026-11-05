@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { SubtaskWithTask } from "@/lib/api/tasks";
-import type { NavView } from "@/components/layout/icon-rail";
+import type { SubtaskWithTask, TaskWithSubtasks } from "@/lib/api/tasks";
+import type { NavView } from "@/components/layout/nav-items";
 import type { HomeOverlays } from "./use-home-overlays";
 import type { SubtaskActions } from "./use-subtask-actions";
 import type { AnalysisPanel } from "./use-analysis-panel";
@@ -16,15 +16,18 @@ import { MilestoneUnlockModal } from "./milestone-unlock-modal";
 import { PostponeDialog } from "./postpone-dialog";
 import { DeletePlanModal } from "./delete-plan-modal";
 import { OnboardingTour } from "./onboarding-tour";
+import { PlanDetailModal } from "./plan-detail-modal";
 
 export interface HomeOverlaysProps {
   overlays: HomeOverlays;
   subtaskActions: SubtaskActions;
   panel: AnalysisPanel;
   detailSubtask: SubtaskWithTask | null | undefined;
+  detailTask: TaskWithSubtasks | null;
   subtaskRows: SubtaskWithTask[];
   onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
   onSwitchView: (view: NavView) => void;
+  onViewPlan: (taskId: string, view: Extract<NavView, "steps" | "timeline">) => void;
 }
 
 /** 首页弹窗与控制台模块栈（全部走 ui/modal 阶梯，见各弹层组件）。 */
@@ -94,6 +97,30 @@ export function HomeOverlaysStack(props: HomeOverlaysProps) {
           onOpenTask={() => {
             router.push(`/task/${detailSubtask.taskId}`);
             setDetailSubtaskId(null);
+          }}
+        />
+      )}
+
+      {props.detailTask && (
+        <PlanDetailModal
+          task={props.detailTask}
+          onClose={() => overlays.setDetailTaskId(null)}
+          onFocusAI={() => {
+            const taskId = props.detailTask?.id;
+            if (taskId) {
+              panel.setFocusedId(taskId);
+              panel.focusTask(taskId);
+            }
+            overlays.setDetailTaskId(null);
+          }}
+          onOpenDetail={() => {
+            router.push(`/task/${props.detailTask?.id}`);
+            overlays.setDetailTaskId(null);
+          }}
+          onViewPlan={(view) => {
+            const taskId = props.detailTask?.id;
+            if (taskId) props.onViewPlan(taskId, view);
+            overlays.setDetailTaskId(null);
           }}
         />
       )}

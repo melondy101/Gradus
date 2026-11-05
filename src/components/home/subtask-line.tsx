@@ -1,28 +1,21 @@
 "use client";
 
 /**
- * 今日列表的单行子任务（《品牌与产品设计说明》§3 屏一，原 app.css
- * `.sub` / `.sub__c` / `.sub__t` / `.box` 三态）。
+ * 今日路线的一行（对照 `today.html` 的 `.task`）：
+ * 8px 认知色轨 + 墨框方勾 + 标题/状态 + 右侧层级与工时。
  *
- * 三态规则（§3）由 <CheckBox state> 承载：
- *   已完成 → 墨底反白勾 + 标题删除线（--text-3，划线色 --bd-check）
- *   进行中 → 黄描边 + 呼吸点
- *   待开始 → 素色空框
- *
- * ⚠ id={`subtask-card-${row.id}`} 是键盘导航（↑↓）与 AI 面板「定位子任务」的
- *   DOM 契约，改名前先确认 home-page 的键盘导航与跳转。
+ * 三态：已完成（勾选 + 删除线）/ 进行中（层级色圆点）/ 待开始（空框）。
+ * ⚠ id={`subtask-card-${row.id}`} 是键盘导航与 AI 面板「定位子任务」的 DOM 契约。
  */
 
 import { useTranslation } from "react-i18next";
-import { ArrowRight, CalendarClock, SkipForward } from "lucide-react";
-import { CheckBox } from "@/components/ui/check-box";
-import { Tag } from "@/components/ui/badge";
-import { Mono } from "@/components/ui/eyebrow";
+import { CalendarClock, SkipForward } from "lucide-react";
+import { T, bloomChromatic } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { MiniActionButton } from "./mini-action-button";
 import { getSubtaskDateRange } from "./subtask-row";
-import { BLOOM_TAG_CLASS, bloomOf, hoursOf, type SubtaskLineState } from "./subtask-line-model";
+import { bloomOf, hoursOf, type SubtaskLineState } from "./subtask-line-model";
 export { lineStateOf, type SubtaskLineState } from "./subtask-line-model";
 
 interface Props {
@@ -38,18 +31,19 @@ interface Props {
   onPostpone?: (e: React.MouseEvent) => void;
 }
 
-
 export function SubtaskLine({
   row, state, isSelected, isActive, isHighlighted,
   onOpen, onSelect, onToggle, onSkip, onPostpone,
 }: Props) {
   const { t } = useTranslation();
   const { level, config } = bloomOf(row);
+  const color = bloomChromatic(level);
   const range = getSubtaskDateRange(row);
+  const done = state === "done";
   const marked = isActive || isHighlighted;
 
   const lead =
-    state === "done" ? t("home.subDone", "已完成")
+    done ? t("home.subDone", "已完成")
     : state === "live" ? t("home.subLive", "进行中")
     : t("home.subTodo", "待开始");
 
@@ -59,71 +53,75 @@ export function SubtaskLine({
       role="button"
       tabIndex={0}
       aria-label={row.title}
+      aria-current={isSelected ? "true" : undefined}
       onClick={() => { onOpen(); onSelect(); }}
       onKeyDown={(e) => {
         if (e.key === "Enter") { e.preventDefault(); onOpen(); onSelect(); }
       }}
       className={cn(
-        "group grid cursor-pointer grid-cols-[22px_minmax(0,1fr)_auto_auto] items-center gap-3",
-        "border-t border-bd-card py-[9px] pr-2 pl-[5px] transition-colors duration-[.16s]",
-        "first:border-t-0 hover:bg-cream-light focus-visible:bg-cream-light focus-visible:outline-none",
-        marked && "bg-cream-light shadow-[inset_3px_0_0_var(--accent)]",
-        !marked && isSelected && "hover:bg-cream-light"
+        "group grid cursor-pointer grid-cols-[8px_25px_minmax(0,1fr)_auto] items-center gap-3",
+        "border-b border-bd-card py-4 transition-colors duration-[.16s]",
+        "hover:bg-cream-light focus-visible:bg-cream-light focus-visible:outline-none",
+        marked && "bg-cream-light"
       )}
     >
-      <CheckBox
-        state={state}
-        aria-label={row.completed ? t("timelineCard.markUndone") : t("timelineCard.markDone")}
+      <span className="h-12 w-2" style={{ background: color }} aria-hidden="true" />
+
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={done}
+        aria-label={done ? t("timelineCard.markUndone") : t("timelineCard.markDone")}
         onClick={(e) => { e.stopPropagation(); onToggle(e); }}
-      />
+        className="grid size-[25px] shrink-0 place-items-center border border-ink text-body-sm font-bold transition-colors duration-[.16s] hover:bg-ink hover:text-cream"
+        style={done ? { background: T.ink, color: T.bg } : undefined}
+      >
+        {done ? "✓" : state === "live" ? (
+          <span className="size-2 rounded-full" style={{ background: color }} aria-hidden="true" />
+        ) : null}
+      </button>
 
       <div className="min-w-0">
-        <b
+        <h3
           className={cn(
-            "block overflow-hidden text-ellipsis text-body-lg leading-[1.4] font-bold whitespace-nowrap",
-            state === "done"
-              ? "text-text-3 line-through decoration-bd-check"
-              : "text-ink"
+            "overflow-hidden text-ellipsis whitespace-nowrap text-body-lg leading-snug font-bold",
+            done ? "text-text-3 line-through decoration-bd-check" : "text-ink group-hover:text-error"
           )}
         >
           {row.title}
-        </b>
-        <p className="mt-0.5 text-body-sm text-text-3">
+        </h3>
+        <p className="mt-1 text-body-sm text-text-2">
           {lead}
           {range ? ` · ${range}` : ` · ${t("timelineCard.days", { count: row.durationDays })}`}
           {row.topic ? ` · ${row.topic}` : ""}
         </p>
       </div>
 
-      <Tag className={BLOOM_TAG_CLASS[level]}>
-        L{level} {config.name}
-      </Tag>
+      <div className="flex items-center gap-2">
+        <span
+          className="invisible flex gap-1 group-hover:visible max-sm:hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {!done && onPostpone && (
+            <MiniActionButton label={t("timelineCard.postponeTitle", "顺延 1 天")} onClick={onPostpone}>
+              <CalendarClock size={13} />
+            </MiniActionButton>
+          )}
+          {!done && onSkip && (
+            <MiniActionButton label={t("timelineCard.skipTitle", "跳过此任务")} onClick={onSkip}>
+              <SkipForward size={13} />
+            </MiniActionButton>
+          )}
+        </span>
 
-      <div className="flex items-center gap-1.5">
-        {state !== "done" && (onPostpone || onSkip) && (
-          <span
-            className="invisible flex gap-0.5 group-hover:visible"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {onPostpone && (
-              <MiniActionButton label={t("timelineCard.postponeTitle", "顺延 1 天")} onClick={onPostpone}>
-                <CalendarClock size={13} />
-              </MiniActionButton>
-            )}
-            {onSkip && (
-              <MiniActionButton label={t("timelineCard.skipTitle", "跳过此任务")} onClick={onSkip}>
-                <SkipForward size={13} />
-              </MiniActionButton>
-            )}
+        <div className="text-right">
+          <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
+            L{level} {config.name}
+          </b>
+          <span className="mt-1 block font-mono text-caption whitespace-nowrap text-text-3">
+            {hoursOf(row)}h
           </span>
-        )}
-        <Mono className="text-micro whitespace-nowrap text-text-3">
-          {hoursOf(row)}h
-          <ArrowRight
-            size={11}
-            className="ml-1 inline opacity-25 transition-opacity duration-[.16s] group-hover:opacity-100"
-          />
-        </Mono>
+        </div>
       </div>
     </li>
   );

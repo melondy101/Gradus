@@ -1,83 +1,124 @@
 "use client";
 
-import { Crown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { T } from "@/lib/design-tokens";
+import type { NavView } from "@/components/layout/nav-items";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { Heading } from "@/components/ui/heading";
 import { PlanCard } from "./plan-card";
+import { PlanGridSkeleton } from "./plan-grid-skeleton";
+import { PlansIntro } from "./plans-intro";
 
 interface AllPlansViewProps {
   tasks: TaskWithSubtasks[];
+  fetching: boolean;
+  selectedTag: string | null;
+  onClearTag: () => void;
   onSelectTask: (taskId: string) => void;
-  onOpenTaskDetail: (taskId: string) => void;
+  onViewPlan: (taskId: string, view: Extract<NavView, "steps" | "timeline">) => void;
   onNewPlan: () => void;
   onDeleteTask?: (task: TaskWithSubtasks) => void;
 }
 
 export function AllPlansView({
   tasks,
+  fetching,
+  selectedTag,
+  onClearTag,
   onSelectTask,
-  onOpenTaskDetail,
+  onViewPlan,
   onNewPlan,
   onDeleteTask,
 }: AllPlansViewProps) {
   return (
-    <div className="flex flex-col gap-5 px-3.5 pt-4 pb-[calc(84px+env(safe-area-inset-bottom,0px))] sm:px-5 sm:pb-8">
-      {/* 头部摘要 */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="font-editorial text-[18px] font-bold text-ink">
-            我的学习计划库 ({tasks.length})
+    <div
+      className="grid min-h-full grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]"
+      style={{ background: T.bg }}
+    >
+      <PlansIntro tasks={tasks} onNewPlan={onNewPlan} />
+
+      <section className="px-5 py-6 sm:px-8 sm:py-8">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-3">
+          <div>
+            <Eyebrow>LEARNING PLAN LIBRARY / {String(tasks.length).padStart(2, "0")}</Eyebrow>
+            <Heading level={2} className="mt-1.5 font-chromatic text-title-lg leading-tight">
+              我的学习计划库
+            </Heading>
           </div>
-          <div className="mt-0.5 text-body text-text-2">
-            全局接续排期，每个计划皆有独立认知阶梯与推荐资源
-          </div>
+          <span className="text-body-sm text-text-2">点击卡片查看目标详情</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => openMembershipModal("overview")}
-          >
-            <Crown size={14} className="text-warning" />
-            会员与容量
-          </Button>
-          {/* app 壳禁用 accent 黄按钮（design-system.md Button 禁止场景；体检报告 2026-09-26 阻断#5） */}
-          <Button size="sm" variant="app" onClick={onNewPlan}>
-            <Plus size={14} /> 新增学习目标
-          </Button>
-        </div>
-      </div>
-
-      {/* 计划卡片网格 */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-        {tasks.map((task) => (
-          <PlanCard
-            key={task.id}
-            task={task}
-            onOpen={onSelectTask}
-            onOpenDetail={onOpenTaskDetail}
-            onDelete={onDeleteTask}
-          />
-        ))}
-
-        {tasks.length === 0 && (
+        {fetching && tasks.length === 0 ? (
+          <PlanGridSkeleton />
+        ) : tasks.length === 0 ? (
           <Card
-            className="col-span-full flex-col items-center gap-3 border-dashed !border-bd-check px-5 py-12 text-center"
+            tone="soft"
+            className="items-center gap-3 rounded-none border-dashed px-5 py-12 text-center"
+            style={{ borderColor: T.lineCheck, background: "transparent" }}
           >
             <Plus size={30} className="text-text-3" aria-hidden="true" />
-            <div className="text-body-lg font-semibold text-ink">暂无学习计划</div>
-            <div className="max-w-[320px] text-body text-text-2">
-              输入你感兴趣的学习主题或技能，AI 将为你规划科学的认知阶梯与权威资源
+            <div className="font-chromatic text-title-lg text-ink">
+              {selectedTag ? "没有符合当前标签的计划" : "暂无学习计划"}
             </div>
-            <Button size="sm" variant="default" className="mt-1" onClick={onNewPlan}>
-              立即创建第一个计划
-            </Button>
+            <div className="max-w-[320px] text-body leading-relaxed text-text-2">
+              {selectedTag
+                ? `标签「${selectedTag}」下暂无计划，可清除筛选查看全部。`
+                : "输入你感兴趣的学习主题或技能，AI 将为你规划科学的认知阶梯与权威资源。"}
+            </div>
+            {selectedTag ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-none px-4"
+                onClick={onClearTag}
+              >清除标签筛选</Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="default"
+                className="rounded-none px-4"
+                onClick={onNewPlan}
+              >立即创建第一个计划</Button>
+            )}
           </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {tasks.map((task) => (
+              <PlanCard
+                key={task.id}
+                task={task}
+                onOpen={onSelectTask}
+                onViewPlan={onViewPlan}
+                onDelete={onDeleteTask}
+              />
+            ))}
+            <Card
+              tone="soft"
+              className="min-h-[280px] items-center justify-center gap-3 rounded-none border-dashed p-6 text-center"
+              style={{ borderColor: T.ink, background: "transparent" }}
+            >
+              <span className="font-chromatic text-display-sm leading-none text-error" aria-hidden="true">
+                +
+              </span>
+              <Heading level={3} className="font-chromatic text-title-lg leading-tight">
+                再写下一个目标
+              </Heading>
+              <p className="max-w-[260px] text-body leading-relaxed text-text-2">
+                告诉 AI 你想学会什么。它会生成认知阶梯、真实资源与可以接续的排期。
+              </p>
+              <Button
+                size="sm"
+                variant="default"
+                className="rounded-none px-4"
+                onClick={onNewPlan}
+              >开始规划</Button>
+            </Card>
+          </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

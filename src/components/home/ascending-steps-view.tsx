@@ -1,13 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import type { SubtaskWithTask } from "@/lib/api/tasks";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+/**
+ * 拾级天梯（时间色谱 · 视图三，对照 `design-demos/time-chromatics/steps.html`）
+ *
+ * 结构：眉题 + 衬线标题 + 总里程环｜六级台阶（顶部 8px 层级色）｜左栏当前筛选说明 + 右侧任务清单。
+ * 点击台阶按层筛选（再次点击返回全阶）；点击方框完成；点击行打开子任务详情。
+ */
+
+import { useState } from "react";
+import { PLAN_CHROMATIC } from "@/lib/design-tokens";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { cn } from "@/utils/utils";
+import { PlanSpectrum } from "./plan-spectrum";
 import { ProgressRing } from "./progress-ring";
 import { StepLevelTile } from "./step-level-tile";
 import { StepsSubtaskCard } from "./steps-subtask-card";
-import { levelGroupsOf, type BloomLevelGroup } from "./steps-level-model";
+import { LEVEL_COPY, levelGroupsOf, type BloomLevelGroup } from "./steps-level-model";
+import type { SubtaskWithTask } from "@/lib/api/tasks";
 
 interface AscendingStepsViewProps {
   subtasks: SubtaskWithTask[];
@@ -37,103 +46,125 @@ export function AscendingStepsView({
   );
 
   return (
-    <div className="flex flex-col gap-5 px-3.5 pt-4 pb-[calc(84px+env(safe-area-inset-bottom,0px))] sm:px-5 sm:pb-8">
-      {/* 顶部概览：拾级天梯叙事与总步阶进度 */}
-      <Card className="flex-row flex-wrap items-center justify-between gap-4">
-        <div className="max-w-[460px]">
-          <div className="mb-1.5 flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-tag bg-accent-soft text-body font-bold text-accent-ink">
-              阶
-            </span>
-            <span className="font-editorial text-[18px] font-bold text-ink">
-              拾级天梯 · 认知进阶图谱
-            </span>
-          </div>
-          <p className="m-0 text-body leading-normal text-text-2">
-            源自布鲁姆认知目标分类学（Bloom&apos;s Taxonomy），从基础识记到终极创造，将宏大目标化为步步攀升的可行阶梯。
+    <div className="min-h-full px-5 py-6 sm:px-8 sm:py-6 max-sm:pb-[calc(84px+env(safe-area-inset-bottom,0px))]">
+      <header className="grid gap-6 border-b-2 border-ink pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="min-w-0">
+          <Eyebrow>BLOOM&apos;S TAXONOMY / COGNITIVE ATLAS</Eyebrow>
+          <h1 className="mt-3 font-chromatic text-display-sm leading-[1.14] tracking-[-.03em] text-ink sm:text-display">
+            从识记到创造，
+            <br />
+            看见自己<span className="text-error">攀到哪一阶。</span>
+          </h1>
+          <p className="mt-3 max-w-[68ch] font-chromatic text-body leading-relaxed text-text-2">
+            六级认知不是六个标签，而是六种不同的学习动作。点击台阶筛选任务，点击方框完成这一阶。
           </p>
         </div>
 
-        {/* 攀登进度指示器 */}
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="font-mono text-[24px] leading-tight font-bold text-accent-ink">
-              {completedTotal}{" "}
-              <span className="text-[14px] font-normal text-text-2">/ {totalSubtasks} 阶</span>
+            <div className="font-chromatic text-display-sm leading-none text-ink">
+              {completedTotal}
+              <span className="text-title-sm font-normal text-text-2"> / {totalSubtasks} 阶</span>
             </div>
-            <div className="mt-1 text-body-sm text-text-2">已完成 {overallPct}% 攀登里程</div>
+            <div className="mt-2 font-mono text-caption tracking-[.06em] text-text-2">
+              已完成 {overallPct}% 攀登里程
+            </div>
           </div>
-          <ProgressRing pct={totalSubtasks > 0 ? completedTotal / totalSubtasks : 0} label={`${overallPct}%`} />
+          <ProgressRing
+            pct={totalSubtasks > 0 ? completedTotal / totalSubtasks : 0}
+            label={`${overallPct}%`}
+            size={86}
+            color={PLAN_CHROMATIC.vermilion}
+          />
         </div>
-      </Card>
+      </header>
 
-      {/* 认知六级阶梯 */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="font-editorial text-[14px] font-semibold text-ink">
-            六级台阶全览 (点击台阶可按层筛选)
-          </div>
-          {selectedBloomLevel !== "all" && (
-            <Button
-              size="xs"
-              variant="ghost"
-              className="text-accent-ink"
-              onClick={() => setSelectedBloomLevel("all")}
-            >
-              显示全部台阶 ✕
-            </Button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2.5">
-          {levelGroups.map((group) => (
-            <StepLevelTile
-              key={group.level}
-              level={group.level}
-              name={group.config.name}
-              nameEn={group.config.nameEn}
-              color={group.config.color}
-              bg={group.config.bg}
-              border={group.config.border}
-              completedCount={group.completedCount}
-              totalCount={group.totalCount}
-              pct={group.pct}
-              selected={selectedBloomLevel === group.level}
-              onToggleSelect={() =>
-                setSelectedBloomLevel((prev) => (prev === group.level ? "all" : group.level))
-              }
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* 当前阶梯的子任务列表 */}
-      <div className="mt-2 flex flex-col gap-2.5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="font-editorial text-body-lg font-bold text-ink">
-            {selectedBloomLevel === "all"
-              ? "全阶任务清单"
-              : `阶梯 ${selectedBloomLevel} · ${activeLevelData?.config.name}任务清单 (${activeLevelData?.items.length || 0})`}
-          </div>
-          <span className="hidden text-body-sm text-text-2 sm:inline">
-            点击复选框标记完成 · 点击卡片查看资源详情
-          </span>
-        </div>
-
-        {visibleItems.map((item) => (
-          <StepsSubtaskCard
-            key={item.id}
-            item={item}
-            onToggle={onToggleSubtask}
-            onSelect={onSelectSubtask}
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+        {levelGroups.map((group) => (
+          <StepLevelTile
+            key={group.level}
+            level={group.level}
+            name={group.config.name}
+            nameEn={group.config.nameEn}
+            completedCount={group.completedCount}
+            totalCount={group.totalCount}
+            pct={group.pct}
+            selected={selectedBloomLevel === group.level}
+            onToggleSelect={() =>
+              setSelectedBloomLevel((prev) => (prev === group.level ? "all" : group.level))
+            }
           />
         ))}
+      </div>
 
-        {totalSubtasks === 0 && (
-          <Card className="items-center border-dashed !border-bd-check px-5 py-12 text-center text-body text-text-2">
-            暂无学习任务阶梯，请先创建一个学习目标
-          </Card>
-        )}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="h-max border border-ink px-5 py-5 lg:sticky lg:top-0">
+          <Eyebrow>CURRENT LEVEL / 当前筛选</Eyebrow>
+          <div className="mt-2 font-chromatic text-display leading-none text-error">
+            {selectedBloomLevel === "all" ? "ALL" : `L${selectedBloomLevel}`}
+          </div>
+          <h2 className="mt-3 font-chromatic text-title-lg leading-tight text-ink">
+            {activeLevelData ? activeLevelData.config.name : "全阶任务"}
+          </h2>
+          <p className="mt-2 text-body leading-relaxed text-text-2">
+            {activeLevelData
+              ? LEVEL_COPY[activeLevelData.level]
+              : "从基础识记到终极创造，把宏大目标拆成一步步攀升的可行阶梯。再次点击已选台阶可返回全部。"}
+          </p>
+          <div className="mt-4">
+            <PlanSpectrum
+              levels={selectedBloomLevel === "all" ? undefined : [selectedBloomLevel]}
+            />
+          </div>
+          {selectedBloomLevel !== "all" && (
+            <button
+              type="button"
+              onClick={() => setSelectedBloomLevel("all")}
+              className="mt-4 border-b border-ink pb-0.5 text-body-sm text-ink"
+            >
+              显示全部台阶
+            </button>
+          )}
+        </aside>
+
+        <section className="min-w-0">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-3">
+            <h2 className="font-chromatic text-title-lg leading-tight text-ink">
+              {activeLevelData
+                ? `阶梯 ${activeLevelData.level} · ${activeLevelData.config.name}任务`
+                : "全阶任务清单"}
+            </h2>
+            <span className="pb-1 font-mono text-caption text-text-2">
+              共 {visibleItems.length} 项 · 点击任务查看详情
+            </span>
+          </div>
+
+          {totalSubtasks === 0 ? (
+            <p
+              className={cn(
+                "mt-6 border border-dashed border-bd-check px-5 py-10",
+                "text-center text-body leading-relaxed text-text-2"
+              )}
+            >
+              还没有可攀的阶梯。先在「今日路线」或顶栏写下一个学习目标，AI 会拆出六级认知台阶。
+            </p>
+          ) : visibleItems.length === 0 ? (
+            <p className="mt-6 border border-dashed border-bd-check px-5 py-10 text-center text-body text-text-2">
+              这一阶还没有任务。切换到其它台阶，或显示全部台阶。
+            </p>
+          ) : (
+            <ul className="flex flex-col">
+              {visibleItems.map((item) => (
+                <StepsSubtaskCard
+                  key={item.id}
+                  item={item}
+                  onToggle={onToggleSubtask}
+                  onSelect={onSelectSubtask}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   );

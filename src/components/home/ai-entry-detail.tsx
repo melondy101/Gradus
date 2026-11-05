@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * AI 深底卡内的「计划详情」主体（§3 屏一右列 + 屏三计划预览，原 app.css
- * `.prog__bar` / 深色 `.subs` / `.sug` / `.ai-dark__foot`）。
+ * AI 面板内的「计划详情」主体（§3 屏一右列 + 屏三计划预览，原 app.css
+ * `.prog__bar` / `.subs` / `.sug` / `.ai-dark__foot` → 暖纸底）。
  * 全部数值来自 entry.task（analyze 缓冲 JSON 水化后的真实数据）。
  */
 
@@ -47,14 +47,14 @@ export function AiEntryDetail({
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-3">
       {/* 进度：黄色仅用于「进行中」推进条 */}
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-3">
-          <Eyebrow kind="label" className="mb-0 text-on-dark-3">Progress</Eyebrow>
-          <Mono className="text-on-dark-2">{completed} / {subs.length} · {Math.round(pct * 100)}%</Mono>
+          <Eyebrow kind="label" className="mb-0 text-text-3">Progress</Eyebrow>
+          <Mono className="text-text-2">{completed} / {subs.length} · {Math.round(pct * 100)}%</Mono>
         </div>
-        <div className="h-2 overflow-hidden rounded-chip-sm border border-bd-dark bg-on-dark/[.08]">
+        <div className="h-2 overflow-hidden rounded-chip-sm border border-bd-check bg-cream-light">
           <div
             className="h-full rounded-chip-sm bg-accent transition-[width] duration-500 ease-[cubic-bezier(.4,0,.2,1)]"
             style={{ width: `${Math.round(pct * 100)}%` }}
@@ -81,7 +81,7 @@ export function AiEntryDetail({
       {/* 推荐资源（真实检索结果，含可信度标注） */}
       {allResources.length > 0 && (
         <div>
-          <Button variant="onDark" size="xs" onClick={() => setShowResources((v) => !v)}>
+          <Button variant="outline" size="xs" onClick={() => setShowResources((v) => !v)}>
             {showResources ? "收起资源" : `全部推荐资源 (${allResources.length})`}
           </Button>
           {showResources && (
@@ -96,31 +96,30 @@ export function AiEntryDetail({
 
       {/* 调整意见 → 重新生成（真实调用 analyze?adjustment） */}
       <div className="flex flex-col gap-2">
-        <Eyebrow kind="label" className="mb-0 text-on-dark-3">Adjustment</Eyebrow>
+        <Eyebrow kind="label" className="mb-0 text-text-3">Adjustment</Eyebrow>
         <Textarea
-          onDark
           value={adjustment}
           onChange={(e) => onAdjustmentChange(e.target.value)}
           rows={2}
           placeholder="例：难度太高 / 专注某模块 / 增加实践内容"
-          className="resize-y px-3 py-[9px] text-body leading-[1.5]"
+          className="resize-y px-3 py-2 text-body leading-[1.5]"
         />
         <div className="flex gap-2">
           <Button
-            variant="accent"
+            variant="default"
             size="xs"
             className="flex-1 rounded-field"
             onClick={() => { onRegen(entry.taskId, adjustment); }}
           >
             <RotateCcw size={12} /> 按意见重排
           </Button>
-          <Button variant="onDark" size="xs" onClick={() => onRemove(entry.taskId)}>
+          <Button variant="outline" size="xs" onClick={() => onRemove(entry.taskId)}>
             <Trash2 size={12} /> 移除
           </Button>
         </div>
       </div>
 
-      <p className="mt-1 border-t border-bd-dark pt-2.5 font-mono text-2xs tracking-[.04em] text-on-dark-3">
+      <p className="mt-1 border-t border-bd-card pt-2.5 font-mono text-2xs tracking-[.04em] text-text-3">
         子任务 {sum.subtaskCount} · 资源 {sum.resourceCount}（已校验 {sum.verifiedCount}）· 排期 {sum.totalDays} 天 · 深度工时 {sum.deepHours}H
       </p>
     </div>

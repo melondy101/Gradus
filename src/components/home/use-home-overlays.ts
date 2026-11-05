@@ -22,6 +22,7 @@ export function useHomeOverlays(
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [detailSubtaskId, setDetailSubtaskId] = useState<string | null>(null);
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [activeSubtaskId, setActiveSubtaskId] = useState<string | null>(null);
   const [congrats, setCongrats] = useState<CongratsData | null>(null);
   const [milestone, setMilestone] = useState<Level | null>(null);
@@ -99,6 +100,8 @@ export function useHomeOverlays(
     setShowInput,
     detailSubtaskId,
     setDetailSubtaskId,
+    detailTaskId,
+    setDetailTaskId,
     activeSubtaskId,
     setActiveSubtaskId,
     congrats,

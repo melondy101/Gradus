@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * AI 规划面板主体（§3 屏一右列 / §4.4「深色卡给 AI 建议」）。
+ * AI 规划面板主体（时间色谱右栏 ·「AI 沿途提醒」区）。
  *
- * 这是全站唯一的 AI 分析视图：屏一的深底卡与右侧检查栏复用同一份组件，
+ * 这是全站唯一的 AI 分析视图：屏一的暖底卡与右侧检查栏复用同一份组件，
  * 数据全部来自 home-page 的 useAnalysisPanel()，此处绝不二次请求。
- * 外壳（<Card tone="dark"> / 右栏 / 移动抽屉）由 <RightPanel> 负责。
+ * 外壳（<Card tone="soft"> / 右栏 / 移动抽屉）由 <RightPanel> 负责。
  */
 
 import { useState } from "react";
@@ -67,8 +67,8 @@ export function AiInspector({
   return (
     <div className="flex flex-col gap-3">
       <CardHeader className="mb-0">
-        <Eyebrow tone="accent">AI Review</Eyebrow>
-        <Mono className="text-on-dark-3">
+        <Eyebrow>AI Review</Eyebrow>
+        <Mono className="text-text-3">
           {focused
             ? done
               ? `${PIPELINE_STAGES.length} / ${PIPELINE_STAGES.length} 阶段`
@@ -77,7 +77,7 @@ export function AiInspector({
         </Mono>
       </CardHeader>
 
-      <h3 className="mb-1 text-title-sm leading-snug font-bold text-on-dark">
+      <h3 className="mb-1 text-title-sm leading-snug font-bold text-ink">
         {headline(focused, hints.length)}
       </h3>
 
@@ -94,7 +94,7 @@ export function AiInspector({
         </div>
       )}
 
-      {focused && <AiPipelineSteps stream={focused.stream} tone="dark" size={nodeSize} />}
+      {focused && <AiPipelineSteps stream={focused.stream} size={nodeSize} />}
 
       {focused?.stream.errorMsg && (
         <div className="flex flex-col items-start gap-2">
@@ -102,7 +102,7 @@ export function AiInspector({
             {focused.stream.errorMsg}
           </p>
           <Button
-            variant="accent"
+            variant="default"
             size="xs"
             onClick={() => regenAnalysis(focused.taskId, "")}
           >
