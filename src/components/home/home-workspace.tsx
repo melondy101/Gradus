@@ -1,6 +1,7 @@
 "use client";
 
 import type { NavView } from "@/components/layout/nav-items";
+import type { SubtaskWithTask } from "@/lib/api/tasks";
 import type { UserStats } from "@/lib/api/user-stats";
 import type { HomeFilters } from "./use-home-filters";
 import type { HomeOverlays } from "./use-home-overlays";
@@ -19,6 +20,8 @@ export interface HomeWorkspaceProps {
   panel: AnalysisPanel;
   subtaskActions: SubtaskActions;
   stats: UserStats | null;
+  /** 全量子任务（未筛选），供右栏「本周路线」卡使用 */
+  rows: SubtaskWithTask[];
   narrow: boolean;
   onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
   onViewPlan: (taskId: string, view: Extract<NavView, "steps" | "timeline">) => void;
@@ -61,6 +64,8 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
             onToggleSubtask={props.onToggleSubtask}
             onJumpToSubtask={overlays.handleJumpToSubtask}
             defaultCollapsed={currentView === "plans"}
+            rows={props.rows}
+            stats={props.stats}
           />
         </div>
       </div>

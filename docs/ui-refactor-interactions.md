@@ -248,11 +248,17 @@
 - 删除流水线的 `tone` 变体（`PipelineTone`）——深底节点样式已无消费者。
 - 顺手清零本族 8 个文件在 `ds-check-tokens` 的存量违规（任意值间距/字号改走档位令牌）。
 
+### 已完成（2026-11-07 第五轮：右栏补齐与详情快捷操作）
+
+- **右栏「本周路线」卡**（`week-route-card.tsx`）：原型 `.side > .week` 的两段式右栏补齐。数据由 `home-page` 传入全量 `subtaskRows` 与真实 `UserStats`，按本周一→周日与子任务日期区间求交，展示出现最多的计划名、前四档认知层级实色条、连续天数 / 本周完成 / 完成率。原型「难度 ★★☆」无数据源，改为真实周日期区间；层级不足四格用中性底，不编造。桌面右栏与移动抽屉共用。
+- **子任务详情「顺延 / 跳过」**（`subtask-detail-modal.tsx` + `home-overlays.tsx`）：未完成任务的详情弹窗新增 QUICK ACTIONS 分组；顺延关闭详情后打开既有 `PostponeDialog`（`confirmPostpone`），跳过直接走 `handleSkip`。两者共用 `postponeSubtaskMutation` 的乐观 +1、失败回滚与撤销 toast，不新增接口或第二套规则；顺延文案由「智能重排接续计划」改为「只改这一项的开始日，其他子任务排期不变」。
+- **后三视图加载态**（`view-loading-state.tsx`）：天梯 / 甘特在 `fetching && 行数为 0` 时显示与今日路线同语言的骨架，不再先闪空态再出内容。计划页原已有 `PlanGridSkeleton`。
+
 ### 尚未完成
 
-- 子任务详情弹窗内的「顺延 / 跳过」快捷操作（第一节已确认的方案）尚未接入。
-- 原型中「每周 N 次」「难度星级」等无真实数据来源的字段没有硬编码。
-- 今日路线在排期全部过期时会显示空态 + 「更晚」列表——这是真实数据分桶结果，不是占位。
+- 验收清单第五节里标注 **[真实][账号][数据]** 的额度、多账号、断网回滚、计划删除失败等专项验收仍未逐项执行，需要构造对应账号与网络条件。
+- 完整新建弹窗的标签未转发给 `startAnalysis`（第二节另列的业务缺口，不属 UI 重构范围）。
+- 子任务详情弹窗仍保留旧的内联样式写法（存量 `ds:tokens` 违规），本轮只清零新增部分。
 
 ### 验收记录（2026-11-05 第三轮）
 
@@ -266,4 +272,15 @@
 - `eslint`、`tsc --noEmit`、`bun test src/components/home`（6 tests / 11 expects）通过。
 - `ds-check-tokens`：本轮 8 个 AI 面板文件 0 违规（总违规 1019 → 998，涉及文件 89 → 81）。
 - ⚠ 本机 `next dev` 因 `next/font/google` 模块解析失败不可用（`@vercel/turbopack-next/internal/font/google/font`），生产构建同样失败，属环境问题而非本轮改动；真实浏览器截图验证（`.local/inspect-ai-panel.mjs`）留待环境恢复后补跑。
+
+### 验收记录（2026-11-07 第五轮）
+
+- 环境问题已定位并绕过：`next/font/google` 报错是字体下载的网络抖动，重跑 `bun run build` 成功；生产服务器需显式注入 `.env.local` 的 `DATABASE_URL` 与 `AUTH_SECRET`（`.env.production.local` 里是无效占位值，会覆盖前者导致登录 500）。
+- AI 面板真实 Chrome 15 项全过（`.local/inspect-ai-panel.mjs`）：右栏 `rgb(245,242,234)` 暖纸底 / 墨字 / 暖色分隔线、折叠 36px ↔ 350px、移动 pill 墨底、抽屉暖纸底、无溢出、无运行错误。
+- 本轮新增验收脚本 `.local/verify-fifth-round.mjs`：本周路线卡、详情顺延/跳过→确认→取消→跳过 toast→撤销。
+- `eslint src/components/home/`、`tsc --noEmit`、`bun test src/components/home`（6 tests）通过；`ds:tokens` 违规 998 → 994、文件 81 → 80，未恶化。
+- 真实 Chrome **21/21 全过**（`.local/verify-fifth-round.mjs`）：右栏本周路线卡（暖纸底 `rgb(250,248,243)`、四格色谱、三格统计、计划名非原型样例）、天梯 16 行、详情弹窗快捷操作分组、顺延复用确认弹窗且文案不夸大、取消不写数据、跳过触发真实 toast 与撤销、桌面/移动无横向溢出、移动抽屉含本周路线卡、全程无运行错误。
+- 验收期间对 QA 账号一个子任务做了「跳过 → 撤销」；脚本重试造成的 `startDay` 偏移已通过 `unpostpone` 还原，最终与其余三个任务一致（`0 / 1 / 3 / 6`）。
+- 截图：`output/ui-refactor/view-today-final-desktop.png`、`detail-quick-actions.png`、`ai-panel-final-mobile.png`、`ai-panel-{desktop,mobile-drawer}.png`。
+- 本地构建用 `NEXT_FONT_GOOGLE_MOCKED_RESPONSES`（`.local/font-mock.cjs` + 本地 woff2）绕开被沙箱拦截的 Google Fonts；该通道仅本机构建生效，`.local/` 不入库，线上字体仍走 `next/font/google` 自托管。
 

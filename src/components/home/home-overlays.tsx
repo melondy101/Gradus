@@ -57,6 +57,7 @@ export function HomeOverlaysStack(props: HomeOverlaysProps) {
     setDeleteTarget,
     isDeletingTask,
     confirmPostpone,
+    handleSkip,
     handleConfirmDelete,
   } = subtaskActions;
 
@@ -97,6 +98,15 @@ export function HomeOverlaysStack(props: HomeOverlaysProps) {
           onOpenTask={() => {
             router.push(`/task/${detailSubtask.taskId}`);
             setDetailSubtaskId(null);
+          }}
+          onPostpone={() => {
+            // 关掉详情再开确认弹窗，避免 detail(200) 与 confirm(300) 叠在同一位置
+            setPostponeTarget(detailSubtask);
+            setDetailSubtaskId(null);
+          }}
+          onSkip={() => {
+            setDetailSubtaskId(null);
+            void handleSkip(detailSubtask);
           }}
         />
       )}

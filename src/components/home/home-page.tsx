@@ -114,6 +114,7 @@ export function HomePage({ initialView = "today" }: { initialView?: NavView }) {
         panel={panel}
         subtaskActions={subtaskActions}
         stats={stats}
+        rows={subtaskRows}
         narrow={isTablet}
         onToggleSubtask={handleToggleSubtask}
         onViewPlan={handleViewPlan}

@@ -10,6 +10,7 @@ import { TodayView } from "./today-view";
 import { AllPlansView } from "./all-plans-view";
 import { AscendingStepsView } from "./ascending-steps-view";
 import { TimelineView } from "./timeline-view";
+import { ViewLoadingState } from "./view-loading-state";
 import { ViewStateCard } from "./view-state-card";
 
 export interface HomeMainAreaProps {
@@ -84,7 +85,7 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
             </div>
           ) : (
@@ -111,8 +112,12 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : props.fetching && filters.displayedSubtaskRows.length === 0 ? (
+            <div className="px-4 pt-5 sm:px-8">
+              <ViewLoadingState />
             </div>
           ) : (
             <AscendingStepsView
@@ -131,8 +136,12 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : props.fetching && filters.displayedSubtaskRows.length === 0 ? (
+            <div className="px-4 pt-5 sm:px-8">
+              <ViewLoadingState />
             </div>
           ) : (
             <TimelineView

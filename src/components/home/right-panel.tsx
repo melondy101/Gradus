@@ -20,10 +20,13 @@ import { Card } from "@/components/ui/card";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/utils/utils";
+import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { AiInspector } from "./ai-inspector";
+import { WeekRouteCard } from "./week-route-card";
 import { useResponsive } from "./use-responsive";
 import type { PipelineSize } from "./ai-pipeline-node";
 import type { AnalysisEntry } from "./use-analysis-panel";
+import type { UserStats } from "./use-user-stats";
 
 export { useAnalysisPanel } from "./use-analysis-panel";
 export type {
@@ -53,8 +56,11 @@ export interface RightPanelProps {
   onJumpToSubtask?: (subtaskId: string) => void;
   /** 进入该视图时右栏的默认收展状态；用户手动切换后覆盖默认值 */
   defaultCollapsed?: boolean;
-  /** rail = 应用外壳右栏；card = 屏一双列右列深底卡 */
+  /** rail = 应用外壳右栏；card = 屏一双列右列暖底卡 */
   variant?: "rail" | "card";
+  /** 本周路线卡的数据：全量子任务与真实用户统计 */
+  rows?: SubtaskWithTask[];
+  stats?: UserStats | null;
 }
 
 export function RightPanel({
@@ -68,6 +74,8 @@ export function RightPanel({
   onJumpToSubtask,
   defaultCollapsed = false,
   variant = "rail",
+  rows = [],
+  stats = null,
 }: RightPanelProps) {
   const { isMobile } = useResponsive();
   const [manualCollapsed, setManualCollapsed] = useState<boolean | null>(null);
@@ -110,6 +118,15 @@ export function RightPanel({
       onJumpToSubtask={onJumpToSubtask}
       nodeSize={nodeSize}
     />
+  );
+
+  const body = (nodeSize: PipelineSize) => (
+    <div className="flex flex-col gap-4">
+      <WeekRouteCard rows={rows} stats={stats} />
+      <div className="border-t border-bd-card pt-3">
+        {inspector(nodeSize)}
+      </div>
+    </div>
   );
 
   // ── 屏一右列：暖底软卡（时间色谱右栏语言） ─────────────────────────
@@ -168,7 +185,7 @@ export function RightPanel({
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:thin]">
-            {inspector("sm")}
+            {body("sm")}
           </div>
         </Modal>
       </>
@@ -206,7 +223,7 @@ export function RightPanel({
       </div>
       {!collapsed && (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-          {inspector("md")}
+          {body("md")}
         </div>
       )}
     </aside>
