@@ -1,6 +1,6 @@
 # ui-debt.md — UI 债务与签字点议程
 
-> **版本**：v0.2.0 · **日期**：2026-09-26 · 状态：**签字点 ①②③ 已于 2026-09-26 处置（用户委托按推荐方案执行）；S1-S8 建议级留待下轮体检。**
+> **版本**：v0.2.1 · **日期**：2026-11-24 · 状态：**签字点 ①②③ 已于 2026-09-26 处置（用户委托按推荐方案执行）；S1-S8 建议级留待下轮体检。FB-19（2026-11-24）后 tokens 基线收紧到 991 处 / 78 文件，浅底 accent 黄按钮进一步清零。**
 > 来源：独立检查 Agent 体检报告（`audits/2026-09-26-visual-report.md` 阻断 7 已全部修复清零、复检见 `audits/2026-09-26-visual-report-round2.md`）+ 第一层脚本存量基线。
 > 规则：建议级与疑似项在此留痕，**不静默丢弃**；争议仲裁写明双方证据交人工裁决。
 
@@ -14,7 +14,7 @@
 | S4 | timeline-view / ascending-steps-view 空态 | 空态形态三套（裸文本 vs 完整引导），信息量不一致 | 待修（统一走 view-state-card 同族语言） | 下轮体检 |
 | S5 | landing hero.tsx:54、final-cta.tsx:37 | 落地页主 CTA 用 default 而非 accent——实现与设计真源一致，疑 design-system.md 契约文字过严 | **签字点 ① 裁决**（与 B1 同一冲突的两面） | 签字点 ① |
 | S6 | all-plans-view.tsx:42 | 皇冠图标用 `text-warning` 作装饰，语义借用且主题换装漂移 | 待修（改 text-text-2/3） | 下轮体检 |
-| S7 | check-box.tsx:28、icon-button.tsx:15、subtask-mark.tsx:33-34 | `bg-white` 在深色模式不换装（存量债的主题层视觉后果） | 随 R3 存量债清偿归一到 `bg-card` | 存量债 |
+| S7 | check-box.tsx:28、icon-button.tsx:15、subtask-mark.tsx:33-34 | `bg-white` 在深色模式不换装（存量债的主题层视觉后果） | 清偿中：FB-19 已清掉 landing demo-band / quota-band 与 watcha-pay-dialog 的 `bg-white`（改 `bg-card`），其余随 R3 存量债清偿 | 存量债 |
 | S8 | notification-center.tsx:187-203 | 通知触发器内联自绘（radius 6 / fontSize 12），与相邻控件圆角语言不成档 | 待修（改 IconButton/品牌 Token 类） | 下轮体检 |
 | S9 | subscribe-form.tsx:21-25 | Input 手写 className 覆盖达成深底形态——根因是缺 onDark 输入变体 | **签字点 ②+③ 提名**：Input `onDark` 变体补录，或改设计 | 签字点 ②③ |
 
@@ -30,7 +30,7 @@
 
 ### 签字点 ① —— 基准确认 ✅
 - A. tokens.md v0.2.0 全部 Token 基准确认生效。
-- B1. **accent 归属：方案 A** —— 米白底禁用黄按钮（产品壳主操作＝app 墨色、落地页主 CTA＝default 墨色）；深色带（深底卡/深底弹层/页脚深带）内允许作强调 CTA，同屏最多一枚。落地：tokens.md §1、design-system.md Button 条已改写；浅底弹层内 1 处 accent 已改 app（subtask-detail-modal「开始学习」）；深底带 3 处（ai-review-hint-row / ai-entry-detail / 页脚订阅）依此合法保留。
+- B1. **accent 归属：方案 A** —— 米白底禁用黄按钮（产品壳主操作＝app 墨色、落地页主 CTA＝default 墨色）；深色带（深底卡/深底弹层/页脚深带）内允许作强调 CTA，同屏最多一枚。落地：tokens.md §1、design-system.md Button 条已改写；浅底弹层内 1 处 accent 已改 app（subtask-detail-modal「开始学习」）；深底带 3 处（ai-review-hint-row / ai-entry-detail / 页脚订阅）依此合法保留。**FB-19 追加**：浅底弹层的另外两处 accent（「复制学习 Prompt」「标记已完成」）一并改 app 墨色，暖纸底标题句点由黄改朱红，落地页四段接入时间色谱。
 - B2. 档位裁决：**不新增字号/间距档位**。`text-sm`(14px) 等 125 处存量在清偿中逐文件迁移到既有档位（13/15px），由视觉复检把关； tokens.md §7 候选区保留为提名池。
 
 ### 签字点 ② —— 入库/废弃 ✅
@@ -45,9 +45,9 @@
 
 ## 4. 存量债基线（棘轮，只许减不许增）
 
-| 基线 | 冻结值（2026-09-26 v0.2.0 收紧后） | 内容 |
+| 基线 | 冻结值（2026-11-24 收紧后） | 内容 |
 |---|---|---|
-| tokens-baseline.json | 1132 处 / 115 文件 | font-size · spacing · color-hex · color-palette · radius · color-rgb（另有 100 处任意值宽高/定位仅记录） |
+| tokens-baseline.json | **991 处 / 78 文件**（2026-09-26 冻结值为 1132 处 / 115 文件） | font-size · spacing · color-hex · color-palette · radius · color-rgb（另有 100 处任意值宽高/定位仅记录） |
 | imports-baseline.json | **0 处（清零）** | 4 个本地组件已处置：2 个改真（TourHelpButton→ghost、AttrPill→Tag），2 个薄封装入白名单 |
 | vars-baseline.json | 6 处 | 局部派生变量（R7 豁免条款覆盖，见 D2） |
 

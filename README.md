@@ -83,9 +83,9 @@
 |---|---|---|
 | **核心框架** | Next.js 16 (App Router) + React 19 | 强类型全栈架构，RSC 服务端首屏零闪烁 |
 | **编程语言** | TypeScript 5.x | 全链路端到端类型安全 |
-| **运行时** | Bun 1.3+ / Node.js 18+ | 高性能构建与依赖管理 |
+| **运行时** | Bun 1.3+ / Node.js 20.9+ | 高性能构建与依赖管理（Next.js 16 要求 Node ≥ 20.9） |
 | **样式与设计系统** | Tailwind CSS v4 + shadcn/ui + Lucide | 支持多套主题动态切换与深浅模式 |
-| **动画引擎** | Motion (`motion/react`) | 丝滑的阶梯与甘特图交互过渡动效 |
+| **动画引擎** | Framer Motion (`framer-motion`) | 丝滑的阶梯与甘特图交互过渡动效 |
 | **数据库 & ORM** | PostgreSQL + Drizzle ORM | 强类型数据建模，Serverless 连接池优化 |
 | **AI 客户端** | 自托管 `appAi`（OpenAI 兼容 / BYOK） | 零平台锁定，支持 DeepSeek、Moonshot、GPT-4o 等 |
 | **资源检索引擎** | Tavily Search API + 自研抓取器 | 权威技术域名白名单过滤与实时可信度验证 |
@@ -128,7 +128,7 @@
 </details>
 
 ### 1. 环境准备
-- [Bun](https://bun.sh/) 1.3+（强烈推荐）或 Node.js 18+
+- [Bun](https://bun.sh/) 1.3+（强烈推荐）或 Node.js 20.9+（Next.js 16 的下限）
 - [PostgreSQL](https://www.postgresql.org/) 数据库（可免费使用 [Neon](https://neon.tech/) 或 [Supabase](https://supabase.com/)）
 - OpenAI 兼容的 LLM API 密钥（如 [DeepSeek](https://platform.deepseek.com/)、Moonshot、OpenAI、本地 Ollama/vLLM）
 - *(可选)* 至少一个资源搜索 API Key（Tavily、SerpAPI、Brave Search 或豆包）；按配置顺序自动回退
@@ -290,13 +290,13 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 | `POST` | `/api/auth/login` | 用户登录 | 公开（限流） |
 | `POST` | `/api/tasks` | 创建新的学习大任务 | 自动 Session |
 | `GET` | `/api/tasks` | 获取当前用户的任务列表与完成度 | 自动 Session |
-| `POST` | `/api/tasks/:id/analyze` | 触发 5 阶段 AI 规划流水线 | 自动 Session |
+| `POST` | `/api/tasks/:id/analyze` | 触发 4 阶段 AI 规划流水线 | 自动 Session |
 | `PATCH` | `/api/tasks/:id/subtasks/:sid` | 切换指定子任务的完成打卡状态 | 自动 Session |
 | `GET` | `/api/user/stats` | 获取用户专注时长、打卡连击与认知分布统计 | 自动 Session |
 
 ## 🗺️ 演进路线（Roadmap）
 
-- [x] 完整的 5 阶段 AI 任务规划与自愈修复流水线
+- [x] 完整的 4 阶段 AI 任务规划与自愈修复流水线
 - [x] 基于 Bloom 认知分类学的任务阶梯排序
 - [x] Tavily 两阶段防编造真实资源检索与可信度评级
 - [x] 全局认知负荷排期与动态甘特图

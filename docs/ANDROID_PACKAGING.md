@@ -53,7 +53,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 GitHub Actions 会自动：
-1. 启动 Ubuntu 构建机并配置 Node.js 20、Java 17、Android SDK
+1. 启动 Ubuntu 构建机并配置 Bun 1.3、Java 17、Android SDK（依赖用 `bun install --frozen-lockfile` 安装，仓库锁文件是 `bun.lock`）
 2. 将 `capacitor.config.ts` 中的服务器地址指向你配置的线上域名
 3. 自动运行 Gradle 编译生成 `gradus-android.apk`
 4. 自动在 GitHub Releases 发布并上传 `gradus-android.apk` 文件，供用户直接下载安装！
@@ -72,27 +72,27 @@ GitHub Actions 会自动：
 如果你需要在本地 Android Studio 中调试或签名：
 
 ### 前置要求
-- Node.js 18+
+- Node.js 20.9+（Next.js 16 的下限；项目推荐用 Bun 1.3+）
 - Android Studio 与 Android SDK（API Level 33+）
 - Java JDK 17
 
 ### 操作步骤
-1. 安装依赖：
+1. 安装依赖（仓库用 Bun，锁文件是 `bun.lock`）：
    ```bash
-   npm install
+   bun install
    ```
 2. 初始化 Android 工程：
    ```bash
-   npx cap add android
+   bunx cap add android
    ```
 3. 在 `capacitor.config.ts` 中指定线上服务器地址（或通过环境变量传入）：
    ```bash
    export CAPACITOR_SERVER_URL="https://your-domain.vercel.app"
-   npm run cap:sync
+   bun run cap:sync
    ```
 4. 打开 Android Studio：
    ```bash
-   npm run cap:open:android
+   bun run cap:open:android
    ```
 5. 在 Android Studio 中点击 **Build > Build Bundle(s) / APK(s) > Build APK(s)**。
    生成的 APK 文件位于 `android/app/build/outputs/apk/debug/app-debug.apk`。

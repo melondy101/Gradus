@@ -10,7 +10,8 @@ This is on-demand reference material for changes to Gradus. The repository-level
 | API | `src/app/api/**/route.ts`; each route owns its HTTP boundary. |
 | UI | `src/components/` grouped by `ui`, `home`, `task`, `landing`, `layout`, `auth`, `membership`, `share`, `errors`, `user-profile`, and `i18n`. |
 | Domain code | `src/lib/auth`, `db`, `api`, `ai`, `fetchers`, `i18n`, plus scheduling and resource modules. |
-| Design | `src/app/globals.css` is the token source; `output/拾级Gradus-设计预览.html` is the visual reference; `scripts/` contains deterministic audits. |
+| Design | `src/app/globals.css` is the token source; `output/拾级Gradus-设计预览.html` is the visual reference; `scripts/` contains deterministic audits plus the `check:env` deployment self-check. |
+| Deployment | `DEPLOY.md` is the executable runbook (clone → install → env check → local preview → platform decision → deploy → domain → acceptance). `Dockerfile` and `.dockerignore` build a Bun-based image; the image carries `.next` + `node_modules` and runs `next start` because this repository's `output: "standalone"` branch does not produce `.next/standalone`. |
 
 ## Runtime configuration
 
@@ -20,7 +21,11 @@ Use `.env.example` as the complete variable list. Production requires:
 - `AUTH_SECRET` with at least 32 characters
 - an AI provider: `GEMINI_API_KEY`, or the BYOK trio `AI_PROVIDER_BASE_URL`, `AI_PROVIDER_API_KEY`, and `AI_PROVIDER_MODEL`
 
-`AI_PROVIDER_MODE=gemini|byok` can force a provider. Resource search tries `TAVILY_API_KEY`, `SERPAPI_API_KEY`, `BRAVE_SEARCH_API_KEY`, and `DOUBAO_API_KEY` in that order; an unconfigured, rate-limited, failing, or empty provider falls through to the next one. With none available, resource results degrade to search links. Cron, email verification, Watcha OAuth, Android release checking, and workspace imports each have separate optional variables in `.env.example`.
+`AI_PROVIDER_MODE=gemini|byok` can force a provider. Resource search tries `DOUBAO_API_KEY`, `TAVILY_API_KEY`, `SERPAPI_API_KEY`, and `BRAVE_SEARCH_API_KEY` in that order; an unconfigured, rate-limited, failing, or empty provider falls through to the next one. With none available, resource results degrade to search links. Cron, email verification, Watcha OAuth, Android release checking, and workspace imports each have separate optional variables in `.env.example`.
+
+`bun run check:env` is the self-check for this section: it reports missing or malformed variables, resolves which AI branch will actually run (same precedence as `resolveProvider()` in `src/lib/ai-client.ts`), and never prints a secret value — only presence, length, and source file. `--connect` additionally verifies database connectivity, table count, and whether the drizzle migration table exists; `--file <path>` checks a specific env file; `--json` is machine-readable; `--mode local` relaxes the production-only `AUTH_SECRET` requirement. It exits non-zero when a blocking item is missing, so it can gate a deployment.
+
+Commerce is disabled by default. The public Gradus deployment uses `GRADUS_PAYMENT_PROVIDER=watcha`, `GRADUS_COMMERCE_ENABLED=true`, `GRADUS_PUBLIC_ORIGIN`, and server-only `WATCHA_PAY_*` values for its 10/30 planning packs. The Production switch was enabled on 2026-10-25; a real buyer's payment, return, entitlement delivery, and consumption remain unverified. Other self-hosted deployments do not inherit this configuration. See [PAYATHON submission status](../submissions/payathon-2026.md) for the current launch gate and [implementation history](../plans/2026-10-14-payathon-implementation.md) for the sandbox and migration record.
 
 ## Authentication and users
 
@@ -49,10 +54,12 @@ The route directory is the source of truth. Current groups are:
 
 | Group | Routes |
 |---|---|
-| Auth | `auth/register`, `login`, `logout`, `me`, `config`, `send-code`, and `oauth/watcha`. |
+| Auth | `auth/register`, `login`, `logout`, `me`, `config`, `send-code`, `reset-password`, `reset-password/code`, and `oauth/watcha` (plus `oauth/watcha/callback`). |
 | Tasks | `tasks`, `tasks/[id]`, `tasks/[id]/analyze`, `tasks/[id]/subtasks/[subtaskId]`, and `subtasks`. |
-| User and membership | `user/profile`, `user/stats`, `user/membership`, `membership/codes`, `membership/records`, and `membership/redeem`. |
-| Other services | `notifications`, `notifications/cron/daily-digest`, `notifications/test`, `cron/cleanup`, and `app/check-update`. |
+| User and membership | `user/profile`, `user/stats`, `user/membership`, `user/account/code`, `user/account/email`, `user/account/merge`, `user/account/password`, `membership/codes`, `membership/records`, and `membership/redeem`. |
+| Payments | `payments/summary`, `payments/watcha/access`, `payments/orders`, `payments/orders/[id]`, and `payments/alipay/notify`; the Watcha routes serve the current public purchase flow. |
+| Resources | `resources/preview` fetches and summarizes a single URL for the in-app resource preview. |
+| Other services | `notifications`, `notifications/cron/daily-digest`, `notifications/test`, `cron/cleanup`, `app/check-update`, and `mcp` (MCP server endpoint). |
 
 ## Database
 
@@ -76,6 +83,7 @@ Without a local database, use `/task/parity-probe` for task/detail visual checks
 ## Related documents
 
 - [Product requirements](../PRD.md)
+- [Deployment runbook](../../DEPLOY.md)
 - [Design system](../design-system/design-system.md)
 - [Android packaging](../ANDROID_PACKAGING.md)
 - [Watcha OAuth integration](../integrations/watcha/oauth2.md)

@@ -7,7 +7,7 @@
 1. 先看当前工作树；不要覆盖用户已有的未提交改动。
 2. 只在任务相关时阅读 [开发参考](./docs/development/agent-reference.md)：认证、AI、排期、API、环境变量与数据模型都在这里。
 3. 改 UI 前先读 [设计系统](./docs/design-system/design-system.md)、[令牌](./docs/design-system/tokens.md) 和 [规则](./docs/design-system/rules.md)。`output/拾级Gradus-设计预览.html` 是设计真源。
-4. 改 Watcha OAuth 时读 [接入资料](./docs/integrations/watcha/oauth2.md)；改 Android 时读 [Android 打包说明](./docs/ANDROID_PACKAGING.md)。
+4. 改 Watcha OAuth 时读 [接入资料](./docs/integrations/watcha/oauth2.md)；改 Android 时读 [Android 打包说明](./docs/ANDROID_PACKAGING.md)；部署或改环境变量时读 [部署 Runbook](./DEPLOY.md)。
 5. 写 Next.js 代码前，先读 `node_modules/next/dist/docs/` 中与当前改动相关的指南。
 
 ## 不可破坏的边界

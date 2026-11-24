@@ -1,6 +1,8 @@
 # tokens.md — 拾级 Gradus 设计变量清单
 
-> **版本**：v0.2.0 · **日期**：2026-09-26 · **变更摘要**：签字点① 通过——accent 归属按方案 A 裁决（米白底禁黄按钮，深色带内允许作强调 CTA）；v0.1.0 初稿从 7 张核心页面截图（`output/ds-screenshots/`）与令牌真源 `src/app/globals.css` 提炼。
+> **版本**：v0.2.1 · **日期**：2026-11-24 · **变更摘要**：FB-19 时间色谱落地——暖纸底上的强调统一为朱红（标题句点、落地页强调、价格），黄色只保留在深色带与「此刻 / 进行中」状态；补记 `--text-title-lg` / `--text-display*` 四档展示字号与时间色谱色板来源。
+>
+> 前版：v0.2.0 · 2026-09-26 · 签字点① 通过——accent 归属按方案 A 裁决（米白底禁黄按钮，深色带内允许作强调 CTA）；v0.1.0 初稿从 7 张核心页面截图（`output/ds-screenshots/`）与令牌真源 `src/app/globals.css` 提炼。
 >
 > ✅ **状态：基准已确认（签字点 ①，2026-09-26，用户委托按推荐方案执行）。**
 >
@@ -22,7 +24,7 @@
 | `--color-cream` | `#F5F2EA` | 全局底色（奶油纸） | `bg-cream` / `var(--cream)` | landing-desktop、app-today-desktop |
 | `--color-cream-light` | `#FAF8F3` | 次级面：输入框底、soft 卡、chips | `bg-cream-light` | app-today-desktop（输入框、建议 chips）、app-plans-desktop |
 | `--color-ink` | `#111111` | 主文字、深底按钮/选中态底 | `text-ink` / `bg-ink` | 全部截图 |
-| `--color-accent` | `#F5C518` | 唯一点缀黄：**深色带内强调 CTA（同屏最多一枚）**、进行中状态、强调统计卡、黄句点、深底眉题。**米白底禁用黄按钮**（签字点① 方案A：产品壳常规主操作用 app 墨色，落地页主 CTA 用 default） | `bg-accent` / `text-accent` | app-plans-desktop、probe-ritual-desktop（甘特进行中条、D1）、landing-desktop（句点、页脚深底订阅钮） |
+| `--color-accent` | `#F5C518` | 唯一点缀黄：**深色带内强调 CTA（同屏最多一枚）**、进行中状态、强调统计卡、深底眉题。**米白底禁用黄按钮与黄句点**（签字点① 方案A：产品壳常规主操作用 app 墨色；FB-19 起暖纸底上的强调一律改朱红） | `bg-accent` / `text-accent` | app-plans-desktop、probe-ritual-desktop（甘特进行中条、D1）、landing-desktop（页脚深底订阅钮） |
 | `--color-accent-deep` | `#E3B40F` | 黄按钮 hover 加深 | `bg-accent-deep` | 交互态（静态截图未定格；来源=品牌说明 §1.2，由 audit:tokens 对设计稿量测） |
 | `--color-accent-ink` | `#7A5F00` | 黄柔底上的可读文字（VERIFIED 徽章） | `text-accent-ink` | probe-ritual-desktop（VERIFIED 标签） |
 | `--color-accent-bright` | `#FFD740` | 点缀黄 hover 提亮 / 深底校验失败描边 | `bg-accent-bright` | 交互态（设计稿字面量收编，静态截图未定格） |
@@ -47,8 +49,8 @@
 | `--color-success-soft` | `rgba(63,107,47,.12)` | 成功柔底 | `bg-success-soft` | 同上 |
 | `--color-warning` | `#8A6200` | 警示文字 | `text-warning` | ConfirmDialog danger 层（audit:modals 量测） |
 | `--color-warning-soft` | `rgba(245,197,24,.16)` | 警示柔底 | `bg-warning-soft` | 同上 |
-| `--color-error` | `#A8331B` | 错误/破坏性文字与描边 | `text-error` / `border-error` | 删除确认浮层（audit:modals 量测） |
-| `--color-error-soft` | `rgba(168,51,27,.1)` | 错误柔底 | `bg-error-soft` | 同上 |
+| `--color-error` | `#A8331B` | 错误/破坏性文字与描边；**暖纸底上的强调色**（标题句点、落地页重点、价格数字、进行中状态标签） | `text-error` / `border-error` / `bg-error` | 删除确认浮层（audit:modals 量测）、landing（FB-19） |
+| `--color-error-soft` | `rgba(168,51,27,.1)` | 错误柔底；也是暖纸底强调的淡色底（更新条目 hover 渐变） | `bg-error-soft` | 同上 |
 | `--color-error-on-dark` | `#E06C4A` | 深底上的校验失败色 | `text-error-on-dark` | 深底浮层校验态 |
 | `--color-gantt-done` | `#D8D3C4` | 甘特条-已完成（灰） | `bg-gantt-done` | probe-ritual-desktop（假名与发音定型条） |
 | `--color-gantt-live` | `= --accent` | 甘特条-进行中（黄） | `bg-gantt-live` | probe-ritual-desktop（N4 语法收尾条） |
@@ -56,6 +58,24 @@
 | `--color-bloom-1..6` | `#D8D3C4 → #C9C3B2 → #8A867C → #6E6B62 → #3A3833 → #F5C518` | Bloom 认知层级阶梯（暖灰递进到顶点黄） | `bg-bloom-N` / `T.BLOOM_CONFIG` | probe-ritual-desktop（L2/L4/L5 标注）、app-steps-desktop（天梯台阶） |
 
 > Shadcn 语义映射（`--color-background/-foreground/-primary/-muted/-border/-ring/-popover/-sidebar-*/-chart-*`）全部指向上述品牌 Token（见 globals.css §Shadcn 语义映射），同样可用；`--ring` = 点缀黄，是全局 focus 环。
+
+## 2.1 时间色谱（L1→L6 认知层级色板）
+
+FB-19 起，**认知层级在暖纸底上的颜色不再用 Bloom 暖灰阶梯**，改用一组固定的时间色谱色：
+
+| 层级 | 色值 | 名称 | 代码引用 |
+|---|---|---|---|
+| L1 | `#789888` | 青苔绿 | `BLOOM_CHROMATIC[1]` |
+| L2 | `#B8A65D` | 金 | `BLOOM_CHROMATIC[2]` |
+| L3 | `#CC8438` | 赭 | `BLOOM_CHROMATIC[3]` |
+| L4 | `#D84C32` | 朱砂 | `BLOOM_CHROMATIC[4]` |
+| L5 | `#A45B46` | 赭红 | `BLOOM_CHROMATIC[5]` |
+| L6 | `#344C67` | 靛 | `BLOOM_CHROMATIC[6]` |
+
+- **真源是 `src/lib/design-tokens.ts` 的 `BLOOM_CHROMATIC` / `BLOOM_CHROMATIC_TINT`**，不是 CSS 变量——它们不参与主题换装，层级色在任何主题下保持一致（层级是语义，不是皮肤）。
+- 消费方式：`<ChromaticTag level={n} />`（彩色层级标签）、`<ChromaticTrack levels={[...]} />`（六段色轨）。两者都在 `src/components/ui/`。
+- `--bloom-1..6`（暖灰阶梯）保留给**深底带与旧甘特三态**；暖纸底上一律用时间色谱。
+- 计划页自身的计划色谱是另一组（`PLAN_CHROMATIC`：朱砂 / 玉 / 金 / 赭 / 靛 / 赭红），只用于计划卡的强调与进度环。
 
 ## 3. 间距梯度（Tailwind 4px 阶）
 
@@ -91,6 +111,10 @@
 | `--text-body-lg` | 15px | 大正文、输入框文字 | `text-body-lg` | app-today-desktop（输入框） |
 | `--text-title-sm` | 17px | 小标题、卡标题 | `text-title-sm` | probe-ritual-desktop（资源卡标题） |
 | `--text-title` | 19px | 面板标题 | `text-title` | app-today-desktop（今日面板） |
+| `--text-title-lg` | 24px | 大标题、区块主数值 | `text-title-lg` | landing（额度与价格） |
+| `--text-display-sm` | 28px | 展示数值（百分比、额度数字） | `text-display-sm` | landing（样例进度）、quota-band |
+| `--text-display` | 40px | 展示标题 | `text-display` | landing hero |
+| `--text-display-lg` | 48px | 大展示标题 | `text-display-lg` | landing hero |
 | 页面大标题/展示字号 | 存量 `text-[22..64px]`（landing hero 等） | **未收编** → 见 §7 候选区 | — | landing-desktop（hero） |
 
 > 存量混用：`text-xs`(12px)/`text-sm`(14px) 等 Tailwind 命名字号共 125 处、任意值 `text-[..px]` 96 处——已冻结进 ds-check-tokens 基线，新代码一律用 `--text-*` 档位。
@@ -130,7 +154,7 @@
 | `text-sm`（14px） | 44 处 | 提名 `--text-body-md: 14px`，或迁到 `--text-body-lg`(15px) |
 | `text-[10px]/[11px]` | 38 处 | 迁移到既有 `--text-micro` / `--text-caption`（不需新 Token） |
 | 任意值间距 `gap-[5px]/[7px]/[9px]`、`py-[5px]/[7px]/[9px]` 等 | 78 处 | 多数可就近归档到 4/6/8px 档；确需保留的提名 `--space-2.5` 已存在档位复用 |
-| 展示字号 `text-[22/24/26/28/30/38/40/44/64px]` | 14 处 | 提名展示梯度 `--text-display-sm/md/lg`（landing hero 用） |
+| 展示字号 `text-[22/24/26/28/30/38/40/44/64px]` | 存量递减（FB-19 已把 landing 的 28px 改为 `--text-display-sm`、26px 改 `--text-title-lg`、16px 改 `--text-body-lg`） | 余量多为 hero 专属，继续按 §4 展示档迁移 |
 | 一次性颜色散值 | 见 `scripts/color-baseline.json` | 由 audit:colors 棘轮管理，清零后收紧 |
 
 ## 8. 覆盖率自检（阶段一验收门：≥90%）

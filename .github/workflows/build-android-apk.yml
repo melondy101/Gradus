@@ -9,7 +9,7 @@ on:
       server_url:
         description: 'Online Server URL for the app (e.g. https://your-domain.vercel.app)'
         required: false
-        default: 'https://talktask.vercel.app'
+        default: 'https://talk-task.vercel.app'
       release_title:
         description: 'Release Title'
         required: false
@@ -25,11 +25,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 20
-          cache: 'npm'
+          bun-version: '1.3'
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -41,40 +40,21 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: bun install --frozen-lockfile
 
       - name: Configure Capacitor Server URL
+        # 仓库的 capacitor.config.ts 直接读 CAPACITOR_SERVER_URL，无需在这里重写配置文件
         run: |
-          SERVER_URL="${{ github.event.inputs.server_url || 'https://talktask.vercel.app' }}"
+          SERVER_URL="${{ github.event.inputs.server_url || 'https://talk-task.vercel.app' }}"
           echo "Building APK pointing to online server: $SERVER_URL"
-          export CAPACITOR_SERVER_URL="$SERVER_URL"
-          node -e "
-            const fs = require('fs');
-            const cfg = \`import type { CapacitorConfig } from '@capacitor/cli';
-            const config: CapacitorConfig = {
-              appId: 'com.gradus.app',
-              appName: '拾级',
-              webDir: 'public',
-              server: {
-                url: '\${process.env.CAPACITOR_SERVER_URL || '$SERVER_URL'}',
-                cleartext: true,
-                androidScheme: 'https'
-              },
-              android: {
-                allowMixedContent: true,
-                backgroundColor: '#FAFAF8'
-              }
-            };
-            export default config;\`;
-            fs.writeFileSync('capacitor.config.ts', cfg);
-          "
+          echo "CAPACITOR_SERVER_URL=$SERVER_URL" >> "$GITHUB_ENV"
 
       - name: Initialize Android platform if needed
         run: |
           if [ ! -d "android" ]; then
-            npx cap add android
+            bunx cap add android
           fi
-          npx cap sync android
+          bun run cap:sync:android
 
       - name: Build Android APK
         run: |

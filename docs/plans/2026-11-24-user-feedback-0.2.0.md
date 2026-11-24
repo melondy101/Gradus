@@ -316,8 +316,9 @@
 | 项目 | 结果 |
 |---|---|
 | `bun run lint` | 0 error，8 条既有 warning |
-| `bun run test` | 228 项通过 / 5 跳过（跳过项为依赖数据库的历史用例） |
+| `bun run test` | 231 项通过 / 5 跳过（跳过项为依赖数据库的历史用例） |
 | `bun run build` | 通过（本机需临时覆盖 `.env.production.local` 的无效 `DATABASE_URL` 占位值，与代码无关） |
+| `bun run ds:tokens` / `ds:imports` | 通过（FB-19 后）：tokens 基线收紧到 991 处 / 78 文件且未恶化，imports 0 违规 |
 | `docker build -t gradus .` | 通过（FB-16）；`docker run` 冒烟：首页 200、`/icon.svg` 200、`docker exec gradus bun run db:migrate` 可执行 |
 | `bun run check:env` | 通过（FB-18）；`--connect` 对本地 Postgres 实测连通且迁移记录表存在，错误端口时给出 `ECONNREFUSED` 并退出码 1 |
 | 新增测试 | 7 个文件：workload / 层级单一真相源 / 资源开课状态 / 额度日界 / 失败分级 / 会员入口队列 / 购买页签价格 / 信任标签 / 版本同步守卫 |

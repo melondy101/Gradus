@@ -1,6 +1,8 @@
 # design-system.md — 拾级 Gradus 组件清单
 
-> **版本**：v0.2.0 · **日期**：2026-09-26 · **变更摘要**：签字点①②③ 落地——Button accent 归属按方案 A 收紧；Input 增 `onDark` 变体；删除 4 个未接线脚手架组件（select/tabs/label/textarea）；UserBadge 增 `compact` 形态。
+> **版本**：v0.2.1 · **日期**：2026-11-24 · **变更摘要**：FB-19——落地页四段（更新 / 如何使用 / 核心能力 / 额度与价格）与子任务弹窗接入时间色谱；新增 `ChromaticTrack` / `ChromaticTag` 两个原语；暖纸底强调统一朱红（标题句点由黄改朱红）。
+>
+> 前版：v0.2.0 · 2026-09-26 · 签字点①②③ 落地——Button accent 归属按方案 A 收紧；Input 增 `onDark` 变体；删除 4 个未接线脚手架组件（select/tabs/label/textarea）；UserBadge 增 `compact` 形态。
 >
 > ✅ **状态：基准已确认（签字点 ①，2026-09-26，用户委托按推荐方案执行）。**
 >
@@ -25,7 +27,7 @@
 | Modal | `Modal` `ModalProps` | modal.tsx | 7 层弹层（z 阶梯 100→400） | 新手引导、新建目标 |
 | ConfirmDialog | `ConfirmDialog` | confirm-dialog.tsx | 确认/危险二次确认 | 删除确认 |
 | Eyebrow / Mono | `Eyebrow` `Mono` | eyebrow.tsx | mono 大写眉题/等宽 meta | TODAY、NEW GOAL、AI REVIEW |
-| Heading | `Heading` | heading.tsx | 标题（hero/sec/sub/page + 黄句点） | 各面板标题、落地 hero |
+| Heading | `Heading` | heading.tsx | 标题（hero/sec/sub/page + 朱红句点） | 各面板标题、落地 hero |
 | IconButton / Avatar | `IconButton` `Avatar` | icon-button.tsx | 方形图标钮 / 圆形头像 | 侧栏折叠钮、访客头像 |
 | AiPill | `AiPill` | ai-pill.tsx | 深底 AI 状态浮标 | 「AI 建议复核未验证资源 1/2」 |
 | GradusLogo | `GradusLogo` | gradus-logo.tsx | 品牌标识（三级台阶，顶点朱红，可带衬线字标） | 顶栏、页脚、达成弹窗 |
@@ -94,8 +96,8 @@
 - 禁止：中文正文用 Mono（等宽栈只覆盖拉丁与数字）；浅底上用 accent 眉题（黄字在奶油底不达对比度，仅深底带豁免）。
 
 ### Heading — `import { Heading } from "@/components/ui/heading"`
-- props：`level?: 1|2|3`（默认 2，映射 h1/h2/h3）；`spec?: "hero"|"sec"|"sub"|"page"`（默认 sec）；`accentDot?: boolean`（句号黄点）。
-- 适用：全部标题。品牌句号黄点（标题结尾的「。」 accent）只能通过 `accentDot` 获得。
+- props：`level?: 1|2|3`（默认 2，映射 h1/h2/h3）；`spec?: "hero"|"sec"|"sub"|"page"`（默认 sec）；`accentDot?: boolean`（句号朱红点，FB-19 起暖纸底强调统一朱红）。
+- 适用：全部标题。品牌句点只能通过 `accentDot` 获得，颜色是朱红（`--error`）。
 - 禁止：裸 h 标签 + 手写字号；在同屏用两个以上 hero。
 
 ### IconButton / Avatar — `import { IconButton, Avatar } from "@/components/ui/icon-button"`
