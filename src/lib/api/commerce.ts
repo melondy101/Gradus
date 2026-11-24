@@ -41,6 +41,8 @@ export interface WatchaAccessView {
   expiresAt: number | null;
   reason: string | null;
   purchaseUrl: string | null;
+  /** 桌面端扫码支付的二维码地址（FB-04） */
+  purchaseQrUrl: string | null;
 }
 
 export async function fetchWatchaAccess(sku: ProductSku): Promise<WatchaAccessView> {
@@ -50,7 +52,14 @@ export async function fetchWatchaAccess(sku: ProductSku): Promise<WatchaAccessVi
   return result;
 }
 
-export async function beginWatchaPurchase(sku: ProductSku): Promise<string> {
+export interface WatchaPurchaseEntry {
+  /** 深链（移动端唤起支付宝）或网页地址 */
+  url: string;
+  /** 桌面端扫码用的二维码地址；平台未返回时为 null */
+  qrUrl: string | null;
+}
+
+export async function beginWatchaPurchase(sku: ProductSku): Promise<WatchaPurchaseEntry> {
   const response = await request("/api/payments/watcha/access", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sku }),
@@ -59,5 +68,5 @@ export async function beginWatchaPurchase(sku: ProductSku): Promise<string> {
   if (!response.ok || !result.ok || !result.purchaseUrl) {
     throw new Error(result.error || (result.access === "granted" ? "当前权益已开通" : "暂时无法获取购买入口"));
   }
-  return result.purchaseUrl;
+  return { url: result.purchaseUrl, qrUrl: result.purchaseQrUrl ?? null };
 }

@@ -3,6 +3,7 @@
 // getTask 水化后的 entry.task），此处只做客户端二次推导，绝不编造指标。
 
 import type { Subtask } from "@/lib/db/schema";
+import { planTotalHours } from "@/lib/workload";
 import type { AnalysisEntry, Resource } from "./use-analysis-panel";
 
 export interface PlanSummary {
@@ -12,7 +13,7 @@ export interface PlanSummary {
   verifiedCount: number;
   searchOnlyCount: number;
   totalDays: number;
-  /** 深度工时合计（无 deepWorkHours 时按 durationDays × 1.5 估算口径，与旧卡一致） */
+  /** 计划总工时 = Σ(每日深度工时 × 工期)，口径见 src/lib/workload.ts */
   deepHours: number;
 }
 
@@ -48,7 +49,6 @@ export function summarizePlan(entry: AnalysisEntry): PlanSummary {
   let resourceCount = 0;
   let verifiedCount = 0;
   let searchOnlyCount = 0;
-  let deepHours = 0;
   for (const s of subs) {
     const rs = parseResources(s);
     resourceCount += rs.length;
@@ -56,7 +56,6 @@ export function summarizePlan(entry: AnalysisEntry): PlanSummary {
       if (trustOf(r) === "verified") verifiedCount++;
       else searchOnlyCount++;
     }
-    deepHours += s.deepWorkHours ? Number(s.deepWorkHours) || 0 : (s.durationDays || 1) * 1.5;
   }
   return {
     subtaskCount: subs.length,
@@ -65,7 +64,7 @@ export function summarizePlan(entry: AnalysisEntry): PlanSummary {
     verifiedCount,
     searchOnlyCount,
     totalDays: entry.task?.totalDays ?? 0,
-    deepHours: Math.round(deepHours * 10) / 10,
+    deepHours: planTotalHours(subs),
   };
 }
 

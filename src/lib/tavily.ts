@@ -37,7 +37,7 @@ export interface TrustableResource {
   suitable_for?: "beginner" | "intermediate" | "advanced" | "all";
 
   // ── 三维可信度增强字段（由 resource-validator.ts 填充）────────────────────
-  /** HEAD 检测结果 */
+  /** URL 检测结果（FB-05 起改用 GET 抓正文） */
   url_status?: "ok" | "redirect" | "login_required" | "not_found" | "dead" | "timeout" | "unchecked";
   /** HTTP 响应码 */
   http_status?: number;
@@ -51,6 +51,10 @@ export interface TrustableResource {
   freshness?: "high" | "medium" | "low" | "unknown";
   /** Last-Modified 原始值 */
   last_modified?: string;
+  /** 内容是否还学得了（FB-05）：链接活着 ≠ 课还开着 */
+  content_status?: "available" | "ended" | "closed" | "unknown";
+  /** 命中「已结束 / 已关闭」的原文片段 */
+  status_evidence?: string;
 }
 
 // ─── 白名单域名表（按领域分类）─────────────────────────────────────────────

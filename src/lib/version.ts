@@ -1,7 +1,21 @@
 /**
- * 拾级（Gradus）移动端及客户端版本管理与比对工具
+ * 拾级（Gradus）版本管理与比对工具
+ *
+ * 三条版本轴，互不相干，改动前先看清自己在动哪一条：
+ *
+ * 1. 产品版本 PRODUCT_VERSION —— Web 端产品版本，落地页徽章 / 页脚 / 分享卡显示它。
+ *    真源是 package.json 的 version，两者必须相等，由 src/lib/version.test.ts 守卫。
+ *    每次发版都要改（package.json + 本文件）。
+ * 2. 客户端版本 CURRENT_APP_VERSION —— Android / 全平台客户端的 GitHub Releases
+ *    更新通道版本，用于「发现新版本」提示。
+ *    ⚠️ 只在发布客户端安装包时 +1。误改会让所有客户端弹更新提示。
+ * 3. 文档版本 —— docs/PRD.md 顶部版本行，PRD 实质改版时才动。
  */
 
+/** 产品版本（唯一真源与 package.json 的 version 保持一致） */
+export const PRODUCT_VERSION = "0.2.0";
+
+/** 客户端（Android / 全平台）更新通道版本 —— 只在发客户端包时 +1 */
 export const CURRENT_APP_VERSION = "1.0.0";
 
 /**

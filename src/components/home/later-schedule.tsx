@@ -8,11 +8,12 @@
 
 import { useTranslation } from "react-i18next";
 import { T, bloomChromatic } from "@/lib/design-tokens";
+import { deepHoursOf } from "@/lib/workload";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { getSubtaskDateRange } from "./subtask-row";
-import { bloomOf, hoursOf } from "./subtask-line-model";
+import { bloomOf } from "./subtask-line-model";
 import type { TimelineSection } from "./timeline-sections";
 
 interface Props {
@@ -53,8 +54,8 @@ export function LaterSchedule({
 
           <ul className="flex flex-col">
             {section.rows.map((row) => {
-              const { level, config } = bloomOf(row);
-              const color = bloomChromatic(level);
+              const { level, config, known } = bloomOf(row);
+              const color = known ? bloomChromatic(level) : T.lineCheck;
               const range = getSubtaskDateRange(row);
               const marked = activeSubtaskId === row.id || highlightedSubtaskId === row.id;
 
@@ -111,10 +112,10 @@ export function LaterSchedule({
 
                   <div className="text-right">
                     <b className="block text-caption font-bold whitespace-nowrap" style={{ color }}>
-                      L{level} {config.name}
+                      {known ? `L${level} ${config.name}` : "层级未标注"}
                     </b>
                     <span className="mt-0.5 block font-mono text-caption whitespace-nowrap text-text-3">
-                      {hoursOf(row)}h
+                      {deepHoursOf(row).hours}h/天
                     </span>
                   </div>
                 </li>

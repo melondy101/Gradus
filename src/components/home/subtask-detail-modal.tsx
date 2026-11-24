@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/badge";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Modal } from "@/components/ui/modal";
+import { ResourcePreviewPanel } from "./resource-preview-panel";
 
 // trust_level 颜色配置
 // verified  = 绿色边框 + 绿色标签：代码通过 Tavily 检索到的真实 URL
@@ -66,6 +67,9 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
     authority_label?: string;
     freshness?: string;
     last_modified?: string;
+    // 内容可学性（FB-05）：链接活着但课已结课 / 内容已下架
+    content_status?: "available" | "ended" | "closed" | "unknown";
+    status_evidence?: string;
   };
   let resources: ResItem[] = [];
   if (row.resources) {
@@ -278,7 +282,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
                     else if (r.searchQuery) window.open(`https://www.google.com/search?q=${encodeURIComponent(r.searchQuery)}`, "_blank", "noopener,noreferrer");
                   } : undefined}
                   style={{
-                    display: "flex", alignItems: "flex-start", gap: 9,
+                    display: "flex", alignItems: "flex-start", gap: 9, flexWrap: "wrap",
                     padding: "9px 11px",
                     background: isDead ? "var(--error-soft)" : cfg.bg,
                     border: `1px solid ${isDead ? "var(--error-soft)" : cfg.border}`,
@@ -323,6 +327,17 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
                           </span>
                         )}
 
+                        {/* 内容可学性（FB-05）：链接活着 ≠ 课还开着 */}
+                        {(r.content_status === "ended" || r.content_status === "closed") && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 700, color: "var(--error)",
+                            background: "var(--error-soft)", border: "1px solid var(--error-soft)",
+                            borderRadius: 4, padding: "1px 5px",
+                          }}>
+                            已结束 · 不可学
+                          </span>
+                        )}
+
                         {/* 新鲜度 */}
                         {r.freshness && r.freshness !== "unknown" && (
                           <span style={{
@@ -356,6 +371,10 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
                     {isDead && (
                       <div style={{ color: "var(--error)", fontSize: 10, marginTop: 3 }}>
                         {t("subtaskDetail.deadLink")}
+                      </div>                    )}
+                    {(r.content_status === "ended" || r.content_status === "closed") && (
+                      <div style={{ color: "var(--error)", fontSize: 10, marginTop: 3 }}>
+                        链接能打开，但课程已结课或内容已下架，建议换一个资源。
                       </div>
                     )}
                     {!r.url && r.searchQuery && (
@@ -366,6 +385,12 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
                   </div>
                   {(clickable && !isDead) && <span style={{ color: cfg.arrowColor, fontSize: 12, flexShrink: 0, marginTop: 2 }}>→</span>}
                   {isDead && <span style={{ color: "var(--error)", fontSize: 12, flexShrink: 0, marginTop: 2 }}>✕</span>}
+                  {/* FB-08：站内预览（先看清内容再跳出去） */}
+                  {(r.url && !isDead) && (
+                    <div style={{ flexBasis: "100%", marginTop: 6 }}>
+                      <ResourcePreviewPanel url={r.resolved_url ?? r.url} title={r.title} />
+                    </div>
+                  )}
                 </div>
               );
             })}

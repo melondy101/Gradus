@@ -15,7 +15,9 @@ import { auth, useSessionUser } from "@/lib/auth-shim";
 const NAV_LINKS = [
   { id: "sec-whatsnew", label: "更新" },
   { id: "sec-how", label: "如何使用" },
+  { id: "sec-demo", label: "样例" },
   { id: "sec-cap", label: "核心能力" },
+  { id: "sec-quota", label: "额度与价格" },
   { id: "sec-privacy", label: "隐私" },
 ] as const;
 
@@ -133,7 +135,7 @@ export function LandingNav() {
                 "hidden min-[680px]:inline-flex"
               )}
             >
-              免费开始
+              免费开始 · 试用 3 次
             </Link>
           </div>
         </div>

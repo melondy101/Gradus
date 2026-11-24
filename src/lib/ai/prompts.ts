@@ -141,6 +141,17 @@ export const PLAN_PROMPT = `你是一名专业学习计划设计师，精通 Blo
       "deep_work_hours": 1.5,
       "learning_method": "worked_example",
       "resource_indices": [0, 2]
+    },
+    {
+      "title": "另一个子任务（工时必须与上面不同）",
+      "description": "具体说明：做什么 + 怎么做 + 用哪个资源（不超过80字）",
+      "duration_days": 3,
+      "start_day": 2,
+      "priority": 2,
+      "bloom_level": 4,
+      "deep_work_hours": 2.5,
+      "learning_method": "project",
+      "resource_indices": [1]
     }
   ]
 }
@@ -172,7 +183,9 @@ export const PLAN_PROMPT = `你是一名专业学习计划设计师，精通 Blo
 
 6. 资源绑定：resource_indices 对应资源清单索引（从0开始），每个子任务至少引用 1 个
 
-7. deep_work_hours：每天需要的深度专注时长（0.5-3小时），认知密集任务建议 1.5-2.5 小时
+7. deep_work_hours：**每天**需要的深度专注时长（0.5-3小时），认知密集任务建议 1.5-2.5 小时
+   - ⚠️ 必须按任务复杂度差异化，禁止所有子任务写成同一个值（否则总工时会失真）
+   - ⚠️ 所有子任务的 deep_work_hours × duration_days 之和应接近预计总时长 {TOTAL_HOURS} 小时
 
 8. description 写法示例：
    ✅ "在B站搜索'廖雪峰Python教程'，完成第1-3章，手打所有代码示例"

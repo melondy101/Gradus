@@ -7,7 +7,7 @@ import { T } from "@/lib/design-tokens";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import type { ThemeId } from "@/lib/theme-config";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { openMembershipModalWithFeedback } from "@/components/membership/global-membership-modal";
 import { useSessionUser } from "@/lib/auth-shim";
 import { isAdminUser } from "@/lib/auth/admin-shared";
 
@@ -92,7 +92,7 @@ export function CommandPalette({
       icon: Crown,
       action: () => {
         onClose();
-        openMembershipModal("overview");
+        openMembershipModalWithFeedback("overview");
       },
     },
     {
@@ -102,7 +102,7 @@ export function CommandPalette({
       icon: Ticket,
       action: () => {
         onClose();
-        openMembershipModal("redeem");
+        openMembershipModalWithFeedback("redeem");
       },
     },
     ...(isAdmin
@@ -114,7 +114,7 @@ export function CommandPalette({
             icon: Zap,
             action: () => {
               onClose();
-              openMembershipModal("manage");
+              openMembershipModalWithFeedback("manage");
             },
           },
         ]

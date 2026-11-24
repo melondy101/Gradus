@@ -18,6 +18,10 @@ export interface ResourceView {
   authority: number | null;
   /** 校验后确认不可访问 */
   dead: boolean;
+  /** 内容是否还学得了（FB-05）：链接活着但课已结课的情况 */
+  contentStatus: "available" | "ended" | "closed" | "unknown";
+  /** 命中「已结束 / 已关闭」的原文片段 */
+  statusEvidence: string | null;
   clickable: boolean;
   kind: string;
 }
@@ -33,6 +37,8 @@ interface RawResource {
   trust_level?: string;
   authority_score?: number;
   url_status?: string;
+  content_status?: "available" | "ended" | "closed" | "unknown";
+  status_evidence?: string;
 }
 
 function hostOf(url: string | null): string {
@@ -49,6 +55,7 @@ function toResource(r: RawResource): ResourceView {
   const url = r.resolved_url || r.url || null;
   const searchQuery = r.searchQuery || null;
   const dead = r.url_status === "not_found" || r.url_status === "dead";
+  const contentStatus = r.content_status ?? "unknown";
   return {
     title: r.title || url || searchQuery || "未命名资源",
     source: r.platform || hostOf(url) || r.author || "未知来源",
@@ -57,6 +64,8 @@ function toResource(r: RawResource): ResourceView {
     searchQuery,
     authority: typeof r.authority_score === "number" ? r.authority_score : null,
     dead,
+    contentStatus,
+    statusEvidence: r.status_evidence ?? null,
     clickable: Boolean(url || searchQuery) && !dead,
     kind: r.type || "link",
   };

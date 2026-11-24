@@ -3,9 +3,11 @@
  *
  * 不依赖任何搜索 API 的三维资源可信度增强：
  *
- *   ① URL 存活验证  — HEAD 请求，判断 200/301→/403/404/timeout
+ *   ① URL 存活验证  — GET 请求，判断 200/301→/403/404/timeout
+ *                      （FB-05 起改用 GET：只有拿到正文才能判断内容是否还学得了）
  *   ② 域名权威分    — 静态权重表，官方文档 10 分 / 社区 7 分 / 博客 4 分
  *   ③ 内容新鲜度    — Last-Modified 响应头，< 6 月 HIGH / < 3 年 MEDIUM / 更旧 LOW
+ *   ④ 内容可学性    — 平台名单 + 通用文案兜底，识别「课已结 / 资源已下架」（FB-05）
  *
  * 设计原则：
  *   - 全部并行执行（Promise.allSettled），单条超时不影响整体
@@ -16,6 +18,11 @@
 
 import type { TrustableResource } from "./tavily";
 import { isSafePublicUrl, safeFetch } from "./ssrf-guard";
+import {
+  detectEnrollmentStatus,
+  type EnrollmentCheck,
+  type EnrollmentStatus,
+} from "./resource-enrollment";
 
 // ─── 类型扩展 ─────────────────────────────────────────────────────────────
 
@@ -46,6 +53,10 @@ export interface ResourceValidation {
   last_modified?: string;
   /** 验证耗时（ms） */
   checked_at: number;
+  /** 内容是否还学得了（FB-05）：链接活着 ≠ 内容可学 */
+  content_status?: EnrollmentStatus;
+  /** 命中「已结束 / 已关闭」的原文片段，给用户看原因 */
+  status_evidence?: string;
 }
 
 export type ValidatedResource = TrustableResource & Partial<ResourceValidation>;
@@ -109,6 +120,12 @@ const DOMAIN_AUTHORITY: Record<string, { score: number; label: ResourceValidatio
   "en.wikipedia.org":         { score: 8, label: "community" },
   "zh.wikipedia.org":         { score: 8, label: "community" },
   "mathworld.wolfram.com":    { score: 8, label: "official" },
+
+  // ── 国内高校与课程平台 (7) ──────────────────────────────────────────────
+  "icourse163.org":           { score: 7, label: "platform" },  // 中国大学 MOOC
+  "xuetangx.com":             { score: 7, label: "platform" },  // 学堂在线
+  "imooc.com":                { score: 6, label: "platform" },  // 慕课网
+  "chaoxing.com":             { score: 6, label: "platform" },  // 超星学习通
 
   // ── 优质学习资源 (7) ─────────────────────────────────────────────────────
   "javascript.info":          { score: 7, label: "platform" },
@@ -201,6 +218,26 @@ function isLoginRedirect(finalUrl: string): boolean {
 
 // ─── 单条 URL 验证 ────────────────────────────────────────────────────────
 
+/** 正文抓取上限（字符），避免超大页面拖慢整轮校验 */
+const MAX_BODY_CHARS = 200_000;
+
+/**
+ * 用 HEAD 兜底：部分站点允许 HEAD 但拒绝 GET 正文，
+ * 拿到状态码至少能判定「链接是活的」。
+ */
+async function probeHead(url: string): Promise<Response | null> {
+  try {
+    return await safeFetch(url, {
+      method: "HEAD",
+      redirect: "manual",
+      headers: { "User-Agent": "AutoTask/1.0 (resource-validator)" },
+      signal: AbortSignal.timeout(2500),
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function validateUrl(url: string): Promise<ResourceValidation> {
   const authority = getDomainAuthority(url);
   const start = Date.now();
@@ -211,10 +248,14 @@ async function validateUrl(url: string): Promise<ResourceValidation> {
   }
 
   try {
+    // 用 GET 而不是 HEAD：只有拿到正文才能判断「课是否还开着」（FB-05）
     const res = await safeFetch(url, {
-      method: "HEAD",
+      method: "GET",
       redirect: "manual",
-      headers: { "User-Agent": "AutoTask/1.0 (resource-validator)" },
+      headers: {
+        "User-Agent": "AutoTask/1.0 (resource-validator)",
+        Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+      },
       signal: AbortSignal.timeout(2500),
     });
 
@@ -231,7 +272,13 @@ async function validateUrl(url: string): Promise<ResourceValidation> {
       // fetch follow=true 已追踪，若还是 3xx 说明循环
       urlStatus = "redirect";
     } else if (httpStatus === 401 || httpStatus === 403) {
-      urlStatus = "login_required";
+      // 有些站点只对 GET 正文做风控，HEAD 仍可通过 —— 用 HEAD 再确认一次
+      const head = await probeHead(url);
+      if (head && (head.status === 200 || head.status === 206)) {
+        urlStatus = "ok";
+      } else {
+        urlStatus = "login_required";
+      }
     } else if (httpStatus === 404 || httpStatus === 410) {
       urlStatus = "not_found";
     } else if (httpStatus >= 500) {
@@ -239,6 +286,13 @@ async function validateUrl(url: string): Promise<ResourceValidation> {
     } else {
       urlStatus = "ok";
     }
+
+    // 内容可学性判定：读正文 → 平台名单 / 通用文案兜底
+    let enrollment: EnrollmentCheck = { status: "unknown" };
+    try {
+      const body = await res.text();
+      enrollment = detectEnrollmentStatus(finalUrl, body.slice(0, MAX_BODY_CHARS));
+    } catch { /* 正文读不到就保持 unknown，不影响链接判定 */ }
 
     return {
       ...authority,
@@ -248,6 +302,8 @@ async function validateUrl(url: string): Promise<ResourceValidation> {
       freshness,
       last_modified: lastModifiedHeader ?? undefined,
       checked_at: Date.now() - start,
+      content_status: enrollment.status,
+      status_evidence: enrollment.evidence,
     };
   } catch (err) {
     const isTimeout = err instanceof Error && (err.name === "TimeoutError" || err.message.includes("timeout"));
@@ -256,6 +312,7 @@ async function validateUrl(url: string): Promise<ResourceValidation> {
       url_status: isTimeout ? "timeout" : "dead",
       freshness: "unknown",
       checked_at: Date.now() - start,
+      content_status: "unknown",
     };
   }
 }
@@ -303,6 +360,7 @@ export async function validateResources(resources: TrustableResource[]): Promise
       (validated[i] as ValidatedResource).freshness = "unknown";
       (validated[i] as ValidatedResource).authority_score = 0;
       (validated[i] as ValidatedResource).authority_label = "unknown";
+      (validated[i] as ValidatedResource).content_status = "unknown";
     }
   });
 

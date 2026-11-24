@@ -1,10 +1,12 @@
 import { LandingCapabilities } from "./capabilities";
+import { LandingDemoBand } from "./demo-band";
 import { LandingFinalCta } from "./final-cta";
 import { LandingFooter } from "./footer";
 import { LandingHero } from "./hero";
 import { LandingHowItWorks } from "./how-it-works";
 import { LandingNav } from "./nav";
 import { LandingPrivacyBand } from "./privacy-band";
+import { LandingQuotaBand } from "./quota-band";
 import { LandingWhatsNew } from "./whats-new";
 
 /**
@@ -23,7 +25,9 @@ export function LandingPage() {
         <LandingHero />
         <LandingWhatsNew />
         <LandingHowItWorks />
+        <LandingDemoBand />
         <LandingCapabilities />
+        <LandingQuotaBand />
         <LandingPrivacyBand />
         <LandingFinalCta />
       </main>

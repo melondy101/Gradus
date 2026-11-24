@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { tasks, subtasks } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { deepHoursOf, totalHoursOf } from "@/lib/workload";
 
 export function buildMcpServer(userId: string): McpServer {
   const server = new McpServer({
@@ -95,7 +96,7 @@ export function buildMcpServer(userId: string): McpServer {
         return start <= todayStart && todayStart <= end;
       });
 
-      return { content: [{ type: "text" as const, text: JSON.stringify({ date: todayStart.toISOString().slice(0, 10), total: todayRows.length, pending: todayRows.filter((r) => !r.completed).length, tasks: todayRows.map((r) => ({ id: r.id, title: r.title, taskTitle: r.taskTitle, completed: r.completed, bloomLevel: r.bloomLevel, estimatedHours: r.deepWorkHours ?? r.durationDays * 1.5 })) }, null, 2) }] };
+      return { content: [{ type: "text" as const, text: JSON.stringify({ date: todayStart.toISOString().slice(0, 10), total: todayRows.length, pending: todayRows.filter((r) => !r.completed).length, tasks: todayRows.map((r) => ({ id: r.id, title: r.title, taskTitle: r.taskTitle, completed: r.completed, bloomLevel: r.bloomLevel, dailyHours: deepHoursOf(r).hours, totalHours: totalHoursOf(r), estimatedHours: deepHoursOf(r).hours })) }, null, 2) }] };
     }
   );
 

@@ -26,11 +26,13 @@ export function AiPipelineSteps({ stream, size = "lg" }: Props) {
   const isError = stream.phase === "error";
   const finished = stream.phase === "done";
   const eta = getEtaLabel(stream.phase, stream.deltaLen);
+  // FB-07：失败时保留已完成的节点，只把卡住的那一段标成中断
+  const failedIdx = isError && stream.failedFrom ? stageIndexOf(stream.failedFrom) : -1;
 
   return (
     <div className="mb-3 flex items-center gap-0">
       {PIPELINE_STAGES.map((stage, i) => {
-        const done = isError ? false : stageIdx > i || finished;
+        const done = isError ? i < failedIdx : stageIdx > i || finished;
         const live = !isError && !finished && stageIdx === i;
         const state: PipelineState = done ? "done" : live ? "live" : "idle";
         return (

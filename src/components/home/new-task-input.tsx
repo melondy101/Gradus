@@ -20,6 +20,7 @@ import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 import { TagEditor } from "@/components/task/tag-badges";
+import { NewTaskQuotaHint } from "./new-task-quota-hint";
 import { NewTaskUrlHint } from "./new-task-url-hint";
 import { detectUrlHint, extractUrlClient, EXAMPLE_GOALS } from "./new-task-url";
 
@@ -125,6 +126,9 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
       />
 
       {urlHint && <NewTaskUrlHint hint={urlHint} />}
+
+      {/* 额度提示：提交前告诉用户还能生成几次，用完怎么办（FB-03） */}
+      <NewTaskQuotaHint />
 
       {/* 折叠式标签选择器：手机上默认紧凑，不占主输入视线 */}
       <div className="border-t border-bd-card pt-2">

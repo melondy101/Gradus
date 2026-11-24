@@ -2,7 +2,7 @@
 
 import { Crown, Plus } from "lucide-react";
 import type { TaskWithSubtasks } from "@/lib/api/tasks";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { openMembershipModalWithFeedback } from "@/components/membership/global-membership-modal";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Heading } from "@/components/ui/heading";
@@ -74,7 +74,7 @@ export function PlansIntro({ tasks, onNewPlan }: PlansIntroProps) {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => openMembershipModal("overview")}
+          onClick={() => openMembershipModalWithFeedback("overview")}
           className="h-10 rounded-none px-4 text-body-sm"
         >
           <Crown size={14} />会员与容量

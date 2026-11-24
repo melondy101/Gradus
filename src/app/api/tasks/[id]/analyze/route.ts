@@ -19,10 +19,10 @@ import {
   PLAN_PROMPT,
   VALIDATE_PROMPT,
 } from "@/lib/ai/prompts";
+import { classifyAnalyzeError } from "@/lib/ai/analyze-errors";
 import {
   getTaskById,
-  createSubtasks,
-  deleteSubtasksByTaskId,
+  replaceSubtasks,
   updateTaskTotalDays,
   updateTaskStatus,
   updateTaskTitleAndRawInput,
@@ -495,9 +495,8 @@ export async function POST(
       saved = delivered.saved;
       totalDays = delivered.totalDays;
     } else {
-      // 清理可能已存在的旧子任务（如调整或重试时），保证原子替换
-      await deleteSubtasksByTaskId(id);
-      saved = await createSubtasks(id, subtaskItems);
+      // 原子替换（FB-07）：删除 + 插入在同一个事务里，失败则旧计划完整保留
+      saved = await replaceSubtasks(id, subtaskItems);
       if (!saved || saved.length === 0) throw new Error("写入子任务计划失败");
       totalDays = saved.reduce((max, s) => Math.max(max, s.startDay + s.durationDays), 0);
       await updateTaskTotalDays(id, totalDays);
@@ -560,14 +559,17 @@ export async function POST(
     if (err instanceof WatchaPayError && err.status === 409 && err.code === "insufficient_quota") {
       return NextResponse.json({ error: "爱猹收次数不足，请购买次数包后重试", code: "AI_CREDITS_EXHAUSTED" }, { status: 403 });
     }
+    const failure = classifyAnalyzeError(errMsg);
     return NextResponse.json(
       {
         ok: false,
-        error: "分析未能完成，请稍后重试",
-        // 内部错误信息只在开发环境回传；生产只暴露通用文案，细节走服务端日志
+        // 失败分级（FB-07）：告诉用户是超时、模型没产出，还是保存失败
+        error: failure.message,
+        code: failure.code,
+        // 内部错误信息只在开发环境回传；生产只暴露分级文案，细节走服务端日志
         ...(process.env.NODE_ENV === "development" ? { debug: errMsg } : {}),
       },
-      { status: 500 },
+      { status: failure.status },
     );
   } finally {
     releaseLock(); // 释放 in-flight 锁

@@ -8,6 +8,7 @@
 
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { T, bloomChromatic } from "@/lib/design-tokens";
+import { deepHoursOf } from "@/lib/workload";
 import { cn } from "@/utils/utils";
 import { bloomOf } from "./subtask-line-model";
 
@@ -18,8 +19,9 @@ interface Props {
 }
 
 export function StepsSubtaskCard({ item, onToggle, onSelect }: Props) {
-  const { level, config } = bloomOf(item);
-  const color = bloomChromatic(level);
+  const { level, config, known } = bloomOf(item);
+  const color = known ? bloomChromatic(level) : T.lineCheck;
+  const daily = deepHoursOf(item);
 
   return (
     <li
@@ -69,13 +71,13 @@ export function StepsSubtaskCard({ item, onToggle, onSelect }: Props) {
         </h3>
         <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-body-sm text-text-2">
           {item.taskTitle}
-          {item.deepWorkHours ? ` · ${item.deepWorkHours}h 深度专注` : ""}
+          {` · ${item.durationDays} 天 · ${daily.hours}h/天`}
         </p>
       </div>
 
       <div className="text-right">
         <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
-          L{level} {config.name}
+          {known ? `L${level} ${config.name}` : "层级未标注"}
         </b>
         <span className="mt-1 block font-mono text-caption whitespace-nowrap text-text-3">
           {item.durationDays} 天
