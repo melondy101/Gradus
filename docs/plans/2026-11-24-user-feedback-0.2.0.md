@@ -93,6 +93,8 @@
 | FB-13 | 资源权威分：icourse163 未收录，恒为「权威 0.3」 | P2 | 部分修（权重已补，定时复检未做） |
 | FB-14 | 流水线进度是假进度（墙钟计时） | P2 | 登记，本版不实现 |
 | FB-15 | 落地页 / AI 面板 / 任务详情仍是旧设计语言 | P0 | 已修 |
+| FB-16 | 项目「只能本地跑」，Dockerfile 必然构建失败，部署路径未写清 | P1 | 已修 |
+| FB-17 | 标签页图标仍是旧标识（缓存版本号没跟上） | P2 | 已修 |
 
 ### P0 — 本版必须修完
 
@@ -202,6 +204,25 @@
 - **验收**：三处界面与应用内四视图同一套语言；生产站已实测（任务详情页甘特色条 / 图例 / 清单色轨 / 落地页 hero 与样例带）。
 - **状态**：已修（0.2.0）。
 
+#### FB-16 项目「只能本地跑」，部署路径不可用
+
+- **现象**：用户看完站点后判断「这好像只是在本地的，好像不能部署到 Vercel 或其他平台」。核查属实：
+  - 仓库 `Dockerfile` 用 `pnpm` + `pnpm-lock.yaml`，而项目用 Bun（无 pnpm 锁文件）→ 依赖安装阶段就失败；
+  - `Dockerfile` 依赖 `.next/standalone`，但 `next.config.ts` 的 standalone 分支在本仓库**实测不产出该目录**（webpack 与 turbopack 两种构建都试过）→ 运行阶段 `COPY` 必然失败；
+  - `DEPLOY.md` 只描述 Vercel 一条路，没有 Docker 与其他平台的自托管说明；
+  - 落地页「自托管部署」按钮指向仓库首页，而不是部署文档。
+- **修复**：`Dockerfile` 重写为 `oven/bun:1.3-alpine` 构建（`bun install --frozen-lockfile` + 构建期合法 `DATABASE_URL` 占位 + `bun run build`）→ 同镜像运行（携带 `.next` + `node_modules` + `src` 跑 `next start`，`USER bun` 非 root），**彻底绕开 standalone 分支**；新增 `.dockerignore`；`DEPLOY.md` 重写为「准备环境 / 本地验证 / Vercel / Docker / 其他平台 / 可选收款 / 排查回退」；README 新增「5. 部署（可选）」表格与「复制给 Agent」区块第 7 步；落地页「自托管部署」改指 `DEPLOY.md`。
+- **验收**：`docker build -t gradus .` 构建成功；`docker run` 后首页与 `/icon.svg` 均返回 200；`docker exec gradus bun run db:migrate` 可执行（仅因测试库不存在而失败，证明迁移脚本与 `tsx` 均已打进镜像）；镜像内不含任何 `.env*` 文件；生产站「自托管部署」按钮已指向 `DEPLOY.md`。
+- **状态**：已修（0.2.0）。遗留：`next.config.ts` 里那段无效的 standalone 分支尚未清理。
+
+#### FB-17 标签页图标仍是旧标识
+
+- **现象**：全站标识收敛为 `ui/gradus-logo.tsx` 后，浏览器标签页（favicon）仍是旧标识。
+- **根因**：`layout.tsx` / `manifest.ts` 的图标 URL 带缓存版本号 `?v=brand-step`，换标识时没同步，浏览器按 URL 命中旧缓存。
+- **修复**：图标 URL 版本号改为 `?v=brand-v2`；设计系统文档记入硬规则「换标识必须同步 `?v=`」。
+- **验收**：标签页显示新标识；设计系统文档有对应规则条目。
+- **状态**：已修（0.2.0）。
+
 ### P2 — 登记，本版不实现
 
 #### FB-13 资源权威分与复检机制
@@ -268,9 +289,10 @@
 
 | 项目 | 结果 |
 |---|---|
-| `bun run lint` | 0 error，9 条既有 warning |
+| `bun run lint` | 0 error，8 条既有 warning |
 | `bun run test` | 213 项通过 / 5 跳过（跳过项为依赖数据库的历史用例） |
 | `bun run build` | 通过（本机需临时覆盖 `.env.production.local` 的无效 `DATABASE_URL` 占位值，与代码无关） |
+| `docker build -t gradus .` | 通过（FB-16）；`docker run` 冒烟：首页 200、`/icon.svg` 200、`docker exec gradus bun run db:migrate` 可执行 |
 | 新增测试 | 7 个文件：workload / 层级单一真相源 / 资源开课状态 / 额度日界 / 失败分级 / 会员入口队列 / 购买页签价格 / 信任标签 / 版本同步守卫 |
 
 ### 6.2 线上验收（生产域名，真实浏览器）
@@ -281,6 +303,8 @@
 - **FB-03 / FB-11**：落地页「额度与价格」带显示试用 3 次、每天 1 次、2 个任务、¥9.90 / ¥24.90；CTA 文案改为「免费开始 · 试用 3 次」。
 - **FB-09**：点「看看它怎么工作」进入可交互样例；点 L3 台阶后清单只剩该阶任务（`L3 应用 · 2h/天`）；勾选后进度从 17% 跳到 33%（已完成 2 / 6 阶）。
 - **FB-06**：`https://raw.githubusercontent.com/melondy101/Gradus/main/LICENSE` 返回 200。
+- **FB-16**：生产站落地页「自托管部署」按钮的 `href` 已指向 `github.com/melondy101/Gradus/blob/main/DEPLOY.md`。
+- **FB-17**：生产站 `/icon.svg` 返回新版时间色谱标识（墨 / 墨 / 朱红三竖条），标签页图标缓存版本号已跟到 `?v=brand-v2`。
 
 需登录态验收（本轮未自动执行）：
 
