@@ -115,6 +115,8 @@
 
 品牌标识全站只有一个定义（`gradus-logo.tsx`）：三级台阶，下两级墨色（深底反白）、顶点朱红，字标走 `font-chromatic` 衬线。落地页 nav / 页脚、应用内顶栏、`/task/[id]` 品牌栏都复用它，不要在别处再画一遍台阶。
 
+> ⚠️ **换标识必须同步改缓存版本号**：`src/app/layout.tsx` 与 `src/app/manifest.ts` 里的图标 URL 带 `?v=brand-v2`，这是浏览器/CDN 的缓存键。只改 SVG 内容而不改版本号，浏览器会一直用旧图标（标签页 favicon 不会变）。版本号规则：标识一改就 +1。
+
 ### 已删除组件（签字点②，2026-09-26）
 - `select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`：全仓零引用、样式未接品牌令牌的脚手架残留（textarea.tsx 曾与 input.tsx 的 `Textarea` 重名），已从 `src/components/ui/` 删除。若未来需要 Select/Tabs，按阶段四补录流程重新实现并接品牌令牌。
 
