@@ -29,12 +29,12 @@ const ITEMS = [
   },
 ];
 
-/** 图标位样式（原 `.foot-social a`）：34px 方圆角 9 描边位，悬停描边转亮并浮起 6% 白雾 */
+/** 图标位样式（原 `.foot-social a`）：34px 方圆角 9 描边位，悬停描边转墨并浮起暖纸底 */
 const SOCIAL_CLASS = [
-  "grid place-items-center size-[34px] rounded-[9px] border border-bd-dark",
-  "text-on-dark-2 [&>svg]:size-[15px]",
+  "grid place-items-center size-[34px] rounded-[9px] border border-bd-card bg-card",
+  "text-text-2 [&>svg]:size-[15px]",
   "transition-[color,border-color,background-color] duration-[.16s]",
-  "hover:border-on-dark-3 hover:bg-[rgba(245,242,234,.06)] hover:text-on-dark",
+  "hover:border-ink hover:bg-cream hover:text-ink",
 ].join(" ");
 
 /** 底栏社交图标组 —— 仅保留已验证的仓库与反馈入口。 */

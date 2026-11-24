@@ -9,25 +9,25 @@ export interface PrivacyCardProps {
 }
 
 /**
- * 隐私带描边暗卡 —— 《品牌与产品设计说明》§2.6（原 `.priv`）：
- * 深色 Card 是实底，设计稿要的是「白雾浮起」的半透明卡，故用 3.5% 奶油覆盖；
- * 标题走等宽小字 + 强调黄（AI/隐私模块的统一语言），行内 <code> 由卡统一上药丸底。
+ * 隐私带白卡 —— 与应用内白卡同一套语言：1px 描边、悬停描边转墨。
+ * 标题用等宽小字 + 朱红（时间色谱的强调色），行内 <code> 由卡统一上奶油底药丸。
+ * 旧版是深色带上的半透明暗卡 + 黄色标题，属于重构前的配色。
  */
 export function PrivacyCard({ title, body }: PrivacyCardProps) {
   return (
     <Card
       className={cn(
-        "gap-0 border-bd-dark bg-[rgba(245,242,234,.035)]",
+        "gap-0 border-bd-card bg-card",
         "transition-[background-color,border-color] duration-200 ease-out",
-        "hover:border-on-dark-3 hover:bg-[rgba(245,242,234,.075)]",
-        "[&_code]:rounded-chip-sm [&_code]:bg-[rgba(245,242,234,.09)]",
-        "[&_code]:px-[5px] [&_code]:py-px [&_code]:text-body-sm [&_code]:text-on-dark",
+        "hover:border-ink hover:bg-cream-light",
+        "[&_code]:rounded-chip-sm [&_code]:bg-cream-light [&_code]:px-[5px] [&_code]:py-px",
+        "[&_code]:text-body-sm [&_code]:text-ink",
       )}
     >
-      <h4 className="mb-3 font-mono text-body font-bold tracking-[.08em] text-accent">
+      <h4 className="mb-3 font-mono text-body font-bold tracking-[.08em] text-error">
         {title}
       </h4>
-      <p className="text-[14px] leading-[23px] text-on-dark-2">{body}</p>
+      <p className="text-[14px] leading-[23px] text-text-2">{body}</p>
     </Card>
   );
 }

@@ -14,7 +14,7 @@ export interface FootColProps {
 export function FootCol({ label, links }: FootColProps) {
   return (
     <div>
-      <Eyebrow kind="label" className="text-on-dark-3">
+      <Eyebrow kind="label" className="text-text-3">
         {label}
       </Eyebrow>
       {links.map((link) => (

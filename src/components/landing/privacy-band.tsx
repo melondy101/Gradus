@@ -51,15 +51,16 @@ const CARDS: readonly PrivacyEntry[] = [
 ];
 
 /**
- * 6 · 隐私（深色带）—— 《品牌与产品设计说明》§2.6
- * 黄色眉题 + 反白标题（深色带上限宽 620px）+ 四张描边暗卡。
+ * 6 · 隐私 —— 《品牌与产品设计说明》§2.6
+ * 暖纸底 + 墨字 + 四张白卡（时间色谱：深色带语言已随重构退场，
+ * 强调色交给朱红，点缀黄只留给「此刻」）。
  * 1180px 以下两列、680px 以下单列。
  */
 export function LandingPrivacyBand() {
   return (
-    <Band id="sec-privacy" tone="dark">
+    <Band id="sec-privacy" tone="base">
       <BandWrap>
-        <Eyebrow tone="accent">Privacy &amp; Ownership</Eyebrow>
+        <Eyebrow>Privacy &amp; Ownership</Eyebrow>
         <Heading
           level={2}
           spec="sec"

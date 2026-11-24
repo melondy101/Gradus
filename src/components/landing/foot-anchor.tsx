@@ -4,9 +4,9 @@ import { APP_URL } from "./links";
 
 export type FootLink = { text: string; href: string; external?: boolean };
 
-/** 页脚链接项的排版（原 `.foot-cols a`）：整行块级、透明下边框占位、悬停右移 3px 转纯白 */
+/** 页脚链接项的排版（原 `.foot-cols a`）：整行块级、透明下边框占位、悬停右移 3px 转墨 */
 const FOOT_LINK_CLASS =
-  "block border-b border-transparent py-[7px] text-[14px] text-on-dark-2 transition-[color,transform] duration-[.16s] hover:translate-x-[3px] hover:text-on-dark";
+  "block border-b border-transparent py-[7px] text-[14px] text-text-2 transition-[color,transform] duration-[.16s] hover:translate-x-[3px] hover:text-ink";
 
 /**
  * Footer 链接项：外链带 noopener；站内锚点用原生 <a>；

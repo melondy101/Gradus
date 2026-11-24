@@ -47,23 +47,25 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
 ];
 
 const LEGAL_LINK_CLASS =
-  "text-body-sm text-on-dark-3 transition-colors duration-[.16s] hover:text-on-dark";
+  "text-body-sm text-text-3 transition-colors duration-[.16s] hover:text-ink";
 
 /**
- * 8 · Footer（深色带）—— 《品牌与产品设计说明》§2.8
- * Logo + 标语 / 三列链接两端分布 / 底栏版权、法条与社交图标。
+ * 8 · Footer —— 《品牌与产品设计说明》§2.8
+ * 品牌 + 标语 / 三列链接两端分布 / 底栏版权、法条与社交图标。
+ * 配色改为时间色谱：浅奶油底 + 墨字，顶部 2px 墨线收尾（与应用内接续排期色带同语言），
+ * 不再是重构前的「深色带 + 黄字」。
  */
 export function LandingFooter() {
   return (
-    <footer className="bg-band-dark pt-20 text-on-dark">
+    <footer className="border-t-2 border-ink bg-cream-light pt-20 text-ink">
       <BandWrap layout="foot">
         <div>
-          <GradusLogo size={22} onDark />
+          <GradusLogo size={22} />
           <p className="mt-4 flex items-baseline gap-2.5">
             <b className="font-chromatic text-[22px] font-extrabold tracking-[-.01em]">拾级</b>
-            <Mono className="text-micro tracking-[.24em] text-on-dark-3">GRADUS</Mono>
+            <Mono className="text-micro tracking-[.24em] text-text-3">GRADUS</Mono>
           </p>
-          <p className="mt-3 max-w-[340px] text-[14px] leading-[24px] text-on-dark-2">
+          <p className="mt-3 max-w-[340px] text-[14px] leading-[24px] text-text-2">
             面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。
           </p>
         </div>
@@ -78,11 +80,11 @@ export function LandingFooter() {
       <div
         className={cn(
           wrapClass,
-          "flex flex-col items-start gap-3.5 border-t border-bd-dark pt-[22px] pb-[30px]",
+          "flex flex-col items-start gap-3.5 border-t border-bd-card pt-[22px] pb-[30px]",
           "min-[680px]:flex-row min-[680px]:items-center min-[680px]:justify-between min-[680px]:gap-6"
         )}
       >
-        <Mono className="text-on-dark-3">Copyright 2026 Gradus · 拾级 · v{PRODUCT_VERSION}</Mono>
+        <Mono className="text-text-3">Copyright 2026 Gradus · 拾级 · v{PRODUCT_VERSION}</Mono>
         <nav className="flex gap-[22px]">
           <a href="#sec-privacy" className={LEGAL_LINK_CLASS}>
             隐私政策
