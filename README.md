@@ -113,6 +113,9 @@
    能跑完并落下带认知层级的子任务与排期。
 6. 全程遵守 AGENTS.md：设计令牌与 UI 原语从既有文件导入、不新增裸色值、
    AI 调用只放在 src/app/api/ 的路由里、改动后跑 bun run lint 与 bun run test。
+7.（可选）需要上线时按 DEPLOY.md 走：Vercel 走 §3，Docker 走 §4，
+   其他平台就按 §3 的环境变量清单配好再 bun install && bun run build；
+   迁移始终在部署前单独执行 bun run db:migrate。
 ```
 
 > 需要人工判断的只有两处：数据库连接串和模型密钥。其余（安装、迁移、启动、验证）都可以交给 Agent。
@@ -213,6 +216,24 @@ bun dev
 ```
 
 浏览器访问 `http://localhost:3000` 即可开始使用！🎉
+
+### 5. 部署（可选）
+
+本项目是**自托管**的：除了本机开发，也能直接部署到托管平台或你自己的服务器，三条路都支持：
+
+| 方式 | 适合谁 | 怎么做 |
+|---|---|---|
+| **Vercel** | 想最快上线、数据库用 Neon/Supabase | 导入仓库 → 在 Production 配 `DATABASE_URL`、`AUTH_SECRET`、AI 提供方变量 → 部署。详见 [DEPLOY.md §3](./DEPLOY.md) |
+| **Docker** | 想跑在自己的服务器 / NAS / 内网 | `docker build -t gradus .` → `docker run -p 3000:3000 --env-file .env.local gradus` → `docker exec gradus bun run db:migrate`。详见 [DEPLOY.md §4](./DEPLOY.md) |
+| **其他平台** | Cloudflare / Render / Fly / Railway / 自有 K8s 等任何能跑 Next.js 16 + PostgreSQL 的平台 | 照 Vercel 的步骤配环境变量与构建命令（`bun install && bun run build`），启动命令 `bun start` |
+
+三件事在任何平台都一样：
+
+1. **数据库迁移要在部署前单独跑**（平台构建阶段通常连不上生产库）：在仓库检出上执行 `bun run db:migrate` 指向目标库。
+2. **环境变量在改完之后要重新部署**才会生效，别用预览环境的值替代 Production。
+3. **密钥只放服务端**（`AI_PROVIDER_API_KEY`、`AUTH_SECRET`、支付 Key），不要写进任何会被提交的文件。
+
+> 完整的变量清单见 [.env.example](./.env.example)，变量含义见[开发参考](./docs/development/agent-reference.md)。
 
 ---
 

@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 import { Band } from "./band";
 import { BandWrap } from "./band-wrap";
-import { APP_URL, appViewUrl, REPO_URL } from "./links";
+import { APP_URL, appViewUrl, DEPLOY_URL } from "./links";
 
 /**
  * 7 · 最终 CTA —— 《品牌与产品设计说明》§2.7
@@ -38,7 +38,7 @@ export function LandingFinalCta() {
               先看演示数据
             </Link>
             <a
-              href={REPO_URL}
+              href={DEPLOY_URL}
               target="_blank"
               rel="noopener noreferrer"
               className={buttonVariants({ variant: "outline" })}

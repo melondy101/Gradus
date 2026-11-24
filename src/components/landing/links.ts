@@ -12,6 +12,9 @@ export function appViewUrl(view: "plans" | "timeline"): string {
 /** GitHub 仓库（设计稿占位地址） */
 export const REPO_URL = "https://github.com/melondy101/Gradus";
 
+/** 部署文档（Vercel / Docker / 自托管） */
+export const DEPLOY_URL = `${REPO_URL}/blob/main/DEPLOY.md`;
+
 /** 仓库地址的展示文案 */
 export const REPO_LABEL = "github.com/melondy101/Gradus";
 
