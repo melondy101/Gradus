@@ -7,7 +7,7 @@
 
 import { Check, X } from "lucide-react";
 import { Mono } from "@/components/ui/eyebrow";
-import { AiPipelineNode, type PipelineSize, type PipelineState, type PipelineTone } from "./ai-pipeline-node";
+import { AiPipelineNode, type PipelineSize, type PipelineState } from "./ai-pipeline-node";
 import {
   PIPELINE_STAGES,
   getEtaLabel,
@@ -17,13 +17,11 @@ import {
 
 interface Props {
   stream: StreamState;
-  /** dark = 深色 AI 卡内使用（未激活节点改描边圈，避免白圈落在深底上） */
-  tone?: PipelineTone;
   /** 节点宽度档位：窄容器（380px AI 卡 / 350px 右栏）用 md，移动抽屉用 sm */
   size?: PipelineSize;
 }
 
-export function AiPipelineSteps({ stream, tone = "light", size = "lg" }: Props) {
+export function AiPipelineSteps({ stream, size = "lg" }: Props) {
   const stageIdx = stageIndexOf(stream.phase);
   const isError = stream.phase === "error";
   const finished = stream.phase === "done";
@@ -39,7 +37,6 @@ export function AiPipelineSteps({ stream, tone = "light", size = "lg" }: Props) 
           <AiPipelineNode
             key={stage.key}
             state={state}
-            tone={tone}
             size={size}
             label={stage.label}
             hint={stage.hint}
@@ -53,11 +50,11 @@ export function AiPipelineSteps({ stream, tone = "light", size = "lg" }: Props) 
           <X size={12} /> 分析失败
         </Mono>
       ) : finished ? (
-        <Mono className="flex flex-none text-accent">
+        <Mono className="flex flex-none text-error">
           <Check size={12} className="inline align-[-2px]" /> 4 / 4
         </Mono>
       ) : (
-        <Mono className="flex-none text-accent">{eta ?? `${stream.deltaLen}s`}</Mono>
+        <Mono className="flex-none text-error">{eta ?? `${stream.deltaLen}s`}</Mono>
       )}
     </div>
   );

@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * 列表空态（《品牌与产品设计说明》§3 屏一，原 app.css `.card.list` 内部）。
- * 黄色让位给墨色：只在按钮描边上出现，符合「稀有=重要」。
+ * 今日路线空态：与列表同一套边框语言，不另起白卡。
+ * 三种来源：标签筛选无结果 / 仅待完成已清空 / 今天本来就没有排期。
  */
 
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
 interface Props {
@@ -19,11 +18,11 @@ interface Props {
 export function TodayListEmpty({ selectedTag, showOnlyPending, onClearTag, onShowAll }: Props) {
   const { t } = useTranslation();
   return (
-    <div className="px-2 pt-[28px] pb-[26px] text-center">
+    <div className="border-b border-bd-card py-10 text-center">
       <Eyebrow kind="label">
         {selectedTag ? "NO MATCH" : showOnlyPending ? "ALL CLEAR" : "EMPTY"}
       </Eyebrow>
-      <p className="mt-1.5 text-[14px] font-bold text-ink">
+      <p className="mt-1.5 text-body-lg font-bold text-ink">
         {selectedTag
           ? `暂无属于「${selectedTag}」的任务`
           : showOnlyPending
@@ -33,17 +32,25 @@ export function TodayListEmpty({ selectedTag, showOnlyPending, onClearTag, onSho
       <p className="mt-1 text-body-sm leading-[1.6] text-text-2">
         {selectedTag
           ? t("home.todayEmptyTag", "当前标签下没有符合条件的任务，可清除筛选查看全部。")
-          : t("home.todayEmptyHint", "切换筛选可查看已完成的任务，或去上方输入新的学习目标。")}
+          : t("home.todayEmptyHint", "切换筛选可查看已完成的任务，或去左侧输入新的学习目标。")}
       </p>
-      <div className="mt-3 flex justify-center gap-2">
+      <div className="mt-3 flex justify-center">
         {selectedTag ? (
-          <Button variant="outline" size="xs" onClick={onClearTag}>
+          <button
+            type="button"
+            onClick={onClearTag}
+            className="border border-ink px-3 py-1.5 text-body-sm text-ink transition-transform duration-[.16s] ease-out hover:-translate-y-px"
+          >
             {t("home.clearTagFilter", "清除标签筛选")}
-          </Button>
+          </button>
         ) : (
-          <Button variant="outline" size="xs" onClick={onShowAll}>
+          <button
+            type="button"
+            onClick={onShowAll}
+            className="border border-ink px-3 py-1.5 text-body-sm text-ink transition-transform duration-[.16s] ease-out hover:-translate-y-px"
+          >
             {t("home.showAllTasks", "展示所有任务")}
-          </Button>
+          </button>
         )}
       </div>
     </div>

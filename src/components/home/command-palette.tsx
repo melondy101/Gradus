@@ -121,7 +121,7 @@ export function CommandPalette({
       : []),
     {
       id: "view-today",
-      title: "切换至：今日聚焦 (Today Focus)",
+      title: "切换至：今日路线 (Today Route)",
       category: "视图导航",
       icon: Star,
       action: () => {
@@ -131,7 +131,7 @@ export function CommandPalette({
     },
     {
       id: "view-plans",
-      title: "切换至：所有计划库 (All Plans)",
+      title: "切换至：任务色谱 (Plan Spectrum)",
       category: "视图导航",
       icon: FolderOpen,
       action: () => {
@@ -151,7 +151,7 @@ export function CommandPalette({
     },
     {
       id: "view-timeline",
-      title: "切换至：时间甘特图 (Timeline)",
+      title: "切换至：接续排期 (Timeline)",
       category: "视图导航",
       icon: CalendarDays,
       action: () => {

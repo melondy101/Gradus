@@ -25,7 +25,7 @@ export function MainLayout({
         position: "relative",
       }}
     >
-      {/* Sidebar / IconRail */}
+      {/* Sidebar slot（当前由 TopNav 顶部横向导航承担共用外壳） */}
       {sidebar}
 
       {/* Main Content Viewport */}

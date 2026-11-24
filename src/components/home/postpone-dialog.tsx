@@ -31,7 +31,7 @@ export function PostponeDialog({ row, onCancel, onConfirm }: Props) {
         </span>
       }
       title="延后执行任务"
-      eyebrow="POSTPONE · 顺延至下一个可用时间槽"
+      eyebrow="POSTPONE · 仅当前子任务顺延 1 天"
       footer={
         <>
           <Mono className="text-text-3">排期变更可随时撤销</Mono>
@@ -48,7 +48,7 @@ export function PostponeDialog({ row, onCancel, onConfirm }: Props) {
     >
       <p className="text-body leading-[1.7] text-text-2">
         确定将「<b className="text-ink">{row.title}</b>」延后 1 天执行吗？
-        系统将自动智能重排接续计划。
+        只改这一项的开始日，其他子任务排期不变。
       </p>
     </Modal>
   );

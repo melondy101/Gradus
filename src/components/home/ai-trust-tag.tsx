@@ -5,7 +5,7 @@
  * 数据来源：resolveResources + validateResources 写入 resources JSON 的字段。
  *
  * 形态取 §3 屏二 `.res__m i`：等宽 9.5px / 700 / .05em / 4px 圆角小牌，
- * 这里按深底（AI 卡）反推三态：失效=error 半透明、已校验=点缀黄、其余=白雾。
+ * 暖纸底三态：失效 = 朱红半透明、已校验 = 点缀黄（深金墨字）、其余 = 暖灰。
  */
 
 import { cn } from "@/utils/utils";
@@ -20,10 +20,10 @@ export function AiTrustTag({ res }: { res: Resource }) {
   return (
     <span
       className={cn(
-        "rounded-chip-sm px-[6px] py-[2px] font-mono text-2xs leading-[1.4] font-bold tracking-[.05em] whitespace-nowrap",
-        dead && "bg-error/[.28] text-error",
-        !dead && verified && "bg-accent/[.18] text-accent",
-        !dead && !verified && "bg-on-dark/[.08] text-on-dark-2"
+        "rounded-chip-sm px-1.5 py-0.5 font-mono text-2xs leading-[1.4] font-bold tracking-[.05em] whitespace-nowrap",
+        dead && "bg-error-soft text-error",
+        !dead && verified && "bg-accent-soft text-accent-ink",
+        !dead && !verified && "bg-bd-card text-text-2"
       )}
     >
       {label}

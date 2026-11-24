@@ -1,26 +1,15 @@
 "use client";
 
 /**
- * 屏一「新目标输入卡」（《品牌与产品设计说明》§3 屏幕一 + §1.4，原 app.css
- * `.goal` `.goal__row` `.field--lg` `.btn--app` `.chips` `.chip`）。
- *
- * §1.4 硬指标：输入框与主按钮同为 56px 高、方圆角 12，故用 Input size="lg"
- * 与 Button variant="app" size="lg"（二者都落在 h-14 / rounded-field）。
- *
- * 一条真实出口：
- *   · 开始规划 → 直接进 AI 流水线（与旧「示例目标」按钮同一动作）
- *
- * 输入为空时点「开始规划」会落到 onOpenDialog，完整新建对话框另有
- * ⌘K / N / 顶栏按钮入口。
+ * 新目标表单（对照 `today.html` 的 `.goal`）：标签 + 描边一体式输入，
+ * 回车或「开始规划」直接进 AI 流水线；空输入时打开完整新建对话框。
+ * 三条示例只是往输入框里填文本，不代替用户提交。
  */
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Chip, ChipRow } from "@/components/ui/chip";
+import { ArrowRight } from "lucide-react";
+import { T } from "@/lib/design-tokens";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { Input } from "@/components/ui/input";
 
 /** §3 屏一原稿的三个示例目标（中文文案，与设计稿逐字一致） */
 const EXAMPLES: Array<{ chip: string; goal: string }> = [
@@ -48,39 +37,45 @@ export function GoalCard({ onSubmit, onOpenDialog }: Props) {
   };
 
   return (
-    <Card className="mb-3 gap-0 px-[22px] py-5">
-      <Eyebrow className="mb-3">New Goal</Eyebrow>
+    <form
+      className="mt-auto pt-8"
+      onSubmit={(event) => {
+        event.preventDefault();
+        submit();
+      }}
+    >
+      <Eyebrow kind="label">NEW GOAL / 新目标</Eyebrow>
 
-      {/* 窄视口纵向堆叠：390px 下固定宽按钮会压扁 flex-1 输入框（体检报告 2026-09-26 阻断#3） */}
-      <div className="flex flex-col gap-2.5 min-[480px]:flex-row">
-        <Input
-          size="lg"
+      <div className="flex border border-ink" style={{ background: T.soft }}>
+        <input
           id="goal-input"
-          className="min-w-0 flex-1"
           value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              submit();
-            }
-          }}
+          onChange={(event) => setGoal(event.target.value)}
           placeholder="三个月内通过日语 N3 考试"
           aria-label="新学习目标"
+          className="min-w-0 flex-1 bg-transparent px-3 py-3 text-body text-ink outline-none placeholder:text-text-3"
         />
-        <Button variant="app" size="lg" onClick={submit} className="shrink-0">
-          <Sparkles size={16} />
-          <span>开始规划</span>
-        </Button>
+        <button
+          type="submit"
+          className="flex shrink-0 items-center gap-1 border-l border-ink bg-ink px-3 text-body-sm font-bold text-cream transition-transform duration-[.16s] ease-out hover:-translate-y-px"
+        >
+          开始规划
+          <ArrowRight size={12} />
+        </button>
       </div>
 
-      <ChipRow className="mt-3">
-        {EXAMPLES.map((ex) => (
-          <Chip key={ex.chip} onClick={() => setGoal(ex.goal)}>
-            {ex.chip}
-          </Chip>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {EXAMPLES.map((example) => (
+          <button
+            key={example.chip}
+            type="button"
+            onClick={() => setGoal(example.goal)}
+            className="border border-bd-check px-2 py-1 text-micro text-text-2 transition-colors duration-[.16s] hover:border-ink hover:text-ink"
+          >
+            {example.chip}
+          </button>
         ))}
-      </ChipRow>
-    </Card>
+      </div>
+    </form>
   );
 }

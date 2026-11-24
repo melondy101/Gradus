@@ -1,20 +1,18 @@
 "use client";
 
 /**
- * 屏一左列「今日子任务」卡（《品牌与产品设计说明》§3 屏幕一，原 app.css
- * `.card.list` `.card__head` `.subs`）。
+ * 今日路线主列（对照 `today.html` 的 `.tasks`）：
+ * 眉题 + 衬线标题 + 下划线式筛选 + 带认知色轨的任务行。
  *
- * 保留原有交互：仅待完成筛选（localStorage: gradus_today_filter_pending）、
- * 乐观勾选、跳过 / 顺延、键盘定位（#subtask-card-{id}）、标签过滤下的空态。
+ * 保留原交互：全部/仅待完成筛选（localStorage: gradus_today_filter_pending）、
+ * 乐观勾选、顺延 / 跳过、键盘定位（#subtask-card-{id}）、标签筛选下的空态。
  */
 
 import { useTranslation } from "react-i18next";
-import { ListFilter, Tag as TagIcon } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Chip } from "@/components/ui/chip";
-import { Mono } from "@/components/ui/eyebrow";
+import { ChartNoAxesCombined, X } from "lucide-react";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
-import { FilterChip } from "./filter-chip";
 import { SubtaskLine, lineStateOf } from "./subtask-line";
 import { TodayListEmpty } from "./today-list-empty";
 import type { TimelineSection } from "./timeline-sections";
@@ -36,52 +34,79 @@ interface Props {
   activeSubtaskId: string | null;
   focusedTaskId: string | null;
   highlightedSubtaskId: string | null;
+  onOpenReport?: () => void;
 }
+
+const tabClass = (active: boolean) =>
+  cn(
+    "border-b pb-0.5 text-body-sm transition-colors duration-[.16s]",
+    active ? "border-error text-error" : "border-transparent text-text-2 hover:text-ink"
+  );
 
 export function TodayTaskList({
   section, metrics, showOnlyPending, selectedTag, totalRowCount,
   onToggleFilterPending, onClearTag, onOpen, onSelect, onToggle, onSkip, onPostpone,
-  activeSubtaskId, focusedTaskId, highlightedSubtaskId,
+  activeSubtaskId, focusedTaskId, highlightedSubtaskId, onOpenReport,
 }: Props) {
   const { t } = useTranslation();
   const rows = section.rows;
 
   return (
-    <Card className="gap-0 px-[18px] pt-4 pb-2.5">
-      <CardHeader className="mb-1">
-        <CardTitle>{section.label}</CardTitle>
-        <Mono className="text-micro text-text-3">
-          {rows.length} 项{metrics.todayHours > 0 ? ` · ${metrics.todayHours} 小时` : ""}
-        </Mono>
-      </CardHeader>
+    <section className="flex min-w-0 flex-col">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-3">
+        <div className="min-w-0">
+          <Eyebrow>
+            TODAY / {rows.length} 项
+            {metrics.todayHours > 0 ? ` · ${metrics.todayHours} 小时` : ""}
+          </Eyebrow>
+          <h2 className="mt-1.5 font-chromatic text-title-lg leading-tight text-ink">
+            {t("home.todayRoute", "今日学习路线")}
+          </h2>
+        </div>
 
-      <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-        <FilterChip
-          id="btn-filter-all-tasks"
-          active={!showOnlyPending}
-          onClick={() => onToggleFilterPending(false)}
-          icon={<ListFilter size={12} />}
-          label={`${t("home.filterAll", "全部")} ${totalRowCount}`}
-          title={t("home.filterAllTitle", "展示所有任务（含已完成）")}
-        />
-        <FilterChip
-          id="btn-filter-pending-tasks"
-          active={showOnlyPending}
-          onClick={() => onToggleFilterPending(true)}
-          icon={<ListFilter size={12} />}
-          label={`${t("home.filterPending", "仅待完成")} ${metrics.pendingTotal}`}
-          title={t("home.filterPendingTitle", "仅展示未完成任务，减轻信息密度")}
-        />
-        {selectedTag && (
-          <Chip
-            selected
-            onClick={onClearTag}
-            className="gap-[5px] border-ink bg-ink text-cream"
-          >
-            <TagIcon size={12} />
-            {selectedTag}
-          </Chip>
-        )}
+        <div className="flex flex-wrap items-center gap-4 pb-1">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              id="btn-filter-all-tasks"
+              onClick={() => onToggleFilterPending(false)}
+              className={tabClass(!showOnlyPending)}
+            >
+              {t("home.filterAll", "全部")} {totalRowCount}
+            </button>
+            <button
+              type="button"
+              id="btn-filter-pending-tasks"
+              onClick={() => onToggleFilterPending(true)}
+              className={tabClass(showOnlyPending)}
+            >
+              {t("home.filterPending", "待完成")} {metrics.pendingTotal}
+            </button>
+          </div>
+
+          {selectedTag && (
+            <button
+              type="button"
+              onClick={onClearTag}
+              className="flex items-center gap-1 border border-ink px-2 py-1 text-micro text-ink"
+              title={t("home.clearTagFilter", "清除标签筛选")}
+            >
+              {selectedTag}
+              <X size={11} />
+            </button>
+          )}
+
+          {onOpenReport && (
+            <button
+              type="button"
+              onClick={onOpenReport}
+              className="flex items-center gap-1 border border-ink px-2 py-1 text-micro text-ink transition-transform duration-[.16s] ease-out hover:-translate-y-px"
+            >
+              <ChartNoAxesCombined size={12} />
+              学习周报
+            </button>
+          )}
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -110,6 +135,6 @@ export function TodayTaskList({
           ))}
         </ul>
       )}
-    </Card>
+    </section>
   );
 }

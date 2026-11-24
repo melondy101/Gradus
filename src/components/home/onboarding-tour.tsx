@@ -34,7 +34,7 @@ const TOUR_STEPS: TourStep[] = [
     title: "第一步：输入模糊学习目标",
     subtitle: "从一句话或一段链接开启规划",
     description:
-      "无需担心目标过于模糊。点击侧栏「新建计划」或按键盘 N，输入任何你想掌握的知识（如“精通 Python 异步编程”或粘贴 B站/arXiv/GitHub 链接），AI 引擎会自动解析意图与前置背景。",
+      "无需担心目标过于模糊。点击顶栏「新建」或按键盘 N，输入任何你想掌握的知识（如“精通 Python 异步编程”或粘贴 B站/arXiv/GitHub 链接），AI 引擎会自动解析意图与前置背景。",
     badge: "1 / 3 目标解析",
     icon: Sparkles,
     preferredPlacement: "bottom",
@@ -47,10 +47,10 @@ const TOUR_STEPS: TourStep[] = [
     title: "第二步：循序渐进的布鲁姆认知阶梯",
     subtitle: "告别认知过载，全局接续排期",
     description:
-      "AI 规划流水线依据布鲁姆教育目标分类学（记忆 ➔ 理解 ➔ 应用 ➔ 分析 ➔ 评估 ➔ 创造）由浅入深构建任务梯度，并智能错开认知负载、分配到每日学习槽位中。",
+      "AI 规划流水线依据布鲁姆教育目标分类学（记忆 ➔ 理解 ➔ 应用 ➔ 分析 ➔ 评估 ➔ 创造）由浅入深构建任务梯度，并智能错开认知负载、分配到每日学习槽位中。顶栏导航可在四个视图间随时切换。",
     badge: "2 / 3 认知阶梯",
     icon: TrendingUp,
-    preferredPlacement: "right",
+    preferredPlacement: "bottom",
   },
   {
     targetSelector: "#panel-right-container",

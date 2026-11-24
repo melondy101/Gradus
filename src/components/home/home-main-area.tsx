@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import type { NavView } from "@/components/layout/icon-rail";
+import type { NavView } from "@/components/layout/nav-items";
 import type { UserStats } from "@/lib/api/user-stats";
 import type { HomeFilters } from "./use-home-filters";
 import type { HomeOverlays } from "./use-home-overlays";
@@ -11,6 +10,7 @@ import { TodayView } from "./today-view";
 import { AllPlansView } from "./all-plans-view";
 import { AscendingStepsView } from "./ascending-steps-view";
 import { TimelineView } from "./timeline-view";
+import { ViewLoadingState } from "./view-loading-state";
 import { ViewStateCard } from "./view-state-card";
 
 export interface HomeMainAreaProps {
@@ -25,11 +25,11 @@ export interface HomeMainAreaProps {
   panel: AnalysisPanel;
   subtaskActions: SubtaskActions;
   onToggleSubtask: (taskId: string, subtaskId: string, current: boolean) => void;
+  onViewPlan: (taskId: string, view: Extract<NavView, "steps" | "timeline">) => void;
 }
 
 /** 首页中央工作区：今日聚焦 / 所有计划 / 拾级天梯 / 时间甘特 四视图分发。 */
 export function HomeMainArea(props: HomeMainAreaProps) {
-  const router = useRouter();
   const { currentView, filters, overlays, panel, subtaskActions } = props;
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
@@ -85,17 +85,17 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
             </div>
           ) : (
             <AllPlansView
               tasks={filters.displayedTasksList}
-              onSelectTask={(taskId) => {
-                panel.setFocusedId(taskId);
-                panel.focusTask(taskId);
-              }}
-              onOpenTaskDetail={(taskId) => router.push(`/task/${taskId}`)}
+              fetching={props.fetching}
+              selectedTag={filters.selectedTag}
+              onClearTag={filters.clearTag}
+              onSelectTask={overlays.setDetailTaskId}
+              onViewPlan={props.onViewPlan}
               onNewPlan={() => overlays.setShowInput(true)}
               onDeleteTask={(task) =>
                 subtaskActions.handleRequestDelete(task.id, task.title, task.subtasks?.length)
@@ -112,8 +112,12 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : props.fetching && filters.displayedSubtaskRows.length === 0 ? (
+            <div className="px-4 pt-5 sm:px-8">
+              <ViewLoadingState />
             </div>
           ) : (
             <AscendingStepsView
@@ -132,8 +136,12 @@ export function HomeMainArea(props: HomeMainAreaProps) {
           style={{ flex: 1, overflowY: "auto" }}
         >
           {props.loadError ? (
-            <div className="px-3.5 sm:px-5 pt-4">
+            <div className="px-3 sm:px-5 pt-4">
               <ViewStateCard kind="error" onRetry={props.onRetry} />
+            </div>
+          ) : props.fetching && filters.displayedSubtaskRows.length === 0 ? (
+            <div className="px-4 pt-5 sm:px-8">
+              <ViewLoadingState />
             </div>
           ) : (
             <TimelineView

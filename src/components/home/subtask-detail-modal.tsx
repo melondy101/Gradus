@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarClock, SkipForward } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { getSubtaskDateRange } from "./subtask-row";
@@ -14,7 +15,7 @@ import {
 import { T } from "@/lib/design-tokens";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/badge";
-import { Mono } from "@/components/ui/eyebrow";
+import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Modal } from "@/components/ui/modal";
 
 // trust_level 颜色配置
@@ -42,9 +43,13 @@ interface Props {
   onClose: () => void;
   onToggle: () => void;
   onOpenTask: () => void;
+  /** 顺延：复用列表入口的 PostponeDialog（确认 → 同一 mutation → 撤销 toast） */
+  onPostpone?: () => void;
+  /** 跳过：复用列表入口的 handleSkip，不标记完成、不增加完成数 */
+  onSkip?: () => void;
 }
 
-export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props) {
+export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostpone, onSkip }: Props) {
   const { t } = useTranslation();
   const dateRange = getSubtaskDateRange(row);
 
@@ -131,7 +136,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
           {row.taskTitle}
         </span>
       }
-      bodyClassName="flex flex-col gap-3.5"
+      bodyClassName="flex flex-col gap-3"
       footer={
         <>
           <Mono className="text-text-3">
@@ -171,6 +176,36 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask }: Props
         <div style={{ background: T.soft, borderRadius: 10, padding: "12px 14px", color: row.description ? T.ink : T.muted, fontSize: 13, lineHeight: 1.65 }}>
           {row.description || t("subtaskDetail.noDescription")}
         </div>
+
+        {/* 快捷操作：顺延 / 跳过 —— 与列表入口共用同一 mutation、确认弹窗和撤销 */}
+        {!row.completed && (onPostpone || onSkip) && (
+          <div className="flex flex-col gap-2 border-t border-bd-card pt-3">
+            <Eyebrow kind="label" className="mb-0">QUICK ACTIONS / 快捷操作</Eyebrow>
+            <div className="flex flex-wrap gap-2">
+              {onPostpone && (
+                <button
+                  type="button"
+                  onClick={onPostpone}
+                  className="flex cursor-pointer items-center gap-1.5 border border-ink px-3 py-2 text-body-sm font-bold text-ink transition-colors duration-[.16s] hover:bg-ink hover:text-cream"
+                >
+                  <CalendarClock size={13} /> 顺延 1 天
+                </button>
+              )}
+              {onSkip && (
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  className="flex cursor-pointer items-center gap-1.5 border border-bd-check px-3 py-2 text-body-sm font-bold text-text-2 transition-colors duration-[.16s] hover:border-ink hover:text-ink"
+                >
+                  <SkipForward size={13} /> 跳过此任务
+                </button>
+              )}
+            </div>
+            <p className="font-mono text-2xs text-text-3">
+              只调整当前子任务的开始日 +1 天，成功后可在提示中撤销
+            </p>
+          </div>
+        )}
 
         {/* AI 学习 Prompt：搜索无验证资源时作为主要学习入口，有资源时作为补充 */}
         <div style={{
