@@ -56,7 +56,7 @@ export function LandingDemoBand() {
         <Heading level={2} spec="sec" className={bandHeadingClass}>
           这就是别人生成出来的东西
         </Heading>
-        <p className="mb-9 max-w-[68ch] font-chromatic text-[16px] leading-[27px] text-text-2">
+        <p className="mb-8 max-w-[68ch] font-chromatic text-body-lg leading-[27px] text-text-2">
           一个真实目标的拆解结果：六级认知台阶，每一级都能勾、进度会实时变。
           点台阶可以只看那一阶 —— 这就是拾级在做的事，只是这里用的是静态样例。
         </p>
@@ -106,8 +106,8 @@ export function LandingDemoBand() {
           })}
         </div>
 
-        <div className="mt-6 flex items-center gap-4 border border-bd-card bg-white px-5 py-3">
-          <span className="font-chromatic text-[28px] leading-none font-bold text-ink">{pct}%</span>
+        <div className="mt-6 flex items-center gap-4 border border-bd-card bg-card px-5 py-3">
+          <span className="font-chromatic text-display-sm leading-none font-bold text-ink">{pct}%</span>
           <span className="text-body-sm text-text-2">
             已完成 {completed} / {DEMO_TASKS.length} 阶 · 勾一个试试，进度会跳
           </span>

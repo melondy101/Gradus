@@ -76,7 +76,7 @@ export function WatchaPayDialog({ open, onClose, name, price, url, qrUrl }: Prop
             alt={`${name} 付款二维码`}
             width={200}
             height={200}
-            className="border border-bd-card bg-white p-2"
+            className="border border-bd-card bg-card p-2"
           />
           <p className="text-body-sm text-text-2">
             用手机支付宝扫码付款；付完会自动回到拾级。

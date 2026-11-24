@@ -19,36 +19,44 @@ type Capability = {
   icon: LucideIcon;
   title: string;
   body: string;
+  /** 时间色谱位置（1–6），决定卡片色条与图标盒配色 */
+  level: number;
 };
 
 /** 设计稿用 ◈ ◉ ▤ ◫ ↻ ▲ 等字符图形；这里换成同尺寸的 lucide 线性图标，避免缺字 */
 const CAPABILITIES: readonly Capability[] = [
   {
+    level: 1,
     icon: Target,
     title: "AI 目标拆解",
     body: "把「学好日语」拆成可执行、可验收的子任务，每个带时长、优先级与认知层级。",
   },
   {
+    level: 2,
     icon: ScanSearch,
     title: "资源检索与校验",
     body: "AI 只产出搜索意图，真实链接由白名单检索得到，并做存活 / 权威 / 新鲜度 / 内容可学性四维校验。",
   },
   {
+    level: 3,
     icon: CalendarRange,
     title: "全局接续排期",
     body: "新任务永远排在未完成任务之后，每日槽位限制主题扎堆，认知负荷保持均衡。",
   },
   {
+    level: 4,
     icon: ChartGantt,
     title: "甘特图与进度看板",
-    body: "灰=已完成、黄=进行中、描边=计划中，一屏看清整条学习路径的现在时。",
+    body: "色条颜色 = 认知层级，完成打勾，今天那一列淡朱砂底，一屏看清整条学习路径的现在时。",
   },
   {
+    level: 5,
     icon: RefreshCw,
     title: "自动核查修订",
     body: "计划不是生成完就完了。核查段打分并给出建议，不达标自动重排一版。",
   },
   {
+    level: 6,
     icon: TrendingUp,
     title: "Bloom 难度递进",
     body: "从记忆、理解到分析、评价，按认知层级排序子任务，避免一上来就啃硬骨头。",

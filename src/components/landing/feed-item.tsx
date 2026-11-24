@@ -1,3 +1,4 @@
+import { BLOOM_CHROMATIC } from "@/lib/design-tokens";
 import { Mono } from "@/components/ui/eyebrow";
 import { cn } from "@/utils/utils";
 
@@ -5,28 +6,35 @@ export interface FeedItemProps {
   date: string;
   title: string;
   body: string;
+  /** 这条更新在时间色谱上的位置（1–6），左缘色条取该色 */
+  level?: number;
 }
 
 /**
  * What's New 更新条目 —— 《品牌与产品设计说明》§2.3（原 `.feed li`）：
- * 悬停时整行右移 16px、铺一层自左向右的淡黄渐变，并在左缘长出 8px 黄色刻度。
+ * 每条左缘常驻一条时间色谱色条（暖纸底上的彩色锚点），悬停时色条加粗成 8px 刻度，
+ * 整行右移 16px 并铺一层自左向右的淡朱红渐变。
  */
-export function FeedItem({ date, title, body }: FeedItemProps) {
+export function FeedItem({ date, title, body, level = 1 }: FeedItemProps) {
+  const color = BLOOM_CHROMATIC[Math.min(6, Math.max(1, level))];
+
   return (
     <li
       className={cn(
-        "relative border-b border-bd-card py-[22px] pr-1 pl-0",
+        "group relative border-b border-bd-card py-5 pr-1 pl-5",
         "transition-[padding,background-color] duration-200 ease-out",
-        "before:absolute before:left-0 before:top-1/2 before:h-[2px] before:w-0",
-        // 暖纸底上的强调用朱红（时间色谱）：黄色只留给深色带与「此刻」状态
-        "before:-translate-y-1/2 before:bg-error before:content-['']",
-        "before:transition-[width] before:duration-200",
-        "hover:pl-4 hover:bg-[linear-gradient(90deg,rgba(168,51,27,.10),transparent_60%)]",
-        "hover:before:w-[8px]",
+        "hover:pl-6 hover:bg-[linear-gradient(90deg,var(--error-soft),transparent_60%)]",
       )}
     >
-      <Mono className="mb-[7px] block text-text-3">{date}</Mono>
-      <h4 className="mb-[5px] text-title-sm font-bold">{title}</h4>
+      <span
+        className="absolute inset-y-5 left-0 w-1 transition-[width] duration-200 group-hover:w-2"
+        style={{ background: color }}
+        aria-hidden="true"
+      />
+      <div className="mb-1.5 flex items-center gap-2">
+        <Mono className="text-text-3">{date}</Mono>
+      </div>
+      <h4 className="mb-1 text-title-sm font-bold">{title}</h4>
       <p className="max-w-[600px] text-body-lg leading-[24px] text-text-2">
         {body}
       </p>

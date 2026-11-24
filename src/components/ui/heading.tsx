@@ -2,8 +2,9 @@ import { cn } from "@/utils/utils"
 
 /**
  * 标题阶梯 —— 设计说明 §1.3。
- * 黄色句号 `.dot-accent` 是全站唯一点缀规则之一，通过 accentDot 开启，
- * 只允许出现在 Hero 与章节大标题上。
+ * 句号 `.dot-accent` 是全站标题的点缀规则，通过 accentDot 开启：
+ * **暖纸底上的强调统一是朱红**（时间色谱重构后），黄色只留给深色带与
+ * 「此刻 / 进行中」状态。
  *
  * 衬线（font-chromatic）：时间色谱重构后，全站标题统一走「书卷气衬线」——
  * 应用内的今日路线 / 拾级天梯 / 接续排期 / 计划库 / 任务详情，与落地页
@@ -46,7 +47,7 @@ export function Heading({
         <span
           aria-hidden="true"
           className={cn(
-            "ml-1 inline-block rounded-full bg-accent align-[-.02em]",
+            "ml-1 inline-block rounded-full bg-error align-[-.02em]",
             dotSizes[spec]
           )}
         />

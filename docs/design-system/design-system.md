@@ -29,6 +29,8 @@
 | IconButton / Avatar | `IconButton` `Avatar` | icon-button.tsx | 方形图标钮 / 圆形头像 | 侧栏折叠钮、访客头像 |
 | AiPill | `AiPill` | ai-pill.tsx | 深底 AI 状态浮标 | 「AI 建议复核未验证资源 1/2」 |
 | GradusLogo | `GradusLogo` | gradus-logo.tsx | 品牌标识（三级台阶，顶点朱红，可带衬线字标） | 顶栏、页脚、达成弹窗 |
+| ChromaticTrack | `ChromaticTrack` | chromatic-track.tsx | 时间色谱六段色轨（L1→L6，暖纸底上的彩色锚点） | 落地页开源卡、首页左侧色谱条 |
+| ChromaticTag | `ChromaticTag` | chromatic-tag.tsx | 彩色层级标签（「L3 应用」，色随层级走） | 任务详情页、子任务弹窗 |
 | Toaster | `Toaster` | sonner.tsx | 全局 toast（底部居中） | 交互反馈 |
 
 > 2026-09-26 签字点② 删除：`select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`（零引用脚手架，见文末「已删除组件」）。现存 15 文件 / 29 个导出符号（含类型）。
@@ -116,6 +118,13 @@
 品牌标识全站只有一个定义（`gradus-logo.tsx`）：三级台阶，下两级墨色（深底反白）、顶点朱红，字标走 `font-chromatic` 衬线。落地页 nav / 页脚、应用内顶栏、`/task/[id]` 品牌栏都复用它，不要在别处再画一遍台阶。
 
 > ⚠️ **换标识必须同步改缓存版本号**：`src/app/layout.tsx` 与 `src/app/manifest.ts` 里的图标 URL 带 `?v=brand-v2`，这是浏览器/CDN 的缓存键。只改 SVG 内容而不改版本号，浏览器会一直用旧图标（标签页 favicon 不会变）。版本号规则：标识一改就 +1。
+
+### ChromaticTrack / ChromaticTag — 时间色谱的暖纸底彩色锚点
+
+- `ChromaticTrack`（`@/components/ui/chromatic-track`）：props `levels?: number[]`（出现的层级，未出现的降到 0.18 不透明度）、`className?`。渲染 L1→L6 六段色轨（青苔绿 / 金 / 赭 / 朱砂 / 赭红 / 靛）。色值来自 `src/lib/design-tokens.ts` 的 `BLOOM_CHROMATIC`，**不在组件里写裸色**。
+- `ChromaticTag`（`@/components/ui/chromatic-tag`）：props `level: number`、`label?: string`（默认「L3 应用」）。渲染「色块 + 层级名」的等宽小标签，颜色 = 该层级的色谱色。
+- 适用：暖纸底上的层级标记与序列标识（落地页的更新条目 / 步骤 / 能力 / 额度卡、任务详情页、子任务弹窗）。
+- 禁止：拿它做状态色（成功 / 警告 / 进行中），状态色仍走 `Badge` / `success` / `warning` / `error` 语义令牌；也不要在深色带里用它，深底上仍用反白 + 黄 accent。
 
 ### 已删除组件（签字点②，2026-09-26）
 - `select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`：全仓零引用、样式未接品牌令牌的脚手架残留（textarea.tsx 曾与 input.tsx 的 `Textarea` 重名），已从 `src/components/ui/` 删除。若未来需要 Select/Tabs，按阶段四补录流程重新实现并接品牌令牌。

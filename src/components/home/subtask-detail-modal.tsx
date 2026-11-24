@@ -15,6 +15,7 @@ import {
 import { T } from "@/lib/design-tokens";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/badge";
+import { ChromaticTag } from "@/components/ui/chromatic-tag";
 import { Eyebrow, Mono } from "@/components/ui/eyebrow";
 import { Modal } from "@/components/ui/modal";
 import { ResourcePreviewPanel } from "./resource-preview-panel";
@@ -134,7 +135,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
           <span
             className={
               "inline-block size-[5px] rounded-full " +
-              (row.taskStatus === "done" ? "bg-success" : "bg-accent")
+              (row.taskStatus === "done" ? "bg-success" : "bg-error")
             }
           />
           {row.taskTitle}
@@ -143,15 +144,16 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
       bodyClassName="flex flex-col gap-3"
       footer={
         <>
-          <Mono className="text-text-3">
-            {row.durationDays} 天 · Bloom L{row.bloomLevel ?? 1}
-          </Mono>
+          <span className="flex items-center gap-2">
+            <Mono className="text-text-3">{row.durationDays} 天</Mono>
+            <ChromaticTag level={row.bloomLevel ?? 1} />
+          </span>
           <div className="flex gap-2.5">
             <Button variant="secondary" size="sm" onClick={onOpenTask}>
               {t("subtaskDetail.openTask")}
             </Button>
             <Button
-              variant={row.completed ? "outline" : "accent"}
+              variant={row.completed ? "outline" : "app"}
               size="sm"
               onClick={() => {
                 onToggle();
@@ -166,14 +168,15 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
     >
 
         {/* Attributes strip */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {row.topic && <AttrPill icon="类" label={t("subtaskDetail.topic", { topic: row.topic })} color="var(--accent-ink)" />}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+          <ChromaticTag level={row.bloomLevel ?? 1} />
+          {row.topic && <AttrPill icon="类" label={t("subtaskDetail.topic", { topic: row.topic })} color="var(--ink)" />}
           {row.urgency && <AttrPill icon="急" label={t("subtaskDetail.urgency", { value: row.urgency })} color="var(--warning)" />}
-          {row.importance && <AttrPill icon="要" label={t("subtaskDetail.importance", { value: row.importance })} color="var(--ink)" />}
-          {keywords.slice(0, 3).map((k, i) => <AttrPill key={i} icon="词" label={k} color="var(--text-2)" />)}
+          {row.importance && <AttrPill icon="要" label={t("subtaskDetail.importance", { value: row.importance })} color="var(--text-2)" />}
+          {keywords.slice(0, 3).map((k, i) => <AttrPill key={i} icon="词" label={k} color="var(--text-3)" />)}
           <MetaTag label={t("subtaskDetail.durationLabel")} value={t("subtaskDetail.durationValue", { count: row.durationDays })} />
           {dateRange && <MetaTag label={t("subtaskDetail.dateLabel")} value={dateRange} />}
-          <MetaTag label={t("subtaskDetail.statusLabel")} value={row.completed ? t("subtaskDetail.statusDone") : t("subtaskDetail.statusDoing")} color={row.completed ? T.success : T.accent} />
+          <MetaTag label={t("subtaskDetail.statusLabel")} value={row.completed ? t("subtaskDetail.statusDone") : t("subtaskDetail.statusDoing")} color={row.completed ? T.success : T.error} />
         </div>
 
         {/* Description */}
@@ -218,7 +221,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
           border: hasVerified ? `1px solid ${T.line}` : "1px solid var(--warning-soft)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: ".06em", color: "var(--accent-ink)", background: "var(--accent-soft)", borderRadius: 5, padding: "2px 5px" }}>AI</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: ".06em", color: "var(--error)", background: "var(--error-soft)", borderRadius: 5, padding: "2px 5px" }}>AI</span>
             <span style={{ color: T.ink, fontSize: 12, fontWeight: 700, letterSpacing: "-0.01em" }}>
               {hasVerified ? t("subtaskDetail.aiTitleWithRes") : t("subtaskDetail.aiTitleNoRes")}
             </span>
@@ -227,7 +230,7 @@ export function SubtaskDetailModal({ row, onClose, onToggle, onOpenTask, onPostp
             {t("subtaskDetail.aiDesc")}
           </div>
           <Button
-            variant={copied ? "default" : "accent"}
+            variant={copied ? "default" : "app"}
             size="full"
             className="mt-1"
             onClick={handleCopyPrompt}

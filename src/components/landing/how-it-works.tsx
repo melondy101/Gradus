@@ -7,21 +7,25 @@ import { StepCard } from "./step-card";
 
 const STEPS = [
   {
+    level: 1,
     no: "STEP 01",
     title: "说出目标",
     body: "一句模糊的话，或一门课、一本书、一篇论文的链接。",
   },
   {
+    level: 2,
     no: "STEP 02",
     title: "AI 拆解",
     body: "意图解析 → 资源检索 → 计划生成，产出 4～8 个子任务。",
   },
   {
+    level: 3,
     no: "STEP 03",
     title: "核查修订",
     body: "校验 Bloom 递进是否合理、资源是否真实可达，不合格就重排。",
   },
   {
+    level: 4,
     no: "STEP 04",
     title: "每天接着走",
     body: "完成一级，后面的日程自动接续，每天接着往下走。",
