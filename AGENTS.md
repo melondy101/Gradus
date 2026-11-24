@@ -1,6 +1,6 @@
 # Gradus Agent Guide
 
-拾级（Gradus，仓库名 TalkTask）是一个自托管的 AI 学习任务规划器。产品说明见 [README.md](./README.md)，需求见 [docs/PRD.md](./docs/PRD.md)。
+拾级（Gradus）是一个自托管的 AI 学习任务规划器。产品说明见 [README.md](./README.md)，需求见 [docs/PRD.md](./docs/PRD.md)。
 
 ## 开始前
 

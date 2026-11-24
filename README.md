@@ -2,7 +2,7 @@
 
 <img src="./src/app/icon.svg" width="108" height="108" alt="拾级 Gradus Logo" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(17, 17, 17, 0.15);" />
 
-# 拾级 · Gradus (TalkTask)
+# 拾级 · Gradus
 
 **面向自主学习者的认知级 AI 任务规划与全局排期系统**
 
@@ -19,7 +19,7 @@
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_+_Drizzle-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://orm.drizzle.team/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](./LICENSE)
 
-[🌐 在线体验](https://talk-task.vercel.app/) · [📖 产品设计 (PRD)](./docs/PRD.md) · [🛠️ 开发者指南 (AGENTS)](./AGENTS.md) · [🚀 20分钟快速部署 (DEPLOY)](./DEPLOY.md)
+[🌐 在线体验](https://talk-task.vercel.app/) · [📖 产品设计 (PRD)](./docs/PRD.md) · [🛠️ 开发者指南 (AGENTS)](./AGENTS.md) · [🚀 自托管部署 (DEPLOY)](./DEPLOY.md)
 
 </div>
 
@@ -126,7 +126,8 @@ cp .env.example .env
 # 必填项 (Core Required)
 # ==========================================
 # PostgreSQL 数据库连接串（Neon 建议使用 -pooler 后缀连接串）
-DATABASE_URL="postgresql://user:password@ep-xyz-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
+# ⚠️ 下面是占位符，请替换成你自己的连接串：<用户名>:<密码>@<主机>/<数据库名>
+DATABASE_URL="postgresql://<用户名>:<密码>@<主机>/<数据库名>?sslmode=require"
 
 # JWT 鉴权密钥（必须 ≥ 32 字符，使用 `openssl rand -hex 32` 生成）
 AUTH_SECRET="your-super-secret-jwt-key-at-least-32-chars-long"
@@ -151,14 +152,15 @@ SERPAPI_API_KEY=""
 BRAVE_SEARCH_API_KEY=""
 DOUBAO_API_KEY=""
 
-# PAYATHON 网页收款仅在指定部署启用；完整接入步骤见 docs/plans/2026-10-14-payathon-implementation.md
+# 收款默认关闭；仅在完成商品、Key、回跳域名和数据库配置的部署中开启。
+# 正式站 2026-10-25 起使用爱猹收 10/30 次包；真实付款交付仍待验收。
 # GRADUS_COMMERCE_ENABLED="true"
+# GRADUS_PAYMENT_PROVIDER="watcha"
 # GRADUS_PUBLIC_ORIGIN="https://talk-task.vercel.app"
-# ALIPAY_ENV="sandbox"
-# ALIPAY_APP_ID=""
-# ALIPAY_SELLER_ID=""
-# ALIPAY_PRIVATE_KEY=""
-# ALIPAY_PUBLIC_KEY=""
+# WATCHA_PAY_API_KEY=""                 # 仅服务端私密变量
+# WATCHA_PAY_PACK10_ENTITLEMENT_ID=""
+# WATCHA_PAY_PACK30_ENTITLEMENT_ID=""
+# 完整变量清单见 .env.example；旧支付宝直连路径仍保留在代码中，但非当前正式站收款路径。
 
 # 站点标题与自定义描述
 NEXT_PUBLIC_APP_TITLE="拾级 · Gradus"
@@ -250,6 +252,6 @@ bun run audit:modals  # 10 组需交互才出现的浮层（需 dev server 起�
 
 ---
 
-## 📄 开源许可证
+## 📄 许可证
 
-本项目基于 [MIT License](./LICENSE) 协议开源。
+本项目基于 [MIT License](./LICENSE) 协议开源。自托管部署前请先阅读许可证与 [部署文档](./DEPLOY.md) 中的密钥与数据说明。
