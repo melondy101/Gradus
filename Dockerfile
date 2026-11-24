@@ -2,7 +2,7 @@
 # 拾级 Gradus —— 生产镜像
 # Bun 构建 + `next start` 运行（不依赖 standalone 输出）
 #
-# 用法（详见 DEPLOY.md §4）：
+# 用法（详见 DEPLOY.md §11）：
 #   docker build -t gradus .
 #   docker run -d --name gradus -p 3000:3000 --env-file .env.local gradus
 #   docker exec gradus bun run db:migrate     # 迁移也能在容器里跑
@@ -43,6 +43,8 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 # 迁移脚本与 schema：src/lib/db/migrate.ts、drizzle.config.ts
 COPY --from=builder /app/src ./src
+# scripts/ 里是 check-env 等运维脚本，容器内也要能跑 `bun run check:env -- --connect`
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 

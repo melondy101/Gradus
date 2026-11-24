@@ -101,24 +101,29 @@
 把下面整段粘给你的 Agent（Cursor / Claude Code / Codex / openclaw 等）即可，它会照着仓库文档把环境装好并验证跑通：
 
 ```text
-你在仓库 <仓库路径> 里。请按 AGENTS.md 的约定把拾级（Gradus）在本机跑起来：
+你在仓库 <仓库路径> 里。请按 AGENTS.md 的约定把拾级（Gradus）在本机跑起来，并在我确认后部署上线。
 
-1. 先读 README.md 的「快速开始」与 DEPLOY.md，确认工具链（Bun 1.3+，不要用 npm / yarn / pnpm）。
-2. 检查 .env 是否存在：不存在就 cp .env.example .env；已存在则不要覆盖，只补缺失的键。
-3. 缺 DATABASE_URL / AUTH_SECRET / AI 服务密钥时，一次性告诉我还缺哪几项，我来提供；
+1. 先读 README.md 的「快速开始」与 DEPLOY.md（部署 Runbook），确认工具链（Bun 1.3+，不要用 npm / yarn / pnpm）。
+2. 动手前先按 DEPLOY.md §1「实时信息获取」查一遍平台与依赖的**最新官方文档**
+   （Bun 与 Next 16 的兼容性、Vercel 构建命令与环境变量作用域、Postgres 池化地址、Docker 注意事项），
+   把结论记进 DEPLOY.md 附录 B。不要凭记忆填平台参数——这些随时会变。
+3. 检查 .env 是否存在：不存在就 cp .env.example .env；已存在则不要覆盖，只补缺失的键。
+4. 缺 DATABASE_URL / AUTH_SECRET / AI 服务密钥时，一次性告诉我还缺哪几项，我来提供；
    不要自己编造连接串或密钥，也不要把密钥写进任何会被提交的文件。
-4. 跑 bun run db:migrate 初始化数据库表结构，然后 bun dev 启动开发服务器（http://localhost:3000）。
-5. 启动后用浏览器打开 http://localhost:3000/app：确认页面正常渲染、控制台无报错；
+5. 装完依赖先跑 bun run check:env -- --connect 自检环境变量与数据库连通性；
+   有阻断项就按输出里的「修复」提示处理完再继续，不要带着阻断项往下走。
+6. 跑 bun run db:migrate 初始化数据库表结构，然后 bun dev 启动开发服务器（http://localhost:3000）。
+7. 启动后用浏览器打开 http://localhost:3000/app：确认页面正常渲染、控制台无报错；
    再创建一个测试学习目标，确认 AI 规划流水线（意图解析 → 资源检索 → 计划生成 → 核查修订）
    能跑完并落下带认知层级的子任务与排期。
-6. 全程遵守 AGENTS.md：设计令牌与 UI 原语从既有文件导入、不新增裸色值、
+8. 全程遵守 AGENTS.md：设计令牌与 UI 原语从既有文件导入、不新增裸色值、
    AI 调用只放在 src/app/api/ 的路由里、改动后跑 bun run lint 与 bun run test。
-7.（可选）需要上线时按 DEPLOY.md 走：Vercel 走 §3，Docker 走 §4，
-   其他平台就按 §3 的环境变量清单配好再 bun install && bun run build；
-   迁移始终在部署前单独执行 bun run db:migrate。
+9. 本地跑通后，按 DEPLOY.md 关卡 B 一次问清：是否上线、上哪个平台、绑不绑自定义域名、收款开不开。
+   我确认后再按 DEPLOY.md §10/§11/§12 执行部署，最后按 §13 验收清单逐项验证，
+   并按 §16 的模板出一份交付报告（列变量名与结论，不列密钥值）。
 ```
 
-> 需要人工判断的只有两处：数据库连接串和模型密钥。其余（安装、迁移、启动、验证）都可以交给 Agent。
+> 需要人工判断的只有两处：数据库连接串和模型密钥。其余（安装、迁移、启动、验证、部署）都可以交给 Agent。
 
 </details>
 
@@ -205,11 +210,18 @@ QQ_EMAIL_PASS="your-16-char-smtp-auth-code" # QQ邮箱网页端-设置-账户-�
 # EMAIL_FROM="拾级 Gradus"  # 发件人显示名称
 ```
 
+配好后跑一次自检，它会逐项告诉你哪些变量缺失、哪些格式不对，并给出修法（**不会打印任何密钥原文**）：
+
+```bash
+bun run check:env              # 读 .env / .env.local
+bun run check:env -- --connect # 额外实测数据库连通性与表结构
+```
+
 ### 4. 初始化数据库与启动
 
 ```bash
-# 推送数据表 Schema 到数据库
-bun run db:push
+# 执行迁移建表（生产库也用这一条；drizzle-kit push 仅用于本地试验）
+bun run db:migrate
 
 # 启动本地开发服务
 bun dev
@@ -219,13 +231,21 @@ bun dev
 
 ### 5. 部署（可选）
 
-本项目是**自托管**的：除了本机开发，也能直接部署到托管平台或你自己的服务器，三条路都支持：
+本项目是**自托管**的：除了本机开发，也能直接部署到托管平台或你自己的服务器，三条路都支持。
+
+**完整步骤看 [DEPLOY.md](./DEPLOY.md) —— 那是一份可执行的部署 Runbook**：克隆 → 装依赖 → 查环境变量 → 本地预览 → 询问是否上线 → 部署 → 绑域名 → 验收，每一步都带命令、成功判据和出错处理。
 
 | 方式 | 适合谁 | 怎么做 |
 |---|---|---|
-| **Vercel** | 想最快上线、数据库用 Neon/Supabase | 导入仓库 → 在 Production 配 `DATABASE_URL`、`AUTH_SECRET`、AI 提供方变量 → 部署。详见 [DEPLOY.md §3](./DEPLOY.md) |
-| **Docker** | 想跑在自己的服务器 / NAS / 内网 | `docker build -t gradus .` → `docker run -p 3000:3000 --env-file .env.local gradus` → `docker exec gradus bun run db:migrate`。详见 [DEPLOY.md §4](./DEPLOY.md) |
-| **其他平台** | Cloudflare / Render / Fly / Railway / 自有 K8s 等任何能跑 Next.js 16 + PostgreSQL 的平台 | 照 Vercel 的步骤配环境变量与构建命令（`bun install && bun run build`），启动命令 `bun start` |
+| **Vercel** | 想最快上线、数据库用 Neon/Supabase | 导入仓库 → 在 Production 配 `DATABASE_URL`、`AUTH_SECRET`、AI 提供方变量 → 部署。详见 [DEPLOY.md §10](./DEPLOY.md) |
+| **Docker** | 想跑在自己的服务器 / NAS / 内网 | `docker build -t gradus .` → `docker run -p 3000:3000 --env-file .env.local gradus` → `docker exec gradus bun run db:migrate`。详见 [DEPLOY.md §11](./DEPLOY.md) |
+| **其他平台** | Render / Railway / Fly.io / 自有 K8s 等任何能跑 Next.js 16 + PostgreSQL 的平台 | 照 Vercel 的步骤配环境变量与构建命令（`bun install && bun run build`），启动命令 `bun start`。详见 [DEPLOY.md §12](./DEPLOY.md) |
+
+部署前建议先跑一次环境变量自检（不会打印任何密钥原文）：
+
+```bash
+bun run check:env -- --connect    # 逐项给结论：数据库 / 密钥 / AI 分支 / 收款 / OAuth
+```
 
 三件事在任何平台都一样：
 
@@ -233,6 +253,7 @@ bun dev
 2. **环境变量在改完之后要重新部署**才会生效，别用预览环境的值替代 Production。
 3. **密钥只放服务端**（`AI_PROVIDER_API_KEY`、`AUTH_SECRET`、支付 Key），不要写进任何会被提交的文件。
 
+> 平台参数（CLI 用法、免费额度、DNS 步骤）随版本变化，**部署前请按 [DEPLOY.md §1](./DEPLOY.md) 实时查一遍官方文档**，不要照抄旧参数。
 > 完整的变量清单见 [.env.example](./.env.example)，变量含义见[开发参考](./docs/development/agent-reference.md)。
 
 ---
@@ -248,6 +269,7 @@ bun run db:generate   # 根据 Schema 生成 Drizzle SQL 迁移文件
 bun run db:migrate    # 执行待处理的数据库迁移
 bun run db:push       # 将 TypeScript Schema 直接同步至数据库
 bun run db:studio     # 启动可视化 Drizzle Studio 数据库管理界面
+bun run check:env     # 环境变量自检（-- --connect 实测数据库，-- --json 机器可读）
 
 # 设计保真闸门（对着 output/拾级Gradus-设计预览.html 量浏览器 computed 值，非肉眼比对）
 bun run audit:tokens  # 设计稿 :root 21 条令牌 vs 实现同名属性

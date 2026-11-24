@@ -25,6 +25,7 @@
 
 - 常规改动至少跑与影响范围相符的测试；发布前必须通过 `bun run lint` 与 `bun run build`。
 - 改设计令牌或界面时，按需运行 `audit:tokens`、`audit:design`、`audit:parity`、`audit:modals`、`audit:colors` 以及 `ds:tokens`、`ds:imports`、`ds:vars`。这些检查和探针入口见开发参考。
+- 部署或改动环境变量时，跑 `bun run check:env`（加 `-- --connect` 实测数据库）；部署流程以 `DEPLOY.md` 的 Runbook 为准，平台参数先实时查官方文档再执行。
 - 文档、资产与本地私密文件应放在对应目录，不要堆放根目录；密钥只放在 `.env*` 或 `.local/`，绝不提交。
 
 <!-- BEGIN:nextjs-agent-rules -->
