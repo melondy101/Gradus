@@ -18,9 +18,10 @@ export function FeedItem({ date, title, body }: FeedItemProps) {
         "relative border-b border-bd-card py-[22px] pr-1 pl-0",
         "transition-[padding,background-color] duration-200 ease-out",
         "before:absolute before:left-0 before:top-1/2 before:h-[2px] before:w-0",
-        "before:-translate-y-1/2 before:bg-accent before:content-['']",
+        // 暖纸底上的强调用朱红（时间色谱）：黄色只留给深色带与「此刻」状态
+        "before:-translate-y-1/2 before:bg-error before:content-['']",
         "before:transition-[width] before:duration-200",
-        "hover:pl-4 hover:bg-[linear-gradient(90deg,rgba(245,197,24,.14),transparent_60%)]",
+        "hover:pl-4 hover:bg-[linear-gradient(90deg,rgba(168,51,27,.10),transparent_60%)]",
         "hover:before:w-[8px]",
       )}
     >

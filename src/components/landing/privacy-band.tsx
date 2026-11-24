@@ -64,12 +64,11 @@ export function LandingPrivacyBand() {
         <Heading
           level={2}
           spec="sec"
-          accentDot
           className={`${bandHeadingClass} max-w-[620px]`}
         >
           你的学习数据，
           <br />
-          只属于你和你的服务器
+          <span className="text-error">只属于你和你的服务器</span>
         </Heading>
         <div className="grid grid-cols-1 gap-[18px] min-[680px]:grid-cols-2 min-[1180px]:grid-cols-[repeat(4,minmax(0,1fr))]">
           {CARDS.map((card) => (

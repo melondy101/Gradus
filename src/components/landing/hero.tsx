@@ -35,16 +35,16 @@ export function LandingHero() {
           </Badge>
 
           <p className="mt-[26px] flex items-center gap-[9px] text-body tracking-[.02em] text-text-2">
-            <Diamond size={14} aria-hidden className="shrink-0 text-accent" />
+            <Diamond size={14} aria-hidden className="shrink-0 text-error" />
             面向自主学习者的 AI 学习任务规划器
           </p>
 
-          <Heading level={1} spec="hero" accentDot className="mt-3.5">
+          <Heading level={1} spec="hero" className="mt-3.5">
             从一个模糊的目标
             <br />
             到每天清楚要走
             <br />
-            哪一级
+            <span className="text-error">哪一级</span>
           </Heading>
 
           <p className="mt-[22px] max-w-[520px] font-chromatic text-[16px] leading-[27px] text-text-2">
