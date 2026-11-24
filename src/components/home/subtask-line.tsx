@@ -11,11 +11,12 @@
 import { useTranslation } from "react-i18next";
 import { CalendarClock, SkipForward } from "lucide-react";
 import { T, bloomChromatic } from "@/lib/design-tokens";
+import { deepHoursOf } from "@/lib/workload";
 import { cn } from "@/utils/utils";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 import { MiniActionButton } from "./mini-action-button";
 import { getSubtaskDateRange } from "./subtask-row";
-import { bloomOf, hoursOf, type SubtaskLineState } from "./subtask-line-model";
+import { bloomOf, type SubtaskLineState } from "./subtask-line-model";
 export { lineStateOf, type SubtaskLineState } from "./subtask-line-model";
 
 interface Props {
@@ -36,9 +37,10 @@ export function SubtaskLine({
   onOpen, onSelect, onToggle, onSkip, onPostpone,
 }: Props) {
   const { t } = useTranslation();
-  const { level, config } = bloomOf(row);
-  const color = bloomChromatic(level);
+  const { level, config, known } = bloomOf(row);
+  const color = known ? bloomChromatic(level) : T.lineCheck;
   const range = getSubtaskDateRange(row);
+  const daily = deepHoursOf(row);
   const done = state === "done";
   const marked = isActive || isHighlighted;
 
@@ -116,10 +118,10 @@ export function SubtaskLine({
 
         <div className="text-right">
           <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
-            L{level} {config.name}
+            {known ? `L${level} ${config.name}` : "层级未标注"}
           </b>
           <span className="mt-1 block font-mono text-caption whitespace-nowrap text-text-3">
-            {hoursOf(row)}h
+            {daily.hours}h/天
           </span>
         </div>
       </div>

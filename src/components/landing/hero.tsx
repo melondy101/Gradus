@@ -5,6 +5,7 @@ import { AiPill } from "@/components/ui/ai-pill";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
+import { PRODUCT_VERSION } from "@/lib/version";
 import { cn } from "@/utils/utils";
 
 import { wrapClass } from "./band-wrap";
@@ -30,7 +31,7 @@ export function LandingHero() {
               aria-hidden
               className="size-[7px] shrink-0 animate-pulse rounded-full bg-accent [animation-duration:1.8s]"
             />
-            v2.4 · 全局接续排期已上线
+            v{PRODUCT_VERSION} · 本版：层级标签与工时口径统一，配额与价格透明化
           </Badge>
 
           <p className="mt-[26px] flex items-center gap-[9px] text-body tracking-[.02em] text-text-2">
@@ -54,7 +55,7 @@ export function LandingHero() {
             <Link href={APP_URL} className={buttonVariants({ variant: "default" })}>
               开始规划我的目标
             </Link>
-            <a href="#sec-how" className={buttonVariants({ variant: "outline" })}>
+            <a href="#sec-demo" className={buttonVariants({ variant: "outline" })}>
               看看它怎么工作
             </a>
             <a
@@ -69,7 +70,7 @@ export function LandingHero() {
           </div>
 
           <p className="mt-[26px] font-mono text-caption tracking-[.03em] text-text-3">
-            无需信用卡 · BYOK 接入你自己的模型 · 数据留在你自己的库里
+            免费试用 3 次完整规划 · BYOK 接入你自己的模型 · 数据留在你自己的库里
           </p>
         </div>
 

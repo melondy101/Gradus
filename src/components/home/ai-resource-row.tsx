@@ -4,10 +4,13 @@
  * AI 面板里的推荐资源（原 app.css `.sug` 深色行 → 暖纸底行）。
  * 标题即入口：verified 打开真实 URL，search_only 跳搜索引擎 —— 与 §10 两阶段检索口径一致，
  * 绝不展示 AI 编造的链接（链接只可能来自 resolveResources）。
+ *
+ * FB-08：链接下方提供站内预览，先看清内容再决定要不要跳出去。
  */
 
 import { openExternalUrl } from "@/lib/safe-url";
 import { AiTrustTag } from "./ai-trust-tag";
+import { ResourcePreviewPanel } from "./resource-preview-panel";
 import type { Resource } from "./use-analysis-panel";
 
 function open(r: Resource) {
@@ -34,6 +37,7 @@ export function AiResourceRow({ res }: { res: Resource }) {
         {res.platform && <span className="font-mono text-caption tracking-[.05em]">{res.platform}</span>}
         {res.author && <span className="font-mono text-caption tracking-[.05em]">{res.author}</span>}
       </p>
+      {res.url && <ResourcePreviewPanel url={res.url} title={res.title} className="mt-2" />}
     </li>
   );
 }

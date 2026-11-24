@@ -16,6 +16,7 @@ import { ProgressRing } from "./progress-ring";
 import { StepLevelTile } from "./step-level-tile";
 import { StepsSubtaskCard } from "./steps-subtask-card";
 import { LEVEL_COPY, levelGroupsOf, type BloomLevelGroup } from "./steps-level-model";
+import { bloomOf } from "./subtask-line-model";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
 
 interface AscendingStepsViewProps {
@@ -42,7 +43,10 @@ export function AscendingStepsView({
       : levelGroups.find((g) => g.level === selectedBloomLevel) ?? null;
 
   const visibleItems = subtasks.filter(
-    (s) => selectedBloomLevel === "all" || (s.bloomLevel || 1) === selectedBloomLevel
+    (s) =>
+      selectedBloomLevel === "all"
+        ? true
+        : bloomOf(s).known && bloomOf(s).level === selectedBloomLevel
   );
 
   return (

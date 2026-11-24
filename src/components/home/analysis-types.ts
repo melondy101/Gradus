@@ -10,6 +10,8 @@ export interface StreamState {
   deltaLen: number;
   errorMsg: string;
   startedAt?: number;
+  /** 失败时所处的阶段（FB-07）：让流水线保留已完成的节点，而不是全部退回未开始 */
+  failedFrom?: Phase;
 }
 
 export interface AnalysisEntry {

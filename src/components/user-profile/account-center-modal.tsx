@@ -5,7 +5,7 @@ import { Crown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Avatar } from "@/components/ui/icon-button";
 import { loginEmail } from "@/lib/auth/account-validation";
-import { openMembershipModal } from "@/components/membership/global-membership-modal";
+import { openMembershipModalWithFeedback } from "@/components/membership/global-membership-modal";
 import { useAppTheme } from "@/components/theme/theme-provider";
 import { THEMES, type ThemeId } from "@/lib/theme-config";
 import type { User } from "@/lib/db/schema";
@@ -29,7 +29,7 @@ export function AccountCenterModal({ open, onClose, onLogout, user, isAdmin }: A
   const displayName = user.name ?? user.email ?? "访客";
   const openMembership = (tab: "overview" | "manage") => {
     onClose();
-    window.setTimeout(() => openMembershipModal(tab), 0);
+    window.setTimeout(() => openMembershipModalWithFeedback(tab), 0);
   };
 
   return (

@@ -2,9 +2,10 @@
 // 设计稿的「最近截止 / 共 N 项 / 4.5 小时」在真实数据里分别是：
 //   最近截止 = 未完成子任务里最早的一天
 //   共 N 项  = 今日时间桶内的子任务总数
-//   N 小时   = 今日子任务深度工时合计（无 deepWorkHours 时按 1.5h/天 折算，与旧卡片同口径）
+//   N 小时   = 今日子任务**每日**深度工时合计（口径见 src/lib/workload.ts）
 
 import type { SubtaskWithTask } from "@/lib/api/tasks";
+import { dailyHoursTotal } from "@/lib/workload";
 import { getSubtaskActualDates } from "./subtask-row";
 
 export interface TodayMetrics {
@@ -15,11 +16,6 @@ export interface TodayMetrics {
   nextDeadline: string | null;
   pendingTotal: number;
   completedTotal: number;
-}
-
-function hoursOf(row: SubtaskWithTask): number {
-  const deep = row.deepWorkHours ? Number(row.deepWorkHours) : 0;
-  return deep > 0 ? deep : (row.durationDays || 1) * 1.5;
 }
 
 export function computeTodayMetrics(
@@ -39,7 +35,7 @@ export function computeTodayMetrics(
   return {
     todayTotal: todayRows.length,
     todayPending: todayRows.filter((r) => !r.completed).length,
-    todayHours: Math.round(todayRows.reduce((n, r) => n + hoursOf(r), 0) * 10) / 10,
+    todayHours: dailyHoursTotal(todayRows),
     nextDeadline: earliest
       ? `${String(earliest.getMonth() + 1).padStart(2, "0")}-${String(earliest.getDate()).padStart(2, "0")}`
       : null,

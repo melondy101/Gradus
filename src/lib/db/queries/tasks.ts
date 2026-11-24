@@ -442,6 +442,58 @@ export async function createSubtasks(
   }
 }
 
+/**
+ * 原子替换某个大任务的全部子任务（FB-07）
+ *
+ * 之前是「先删后插」两步：第二步失败会让任务被清空成零子任务，旧计划不可恢复。
+ * 现在删除与插入放进同一个事务，任何一步失败都整体回滚 —— 原有计划完整保留。
+ */
+export async function replaceSubtasks(taskId: string, items: SubtaskInsert[]): Promise<Subtask[]> {
+  const createdList: Subtask[] = items.map((s) => ({
+    id: crypto.randomUUID(),
+    taskId,
+    title: s.title,
+    description: s.description ?? null,
+    durationDays: s.durationDays,
+    startDay: s.startDay,
+    completed: false,
+    sortOrder: s.sortOrder,
+    resources: s.resources ?? null,
+    topic: s.topic ?? null,
+    urgency: s.urgency ?? null,
+    importance: s.importance ?? null,
+    keywords: s.keywords ?? null,
+    completedAt: null,
+    bloomLevel: s.bloomLevel ?? null,
+    deepWorkHours: s.deepWorkHours ?? null,
+    createdAt: new Date(),
+  }));
+
+  let rows: Subtask[];
+  try {
+    rows = await db.transaction(async (tx) => {
+      await tx.delete(subtasks).where(eq(subtasks.taskId, taskId));
+      if (createdList.length === 0) return [] as Subtask[];
+      return tx.insert(subtasks).values(createdList).returning();
+    });
+  } catch (err) {
+    console.error("[tasks] replaceSubtasks FATAL DB ERROR:", {
+      taskId,
+      itemCount: items.length,
+      error: err instanceof Error ? err.message : err,
+    });
+    throw err;
+  }
+
+  // 事务提交后再同步内存快照，失败时内存与数据库保持一致
+  for (const [sId, s] of memStore.subtasks.entries()) {
+    if (s.taskId === taskId) memStore.subtasks.delete(sId);
+  }
+  for (const row of rows) memStore.subtasks.set(row.id, row);
+  if (rows.length === 0) throw new Error(`replaceSubtasks returned empty rows for taskId=${taskId}`);
+  return rows;
+}
+
 export async function toggleSubtask(
   id: string,
   completed: boolean,

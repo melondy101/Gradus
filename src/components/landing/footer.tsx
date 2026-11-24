@@ -1,5 +1,6 @@
 import { GradusLogo } from "@/components/ui/gradus-logo";
 import { Mono } from "@/components/ui/eyebrow";
+import { PRODUCT_VERSION } from "@/lib/version";
 import { cn } from "@/utils/utils";
 
 import { BandWrap, wrapClass } from "./band-wrap";
@@ -39,7 +40,7 @@ const COLUMNS: { label: string; links: FootLink[] }[] = [
     links: [
       { text: "品牌标识", href: `${REPO_URL}/tree/main/output`, external: true },
       { text: "设计说明", href: `${REPO_URL}/tree/main/output`, external: true },
-      { text: "开源协议", href: `${REPO_URL}#-开源许可证`, external: true },
+      { text: "开源协议", href: `${REPO_URL}/blob/main/LICENSE`, external: true },
       { text: "联系方式", href: `${REPO_URL}/issues`, external: true },
     ],
   },
@@ -80,7 +81,7 @@ export function LandingFooter() {
           "min-[680px]:flex-row min-[680px]:items-center min-[680px]:justify-between min-[680px]:gap-6"
         )}
       >
-        <Mono className="text-on-dark-3">Copyright 2026 Gradus · 拾级</Mono>
+        <Mono className="text-on-dark-3">Copyright 2026 Gradus · 拾级 · v{PRODUCT_VERSION}</Mono>
         <nav className="flex gap-[22px]">
           <a href="#sec-privacy" className={LEGAL_LINK_CLASS}>
             隐私政策

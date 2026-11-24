@@ -10,7 +10,12 @@ export interface TierConfig {
   limits: {
     maxTasks: number; // 普通: 2, Pro: 20, Premium: 999
     dailyTaskOpsLimit: number; // 每天任务新建+删除总操作次数上限 (Free: 5, Pro: 50, Premium: 500)
-    dailyAiGenerateLimit: number; // 每天 AI 规划生成上限 (Free: 3, Pro: 30, Premium: 100)
+    /**
+     * 每天 AI 规划生成上限 —— **仅在未开启收款（自托管）时生效**。
+     * 开启收款后走额度包模型（见 src/lib/commerce/credits.ts）：
+     * 试用 3 次 + 每日刷新 1 次，与下面的 features 文案保持一致。
+     */
+    dailyAiGenerateLimit: number;
     dailyAiAdjustLimit: number; // 每天 AI 提示词微调修改上限 (Free: 10, Pro: 100, Premium: 500)
   };
   features: string[];
@@ -33,10 +38,10 @@ export const TIER_CONFIGS: Record<MembershipTier, TierConfig> = {
     },
     features: [
       "最多同时拥有 2 个学习任务",
-      "每日 5 次新建 AI 规划全案拆解",
-      "每日 10 次提示词微调（难度/偏好/模块调整）",
+      "试用 3 次完整 AI 规划（含重排），用完后每天再送 1 次",
       "支持 Bloom 认知阶梯排期与资源推荐",
-      "每日 24:00 (东八区) 自动刷新配额",
+      "资源校验到「课程是否还开着」，别再被失效链接坑",
+      "每日 24:00 (东八区) 自动刷新每日额度",
     ],
   },
   pro: {

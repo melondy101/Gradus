@@ -35,7 +35,7 @@ export function LandingFinalCta() {
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
         <Link href={APP_URL} className={buttonVariants({ variant: "default" })}>
-          免费开始规划
+          免费开始 · 试用 3 次
         </Link>
         <Link href={appViewUrl("plans")} className={buttonVariants({ variant: "outline" })}>
           先看演示数据

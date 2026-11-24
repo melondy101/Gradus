@@ -37,6 +37,8 @@ async function accessForUser(request: NextRequest, purchase: boolean) {
       expiresAt: result.entitlement.expires_at ?? null,
       reason: result.reason?.code ?? null,
       purchaseUrl: purchase ? result.purchase?.url ?? null : null,
+      // 桌面浏览器不能唤起 alipays:// 深链，前端用它弹二维码（FB-04）
+      purchaseQrUrl: purchase ? result.purchase?.qr_code_url ?? null : null,
     });
   } catch (error) {
     console.warn("[watcha-pay] entitlement access unavailable", {

@@ -1,5 +1,6 @@
 import { BLOOM_CONFIG } from "@/lib/design-tokens";
 import type { SubtaskWithTask } from "@/lib/api/tasks";
+import { bloomOf } from "./subtask-line-model";
 
 export const BLOOM_LEVELS = [1, 2, 3, 4, 5, 6] as const;
 
@@ -22,11 +23,17 @@ export type BloomLevelGroup = {
   pct: number;
 };
 
-/** 按 Bloom 层级（1→6）分组，供天梯视图的台阶全览与筛选复用 */
+/**
+ * 按 Bloom 层级（1→6）分组，供天梯视图的台阶全览与筛选复用。
+ *
+ * 分组层级必须与卡片标签用同一个判定（bloomOf），否则会出现
+ * 「台阶显示 L1、卡片标签显示 L3」的自相矛盾（FB-01）。
+ * 未标注认知层级（bloomLevel 缺失）的子任务不进任何台阶，只在全阶清单里出现。
+ */
 export function levelGroupsOf(subtasks: SubtaskWithTask[]): BloomLevelGroup[] {
   return BLOOM_LEVELS.map((lvl) => {
     const config = BLOOM_CONFIG[lvl as keyof typeof BLOOM_CONFIG];
-    const items = subtasks.filter((s) => (s.bloomLevel || 1) === lvl);
+    const items = subtasks.filter((s) => bloomOf(s).known && bloomOf(s).level === lvl);
     const completedCount = items.filter((s) => s.completed).length;
     return {
       level: lvl,
