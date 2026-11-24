@@ -1,18 +1,32 @@
+import { T } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
 
 interface GradusLogoProps {
-  /** 标识高度（px）。设计稿规定最小 26px 宽（侧边栏）、最大 40px（Footer）。 */
+  /** 标识总高度（px），默认 26（原型 .brand 的高度） */
   size?: number;
   className?: string;
+  /** 是否带「拾级 + GRADUS」字标 */
   showText?: boolean;
+  /** 字标类名（字号/颜色由调用方给） */
   textClassName?: string;
-  /** 深色底反白：两级台阶由 currentColor 驱动，顶点始终点缀黄。 */
+  /** 深色底反白：标识下两级改用反白，顶点仍是朱红 */
   onDark?: boolean;
 }
 
+/** 三级台阶的比例（原型 .brand i:nth-child）：8 / 17 / 26 */
+const BAR_HEIGHTS = [8, 17, 26];
+const BASE_HEIGHT = 26;
+const BASE_WIDTH = 6;
+
 /**
- * 拾级 Gradus 三级台阶标识（《品牌与产品设计说明》§1.1）。
- * 顶点一级用全站唯一点缀黄 —— 标识即色彩系统的缩影。
+ * 拾级 Gradus 品牌标识（时间色谱）。
+ *
+ * 三级台阶：下两级墨色（深底反白）、顶点朱红 —— 与认知阶梯、时间色谱色板同一套语言。
+ * 旧版是「黄色顶点的横向台阶块 + 无衬线字标」，只属于重构前的品牌，和应用内
+ * 顶栏（三级竖条 + 衬线字标）对不上，等于两个 logo。
+ *
+ * 全站只有这一个品牌定义：落地页 nav / 页脚、应用内顶栏、独立路由品牌栏、
+ * 达成弹窗与流水线弹层都用它。
  */
 export function GradusLogo({
   size = 22,
@@ -21,33 +35,37 @@ export function GradusLogo({
   textClassName,
   onDark = false,
 }: GradusLogoProps) {
-  const height = size;
-  const width = Math.round((height * 96) / 44);
+  const scale = size / BASE_HEIGHT;
+  const width = Math.max(3, Math.round(BASE_WIDTH * scale));
+  const base = onDark ? T.onDark : T.ink;
 
   return (
     <span
       className={cn(
         "inline-flex items-center gap-[9px] leading-none",
-        onDark ? "text-[color:var(--on-dark)]" : "text-[color:var(--ink)]",
-        className
+        className,
       )}
     >
-      <svg
-        width={width}
-        height={height}
-        viewBox="0 0 96 44"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        className="flex shrink-0 items-end gap-[2px]"
+        style={{ height: size }}
         aria-hidden="true"
-        focusable="false"
       >
-        <rect x="0" y="32" width="26" height="12" rx="4" fill="currentColor" />
-        <rect x="35" y="18" width="26" height="26" rx="4" fill="currentColor" />
-        <rect x="70" y="0" width="26" height="44" rx="4" fill="var(--accent)" />
-      </svg>
+        {BAR_HEIGHTS.map((h, i) => (
+          <i
+            key={i}
+            className="block"
+            style={{
+              width,
+              height: Math.round(h * scale),
+              background: i === BAR_HEIGHTS.length - 1 ? T.error : base,
+            }}
+          />
+        ))}
+      </span>
       {showText ? (
         <span className={cn("flex items-baseline gap-[10px]", textClassName)}>
-          <b className="text-title-sm font-black tracking-[.02em]">拾级</b>
+          <b className="font-chromatic text-title-sm font-extrabold tracking-[-.01em]">拾级</b>
           <span className="font-mono text-micro font-medium tracking-[.24em] opacity-60">
             GRADUS
           </span>

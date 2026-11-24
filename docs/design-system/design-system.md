@@ -28,7 +28,7 @@
 | Heading | `Heading` | heading.tsx | 标题（hero/sec/sub/page + 黄句点） | 各面板标题、落地 hero |
 | IconButton / Avatar | `IconButton` `Avatar` | icon-button.tsx | 方形图标钮 / 圆形头像 | 侧栏折叠钮、访客头像 |
 | AiPill | `AiPill` | ai-pill.tsx | 深底 AI 状态浮标 | 「AI 建议复核未验证资源 1/2」 |
-| GradusLogo | `GradusLogo` | gradus-logo.tsx | 品牌 logo（可带字标） | 顶栏、页脚 |
+| GradusLogo | `GradusLogo` | gradus-logo.tsx | 品牌标识（三级台阶，顶点朱红，可带衬线字标） | 顶栏、页脚、达成弹窗 |
 | Toaster | `Toaster` | sonner.tsx | 全局 toast（底部居中） | 交互反馈 |
 
 > 2026-09-26 签字点② 删除：`select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`（零引用脚手架，见文末「已删除组件」）。现存 15 文件 / 29 个导出符号（含类型）。
@@ -112,6 +112,8 @@
 - 禁止：非 AI 场景复用（普通提示用 Toaster）。
 
 ### GradusLogo / Toaster — 常规用法，无变体；`Toaster` 全局挂载一次（layout 已装），业务代码只调 `sonner` 的 `toast()`。
+
+品牌标识全站只有一个定义（`gradus-logo.tsx`）：三级台阶，下两级墨色（深底反白）、顶点朱红，字标走 `font-chromatic` 衬线。落地页 nav / 页脚、应用内顶栏、`/task/[id]` 品牌栏都复用它，不要在别处再画一遍台阶。
 
 ### 已删除组件（签字点②，2026-09-26）
 - `select.tsx` / `tabs.tsx` / `label.tsx` / `textarea.tsx`：全仓零引用、样式未接品牌令牌的脚手架残留（textarea.tsx 曾与 input.tsx 的 `Textarea` 重名），已从 `src/components/ui/` 删除。若未来需要 Select/Tabs，按阶段四补录流程重新实现并接品牌令牌。

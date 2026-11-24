@@ -58,9 +58,10 @@ export function LandingFooter() {
     <footer className="bg-band-dark pt-20 text-on-dark">
       <BandWrap layout="foot">
         <div>
-          <GradusLogo size={18} onDark />
-          <p className="mt-4 flex items-baseline gap-2.5 text-[22px] font-black">
-            拾级 <Mono className="text-micro tracking-[.24em] text-on-dark-3">GRADUS</Mono>
+          <GradusLogo size={22} onDark />
+          <p className="mt-4 flex items-baseline gap-2.5">
+            <b className="font-chromatic text-[22px] font-extrabold tracking-[-.01em]">拾级</b>
+            <Mono className="text-micro tracking-[.24em] text-on-dark-3">GRADUS</Mono>
           </p>
           <p className="mt-3 max-w-[340px] text-[14px] leading-[24px] text-on-dark-2">
             面向自主学习者的 AI 学习任务规划器。一步一步，走到你想去的地方。

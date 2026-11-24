@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Plus, Tag as TagIcon, X } from "lucide-react";
 import { T } from "@/lib/design-tokens";
 import { Badge } from "@/components/ui/badge";
+import { GradusLogo } from "@/components/ui/gradus-logo";
 import { IconButton } from "@/components/ui/icon-button";
 import { Mono } from "@/components/ui/eyebrow";
 import { LevelBadge } from "@/components/home/level-badge";
@@ -67,11 +68,7 @@ export function TopNav({
         className="flex min-w-0 shrink items-center gap-2 transition-opacity hover:opacity-85 sm:gap-2.5"
         aria-label="拾级 Gradus 首页"
       >
-        <span className="flex h-[26px] shrink-0 items-end gap-0.5" aria-hidden="true">
-          <i className="w-[6px]" style={{ height: 8, background: T.ink }} />
-          <i className="w-[6px]" style={{ height: 17, background: T.ink }} />
-          <i className="w-[6px]" style={{ height: 26, background: T.error }} />
-        </span>
+        <GradusLogo size={26} />
         <span className="truncate whitespace-nowrap font-chromatic text-title-sm font-extrabold tracking-[-.01em] text-ink sm:text-title-lg">
           拾级 · 时间色谱
         </span>

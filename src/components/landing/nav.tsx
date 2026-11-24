@@ -97,8 +97,8 @@ export function LandingNav() {
             aria-label="拾级 Gradus 首页"
             className="flex items-center justify-self-start gap-2.5 text-title font-black tracking-[.01em]"
           >
-            <GradusLogo size={16} />
-            <span>拾级</span>
+            <GradusLogo size={20} />
+            <span className="font-chromatic text-title font-black tracking-[-.01em]">拾级</span>
           </Link>
 
           <nav className="hidden gap-8 min-[1180px]:justify-self-center min-[1180px]:flex">

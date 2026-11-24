@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { GradusLogo } from "@/components/ui/gradus-logo";
 import { Mono } from "@/components/ui/eyebrow";
-import { T } from "@/lib/design-tokens";
 
 interface BrandPageShellProps {
   /** 内容最大宽度：屏二比其他独立页更宽（主列 + 380px 详情面板） */
@@ -41,11 +41,7 @@ export function BrandPageShell({
           className="inline-flex items-center gap-[9px]"
         >
           {/* 品牌：三级台阶（顶点朱红）+ 衬线字标 */}
-          <span className="flex h-[26px] shrink-0 items-end gap-0.5" aria-hidden="true">
-            <i className="w-[6px]" style={{ height: 8, background: T.ink }} />
-            <i className="w-[6px]" style={{ height: 17, background: T.ink }} />
-            <i className="w-[6px]" style={{ height: 26, background: T.error }} />
-          </span>
+          <GradusLogo size={26} />
           <b className="font-chromatic text-title-sm font-extrabold tracking-[-.01em] text-ink sm:text-title-lg">
             拾级 · 时间色谱
           </b>
