@@ -47,7 +47,7 @@ export function LandingHero() {
             哪一级
           </Heading>
 
-          <p className="mt-[22px] max-w-[520px] text-[16px] leading-[27px] text-text-2">
+          <p className="mt-[22px] max-w-[520px] font-chromatic text-[16px] leading-[27px] text-text-2">
             说出你想学什么。拾级把它拆成带排期、带真实资源、带认知层级递进的子任务，自动核查并修订计划，然后在你迈上每一级之后，把后面的日程悄悄接上。
           </p>
 

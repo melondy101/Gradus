@@ -29,8 +29,8 @@ export function LandingFinalCta() {
       >
         今天想学点什么
       </Heading>
-      <p className="mx-auto mt-[22px] max-w-[560px] text-[16px] leading-[27px] text-text-2">
-        把你的目标丢给拾级，三十秒后你会拿到一张带资源、带排期的甘特图。
+      <p className="mx-auto mt-[22px] max-w-[560px] font-chromatic text-[16px] leading-[27px] text-text-2">
+        把你的目标丢给拾级，一两分钟后你会拿到一张带资源、带排期的甘特图。
       </p>
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">

@@ -8,13 +8,16 @@
  *
  * 这里用静态样例数据做一个能点的天梯：台阶可点（按层筛选）、方框可勾、进度会动。
  * 纯前端，不请求后端 —— 落地页不该为了一个演示去走后端。
+ *
+ * 视觉对齐产品内的天梯（<StepLevelTile>）与今日路线行（<SubtaskLine>）：
+ * 顶部 8px 认知色带 + 衬线台阶名 + 层级色进度条；任务行带认知色轨与彩色 L 标签。
  */
 
 import { useState } from "react";
 
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Heading } from "@/components/ui/heading";
-import { PLAN_CHROMATIC, T } from "@/lib/design-tokens";
+import { BLOOM_CONFIG, bloomChromatic, T } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
 
 import { Band, bandHeadingClass } from "./band";
@@ -36,8 +39,6 @@ const DEMO_TASKS: readonly DemoTask[] = [
   { id: "d6", level: 6, title: "设计演示初稿并试讲一遍", hours: "3h/天" },
 ];
 
-const LEVEL_NAMES = ["识记", "理解", "应用", "分析", "评估", "创造"] as const;
-
 export function LandingDemoBand() {
   const [done, setDone] = useState<Record<string, boolean>>({ d1: true });
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
@@ -55,7 +56,7 @@ export function LandingDemoBand() {
         <Heading level={2} spec="sec" className={bandHeadingClass}>
           这就是别人生成出来的东西
         </Heading>
-        <p className="mb-9 max-w-[68ch] text-[16px] leading-[27px] text-text-2">
+        <p className="mb-9 max-w-[68ch] font-chromatic text-[16px] leading-[27px] text-text-2">
           一个真实目标的拆解结果：六级认知台阶，每一级都能勾、进度会实时变。
           点台阶可以只看那一阶 —— 这就是拾级在做的事，只是这里用的是静态样例。
         </p>
@@ -63,26 +64,42 @@ export function LandingDemoBand() {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
           {DEMO_TASKS.map((task) => {
             const active = selectedLevel === task.level;
-            const isDone = !!done[task.id];
+            const config = BLOOM_CONFIG[task.level as keyof typeof BLOOM_CONFIG];
+            const color = bloomChromatic(task.level);
+            const levelDone = DEMO_TASKS.filter((t) => t.level === task.level && done[t.id]).length;
+            const levelTotal = DEMO_TASKS.filter((t) => t.level === task.level).length;
             return (
               <button
                 key={task.id}
                 type="button"
                 onClick={() => setSelectedLevel(active ? null : task.level)}
                 aria-pressed={active}
+                style={{ borderTopColor: color }}
                 className={cn(
-                  "border border-bd-card bg-white px-3 py-3 text-left transition-colors",
-                  active && "border-ink",
+                  "border border-bd-card border-t-8 bg-cream-light px-3 py-3 text-left",
+                  "transition-[border-color,box-shadow,transform] duration-[.16s] ease-out",
+                  active
+                    ? "border-ink shadow-[3px_3px_0_var(--ink)]"
+                    : "hover:border-ink hover:shadow-[3px_3px_0_var(--bd-check)]",
                 )}
               >
                 <span className="block font-mono text-2xs tracking-[.12em] text-text-3">
-                  L{task.level} {LEVEL_NAMES[task.level - 1]}
+                  L{task.level} {config.nameEn.toUpperCase()}
                 </span>
-                <span className="mt-1 block text-body-sm font-bold text-ink">
-                  {isDone ? "已完成" : `${DEMO_TASKS.filter((t) => t.level === task.level).length} 项任务`}
+                <span className="mt-2 block font-chromatic text-title-sm leading-none text-ink">
+                  {config.name}
                 </span>
-                <span className="mt-0.5 block font-mono text-2xs text-text-3">
-                  {isDone ? "✓" : "待开始"}
+                <span className="mt-3 block text-body-sm text-text-2">
+                  {levelDone} / {levelTotal} 完成
+                </span>
+                <span className="mt-2 block h-[3px] bg-bd-card" aria-hidden="true">
+                  <span
+                    className="block h-full transition-[width] duration-[.4s] ease-out"
+                    style={{
+                      width: `${levelTotal > 0 ? Math.round((levelDone / levelTotal) * 100) : 0}%`,
+                      background: color,
+                    }}
+                  />
                 </span>
               </button>
             );
@@ -97,27 +114,39 @@ export function LandingDemoBand() {
         </div>
 
         <ul className="mt-4 flex flex-col">
-          {visible.map((task) => (
-            <li key={task.id} className="flex items-center gap-3 border-b border-bd-card py-3">
-              <button
-                type="button"
-                role="checkbox"
-                aria-checked={!!done[task.id]}
-                onClick={() => setDone((prev) => ({ ...prev, [task.id]: !prev[task.id] }))}
-                aria-label={`标记「${task.title}」完成`}
-                className="grid size-[22px] flex-none place-items-center border border-ink text-body-sm font-bold text-ink transition-colors hover:bg-ink hover:text-cream"
-                style={done[task.id] ? { background: PLAN_CHROMATIC.vermilion, borderColor: PLAN_CHROMATIC.vermilion, color: T.bg } : undefined}
+          {visible.map((task) => {
+            const color = bloomChromatic(task.level);
+            const config = BLOOM_CONFIG[task.level as keyof typeof BLOOM_CONFIG];
+            const isDone = !!done[task.id];
+            return (
+              <li
+                key={task.id}
+                className="grid grid-cols-[8px_22px_minmax(0,1fr)_auto] items-center gap-3 border-b border-bd-card py-3"
               >
-                {done[task.id] ? "✓" : ""}
-              </button>
-              <span className={cn("min-w-0 flex-1 text-body font-bold", done[task.id] ? "text-text-3 line-through" : "text-ink")}>
-                {task.title}
-              </span>
-              <span className="flex-none font-mono text-caption text-text-3">
-                L{task.level} {LEVEL_NAMES[task.level - 1]} · {task.hours}
-              </span>
-            </li>
-          ))}
+                <span className="h-9 w-2" style={{ background: color }} aria-hidden="true" />
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isDone}
+                  onClick={() => setDone((prev) => ({ ...prev, [task.id]: !prev[task.id] }))}
+                  aria-label={`标记「${task.title}」完成`}
+                  className="grid size-[22px] flex-none place-items-center border border-ink text-body-sm font-bold text-ink transition-colors hover:bg-ink hover:text-cream"
+                  style={isDone ? { background: color, borderColor: color, color: T.bg } : undefined}
+                >
+                  {isDone ? "✓" : ""}
+                </button>
+                <span className={cn("min-w-0 flex-1 text-body font-bold", isDone ? "text-text-3 line-through" : "text-ink")}>
+                  {task.title}
+                </span>
+                <span className="flex flex-none flex-col items-end">
+                  <b className="text-body-sm font-bold whitespace-nowrap" style={{ color }}>
+                    L{task.level} {config.name}
+                  </b>
+                  <span className="font-mono text-2xs whitespace-nowrap text-text-3">{task.hours}</span>
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </BandWrap>
     </Band>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { BLOOM_CONFIG, bloomChromatic } from "@/lib/design-tokens";
 import { SubtaskActionList } from "./subtask-action-list";
 import { SubtaskMetaGrid } from "./subtask-meta-grid";
 import { SubtaskResourceRow } from "./subtask-resource-row";
@@ -43,15 +44,23 @@ export function SubtaskInspector({ view, onToggle, onClear }: SubtaskInspectorPr
   }
 
   const { subtask } = view;
-  const badge = view.bloom
-    ? `${STATE_LABEL[view.state]} · L${view.bloomLevel}`
-    : STATE_LABEL[view.state];
+  const level = Math.min(6, Math.max(1, view.bloomLevel ?? 1));
+  const config = BLOOM_CONFIG[level as keyof typeof BLOOM_CONFIG];
+  const levelColor = bloomChromatic(level);
 
   return (
     <aside className="sticky top-0">
       <Card className="gap-0 p-[22px]" aria-label="子任务详情">
-        <Badge state={view.state}>{badge}</Badge>
-        <h3 className="mt-3 mb-4 text-title leading-[28px] font-black">{subtask.title}</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge state={view.state}>{STATE_LABEL[view.state]}</Badge>
+          <span
+            className="font-mono text-micro font-bold tracking-[.06em] whitespace-nowrap"
+            style={{ color: levelColor }}
+          >
+            L{level} {config.name}
+          </span>
+        </div>
+        <h3 className="mt-3 mb-4 font-chromatic text-title leading-[28px] font-black">{subtask.title}</h3>
 
         <SubtaskMetaGrid view={view} />
 

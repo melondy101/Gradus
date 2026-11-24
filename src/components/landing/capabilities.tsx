@@ -31,7 +31,7 @@ const CAPABILITIES: readonly Capability[] = [
   {
     icon: ScanSearch,
     title: "资源检索与校验",
-    body: "AI 只产出搜索意图，真实链接由白名单检索得到，并做存活 / 权威 / 新鲜度三维校验。",
+    body: "AI 只产出搜索意图，真实链接由白名单检索得到，并做存活 / 权威 / 新鲜度 / 内容可学性四维校验。",
   },
   {
     icon: CalendarRange,

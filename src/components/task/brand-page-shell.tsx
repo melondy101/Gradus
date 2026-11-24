@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { GradusLogo } from "@/components/ui/gradus-logo";
 import { Mono } from "@/components/ui/eyebrow";
+import { T } from "@/lib/design-tokens";
 
 interface BrandPageShellProps {
   /** 内容最大宽度：屏二比其他独立页更宽（主列 + 380px 详情面板） */
@@ -16,9 +16,12 @@ interface BrandPageShellProps {
 
 /**
  * 独立路由（/task/[id] 等）共用的品牌外壳：
- * 画布底色 = --cream（§1.3 body 底），白底细描边品牌栏（台阶标识 + 字标），
- * 内容区居中并按设计稿留白。宽度随 maxWidth 变化，故只有这一处走内联样式。
+ * 画布底色 = --cream（§1.3 body 底），白底细描边品牌栏，内容区居中并按设计稿留白。
+ * 宽度随 maxWidth 变化，故只有这一处走内联样式。
  * data-slot="page-canvas" 是 design-audit 量画布底色的落点。
+ *
+ * 品牌处理与应用内顶部导航同源（时间色谱）：三级台阶（顶点朱红）+ 衬线字标。
+ * 此前这里用的是旧品牌标识与无衬线字标，进独立路由时像另一个产品。
  */
 export function BrandPageShell({
   maxWidth = 1240,
@@ -37,8 +40,15 @@ export function BrandPageShell({
           title="返回今日面板"
           className="inline-flex items-center gap-[9px]"
         >
-          <GradusLogo size={15} />
-          <b className="text-title-sm font-black tracking-[.02em]">拾级</b>
+          {/* 品牌：三级台阶（顶点朱红）+ 衬线字标 */}
+          <span className="flex h-[26px] shrink-0 items-end gap-0.5" aria-hidden="true">
+            <i className="w-[6px]" style={{ height: 8, background: T.ink }} />
+            <i className="w-[6px]" style={{ height: 17, background: T.ink }} />
+            <i className="w-[6px]" style={{ height: 26, background: T.error }} />
+          </span>
+          <b className="font-chromatic text-title-sm font-extrabold tracking-[-.01em] text-ink sm:text-title-lg">
+            拾级 · 时间色谱
+          </b>
         </Link>
         {railHref ? (
           <Link href={railHref}>

@@ -36,14 +36,14 @@ export function TaskProgressCard({
     <Card className="gap-0">
       <div className="grid grid-cols-[minmax(0,230px)_minmax(0,1fr)_auto] items-center gap-5">
         <div className="min-w-0">
-          <h3 className="text-body-lg font-bold">总体进度</h3>
+          <h3 className="font-chromatic text-body-lg font-bold">总体进度</h3>
           <Mono className="mt-1 block text-micro text-text-3">
             {detail.join(" · ")}
             {total > 0 ? ` · 共 ${total} 个子任务` : ""}
           </Mono>
         </div>
         <ProgressBar percent={completedCount > 0 ? pct : 0} label="总体完成度" />
-        <b className="text-[26px] leading-none font-black">{pct}%</b>
+        <b className="font-chromatic text-[26px] leading-none font-black">{pct}%</b>
       </div>
     </Card>
   );

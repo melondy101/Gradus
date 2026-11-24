@@ -6,11 +6,12 @@ import type { Subtask } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mono } from "@/components/ui/eyebrow";
+import { BLOOM_CONFIG, bloomChromatic } from "@/lib/design-tokens";
 import { cn } from "@/utils/utils";
 import { GanttBar } from "./gantt-bar";
 import { GanttKey } from "./gantt-key";
 import { barPlacement, GANTT_COLS, planGanttWindow } from "./gantt-window";
-import { buildSubtaskViews, type SubtaskState } from "./subtask-view-model";
+import { buildSubtaskViews } from "./subtask-view-model";
 import { todayOffsetOf } from "./task-dates";
 
 interface GanttChartProps {
@@ -25,19 +26,15 @@ interface GanttChartProps {
 }
 
 const TRACK = "grid grid-cols-[repeat(8,minmax(0,1fr))] gap-1.5";
-const COLS: Array<{ state: SubtaskState; label: string }> = [
-  { state: "done", label: "已完成" },
-  { state: "live", label: "进行中" },
-  { state: "plan", label: "计划中" },
-];
+const BLOOM_LEVELS = [1, 2, 3, 4, 5, 6] as const;
 
 /**
- * 屏二甘特图：8 列网格，条形以 `--s`（起始列）/ `--c`（跨列数）落位，
- * 三态由真实数据驱动（灰＝已完成、黄＝今天在进行、描边＝计划中）。
+ * 屏二甘特图（时间色谱）：8 列网格，条形以 `--s`（起始列）/ `--c`（跨列数）落位。
+ * **色条颜色 = 认知层级**，与接续排期视图同一套语义；完成与否靠条内的 ✓ 区分。
  * 表头与行共用同一条标签列（--g-lab），行高 30、条高 21；
  * 竖网格覆盖层用 left:calc(--g-lab+6px) 与行的第二列对齐，故三处必须共用该变量。
  * 窄屏（<640）标签换到轨道上方、轨道通栏，覆盖层随之隐藏——
- * 198px 标签列在这个宽度下必然截断标题，今天这一列改由表头黄底标示。
+ * 198px 标签列在这个宽度下必然截断标题，今天这一列改由表头朱砂底标示。
  */
 export function GanttChart({
   subtasks,
@@ -59,7 +56,7 @@ export function GanttChart({
 
   const footParts = [
     `${first.date} – ${last.date}`,
-    todayOffset === null ? "未设置起始日期" : win.cols.some((c) => c.isToday) ? "黄底列为今天" : "今天在本窗口之外",
+    todayOffset === null ? "未设置起始日期" : win.cols.some((c) => c.isToday) ? "朱砂底列为今天" : "今天在本窗口之外",
   ];
   if (hidden > 0) footParts.push(`另有 ${hidden} 个子任务在本窗口之外`);
 
@@ -69,13 +66,13 @@ export function GanttChart({
         <CardTitle>甘特图</CardTitle>
         <CardAction>
           <div className="flex items-center gap-4">
-            {COLS.map((c) => (
+            {BLOOM_LEVELS.map((level) => (
               <span
-                key={c.state}
+                key={level}
                 className="flex items-center gap-1.5 font-mono text-micro font-medium tracking-[.05em] text-text-2"
               >
-                <GanttKey state={c.state} />
-                {c.label}
+                <GanttKey level={level} />
+                L{level} {BLOOM_CONFIG[level].name}
               </span>
             ))}
             {collapsible && (
@@ -104,9 +101,9 @@ export function GanttChart({
                   key={c.key}
                   title={c.date}
                   className={cn(
-                    // px-1.5 text-center：黄底今日 pill 的文字不贴左缘（体检报告 2026-09-26 疑似#2）
+                    // px-1.5 text-center：朱砂底今日 pill 的文字不贴左缘（体检报告 2026-09-26 疑似#2）
                     "rounded-tag px-1.5 py-[5px] text-center font-mono text-micro font-medium tracking-[.05em] text-text-3",
-                    c.isToday && "bg-accent font-bold text-ink"
+                    c.isToday && "bg-error-soft font-bold text-error"
                   )}
                 >
                   {c.label}
@@ -121,12 +118,14 @@ export function GanttChart({
               className={cn(TRACK, "pointer-events-none absolute inset-y-0 right-0 left-[calc(var(--g-lab)+6px)] max-sm:hidden")}
             >
               {win.cols.map((c) => (
-                <span key={c.key} className={c.isToday ? "rounded-chip-sm bg-[rgba(245,197,24,.13)]" : "rounded-chip-sm"} />
+                <span key={c.key} className={c.isToday ? "rounded-chip-sm bg-error-soft" : "rounded-chip-sm"} />
               ))}
             </div>
 
             {views.map((v, i) => {
               const place = barPlacement(v, win);
+              const level = Math.min(6, Math.max(1, v.bloomLevel ?? 1));
+              const config = BLOOM_CONFIG[level as keyof typeof BLOOM_CONFIG];
               const title = `${v.subtask.title} · ${v.schedule} · ${v.durationDays} 天`;
               return (
                 <div
@@ -135,16 +134,18 @@ export function GanttChart({
                 >
                   <span className="flex min-w-0 items-center gap-2" title={title}>
                     <b className="truncate text-body-sm font-medium">{v.subtask.title}</b>
-                    {v.bloom && (
-                      <em className="shrink-0 font-mono text-[9px] font-medium not-italic text-text-3">
-                        {v.bloom.split(" ")[0]}
-                      </em>
-                    )}
+                    <em
+                      className="shrink-0 font-mono text-[9px] font-bold not-italic"
+                      style={{ color: bloomChromatic(level) }}
+                    >
+                      L{level} {config.name}
+                    </em>
                   </span>
                   <div className={TRACK}>
                     {place && (
                       <GanttBar
-                        state={v.state}
+                        level={level}
+                        done={v.state === "done"}
                         col={place.col}
                         count={place.count}
                         title={title}

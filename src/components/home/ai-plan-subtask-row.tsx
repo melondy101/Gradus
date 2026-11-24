@@ -1,15 +1,18 @@
 "use client";
 
 /**
- * AI 面板里的计划预览行（§3 屏一右列 / 屏三「计划预览」，原 app.css 的
- * `.sub` + `.box` → 暖纸底）。三态语言与 <SubtaskLine> 一致：
- * 完成 = 墨底方勾（「已盖章」），未完成 = 墨框空框。
+ * AI 面板里的计划预览行（时间色谱 · 与今日路线行同一套语言）。
+ *
+ * 之前这里只有一行灰字「L1 · 2 天」，没有层级色轨、没有彩色层级标签，
+ * 和今日路线 / 天梯完全不像一套东西 —— 同一份计划在两个面板里长得不一样。
+ * 现在对齐 <SubtaskLine>：8px 认知色轨 + 彩色 L 标签 + 每日工时。
  *
  * ⚠ 勾选走真实的 PATCH（onToggleSubtask），跳转依赖 #subtask-card-{id}。
  */
 
 import { CheckBox } from "@/components/ui/check-box";
-import { Mono } from "@/components/ui/eyebrow";
+import { BLOOM_CONFIG, bloomChromatic } from "@/lib/design-tokens";
+import { deepHoursOf } from "@/lib/workload";
 import { cn } from "@/utils/utils";
 
 interface Props {
@@ -18,15 +21,24 @@ interface Props {
   completed: boolean;
   bloomLevel: number;
   durationDays: number;
+  /** AI 给出的每日深度工时；缺失时按 1.5h/天 兜底 */
+  deepWorkHours?: number | null;
   onToggle: () => void;
   onJump?: () => void;
 }
 
 export function AiPlanSubtaskRow({
-  title, description, completed, bloomLevel, durationDays, onToggle, onJump,
+  title, description, completed, bloomLevel, durationDays, deepWorkHours, onToggle, onJump,
 }: Props) {
+  const level = Math.min(6, Math.max(1, bloomLevel || 1));
+  const config = BLOOM_CONFIG[level as keyof typeof BLOOM_CONFIG] ?? BLOOM_CONFIG[3];
+  const color = bloomChromatic(level);
+  const daily = deepHoursOf({ durationDays, deepWorkHours });
+
   return (
-    <li className="grid grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-3 border-t border-bd-card py-2 first:border-t-0 first:pt-0">
+    <li className="grid grid-cols-[8px_22px_minmax(0,1fr)_auto] items-center gap-3 border-t border-bd-card py-2.5 first:border-t-0 first:pt-0">
+      <span className="h-10 w-2" style={{ background: color }} aria-hidden="true" />
+
       <CheckBox
         state={completed ? "done" : "todo"}
         aria-label={completed ? "取消完成" : "标记完成"}
@@ -38,7 +50,7 @@ export function AiPlanSubtaskRow({
         <b
           className={cn(
             "block overflow-hidden text-ellipsis text-body-lg leading-[1.4] font-bold whitespace-nowrap",
-            completed ? "text-text-3 line-through" : "text-ink"
+            completed ? "text-text-3 line-through decoration-bd-check" : "text-ink"
           )}
         >
           {title}
@@ -46,15 +58,18 @@ export function AiPlanSubtaskRow({
         {description && <p className="mt-0.5 text-body-sm text-text-2">{description}</p>}
       </div>
 
-      <Mono className="text-micro whitespace-nowrap text-right text-text-3">
+      <div className="text-right">
+        <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
+          L{level} {config.name}
+        </b>
         <button
           type="button"
           onClick={onJump}
-          className="cursor-pointer bg-transparent font-[inherit] tracking-[inherit] text-inherit"
+          className="mt-0.5 block cursor-pointer bg-transparent font-mono text-2xs tracking-[.04em] whitespace-nowrap text-text-3 transition-colors hover:text-ink"
         >
-          L{bloomLevel} · {durationDays} 天
+          {durationDays} 天 · {daily.hours}h/天
         </button>
-      </Mono>
+      </div>
     </li>
   );
 }

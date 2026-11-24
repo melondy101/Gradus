@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * AI 检查面板外壳（§3 屏一右列 / §4.4 深色带语言）。
+ * AI 检查面板外壳（§3 屏一右列 / §4.4 面板语言）。
  *
  * variant="rail" —— 应用外壳右侧固定栏（计划 / 天梯 / 甘特视图使用），可折叠，移动端为底部抽屉。
  * variant="card" —— 屏一双列右列的暖底卡（与 rail 共用同一份 <AiInspector>）。
@@ -172,7 +172,7 @@ export function RightPanel({
           <div className="flex flex-none items-center gap-2.5 border-b border-bd-card px-4 py-3">
             <div className="min-w-0 flex-1">
               <Eyebrow>AI Review</Eyebrow>
-              <div className="mt-1 text-body-lg font-bold text-ink">
+              <div className="mt-1 font-chromatic text-body-lg font-bold text-ink">
                 意图 · 资源 · 计划 · 核查
               </div>
             </div>
@@ -205,7 +205,7 @@ export function RightPanel({
         {!collapsed && (
           <div className="min-w-0 flex-1">
             <Eyebrow>AI Review</Eyebrow>
-            <div className="mt-1 flex items-center gap-1.5 text-body font-bold text-ink">
+            <div className="mt-1 flex items-center gap-1.5 font-chromatic text-body font-bold text-ink">
               {runningCount > 0 && <Bell size={13} className="text-error" />}
               AI 分析面板
             </div>

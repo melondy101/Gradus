@@ -77,7 +77,7 @@ export function AiInspector({
         </Mono>
       </CardHeader>
 
-      <h3 className="mb-1 text-title-sm leading-snug font-bold text-ink">
+      <h3 className="mb-1 font-chromatic text-title-sm leading-snug font-bold text-ink">
         {headline(focused, hints.length)}
       </h3>
 

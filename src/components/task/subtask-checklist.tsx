@@ -3,6 +3,8 @@
 import { Check } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
 import { Mono } from "@/components/ui/eyebrow";
+import { BLOOM_CONFIG, bloomChromatic } from "@/lib/design-tokens";
+import { deepHoursOf } from "@/lib/workload";
 import { cn } from "@/utils/utils";
 import { SubtaskMark } from "./subtask-mark";
 import type { SubtaskState, SubtaskView } from "./subtask-view-model";
@@ -22,7 +24,7 @@ const STATE_LABEL: Record<SubtaskState, string> = {
 };
 
 /**
- * 屏二子任务清单：状态圆点三态 + 排期日期。
+ * 屏二子任务清单（时间色谱）：认知色轨 + 彩色层级标签 + 每日工时。
  * 点击行选中并填充右侧详情面板，点击圆点本身切换完成状态（保留原有勾选行为）。
  */
 export function SubtaskChecklist({
@@ -44,17 +46,25 @@ export function SubtaskChecklist({
         {views.map((v) => {
           const id = v.subtask.id;
           const selected = selectedId === id;
-          const meta = v.bloom ? `${STATE_LABEL[v.state]} · ${v.bloom}` : STATE_LABEL[v.state];
+          const level = Math.min(6, Math.max(1, v.bloomLevel ?? 1));
+          const config = BLOOM_CONFIG[level as keyof typeof BLOOM_CONFIG];
+          const color = bloomChromatic(level);
+          const daily = deepHoursOf({
+            durationDays: v.durationDays,
+            deepWorkHours: v.deepWorkHours,
+          });
           return (
             <li
               key={id}
               className={cn(
-                "grid cursor-pointer grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3",
+                "grid cursor-pointer grid-cols-[8px_20px_minmax(0,1fr)_auto] items-center gap-3",
                 "border-t border-bd-card py-[7px] transition-colors duration-[.16s]",
                 "first:border-t-0 hover:bg-cream-light",
                 selected && "bg-cream-light shadow-[inset_3px_0_0_var(--accent)]",
               )}
             >
+              <span className="h-8 w-2" style={{ background: color }} aria-hidden="true" />
+
               <SubtaskMark
                 state={v.state}
                 ariaLabel={v.subtask.completed ? "标记为未完成" : "标记为已完成"}
@@ -85,10 +95,19 @@ export function SubtaskChecklist({
                 >
                   {v.subtask.title}
                 </span>
-                <span className="mt-0.5 block text-body-sm text-text-3">{meta}</span>
+                <span className="mt-0.5 block text-body-sm text-text-3">
+                  {STATE_LABEL[v.state]} · {v.schedule}
+                </span>
               </button>
 
-              <Mono className="text-right text-micro text-text-3">{v.schedule}</Mono>
+              <div className="text-right">
+                <b className="block text-body-sm font-bold whitespace-nowrap" style={{ color }}>
+                  L{level} {config.name}
+                </b>
+                <Mono className="mt-0.5 block text-micro whitespace-nowrap text-text-3">
+                  {daily.hours}h/天
+                </Mono>
+              </div>
             </li>
           );
         })}

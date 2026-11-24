@@ -52,7 +52,7 @@ export function AiEntryDetail({
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-3">
           <Eyebrow kind="label" className="mb-0 text-text-3">Progress</Eyebrow>
-          <Mono className="text-text-2">{completed} / {subs.length} · {Math.round(pct * 100)}%</Mono>
+          <Mono className="font-chromatic text-text-2">{completed} / {subs.length} · {Math.round(pct * 100)}%</Mono>
         </div>
         <div className="h-2 overflow-hidden rounded-chip-sm border border-bd-check bg-cream-light">
           <div
@@ -72,6 +72,7 @@ export function AiEntryDetail({
             completed={s.completed}
             bloomLevel={s.bloomLevel ?? 1}
             durationDays={s.durationDays}
+            deepWorkHours={s.deepWorkHours}
             onToggle={() => onToggleSubtask(entry.taskId, s.id, s.completed)}
             onJump={() => onJumpToSubtask?.(s.id)}
           />
@@ -120,7 +121,7 @@ export function AiEntryDetail({
       </div>
 
       <p className="mt-1 border-t border-bd-card pt-2.5 font-mono text-2xs tracking-[.04em] text-text-3">
-        子任务 {sum.subtaskCount} · 资源 {sum.resourceCount}（已校验 {sum.verifiedCount}）· 排期 {sum.totalDays} 天 · 深度工时 {sum.deepHours}H
+        子任务 {sum.subtaskCount} · 资源 {sum.resourceCount}（已校验 {sum.verifiedCount}）· 排期 {sum.totalDays} 天 · 总工时 {sum.deepHours}H
       </p>
     </div>
   );

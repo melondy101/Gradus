@@ -32,7 +32,7 @@ export function LandingQuotaBand() {
         <Heading level={2} spec="sec" className={bandHeadingClass}>
           先把额度说清楚，再让你开始
         </Heading>
-        <p className="mb-9 max-w-[68ch] text-[16px] leading-[27px] text-text-2">
+        <p className="mb-9 max-w-[68ch] font-chromatic text-[16px] leading-[27px] text-text-2">
           免费账号能完整跑一遍「目标 → 拆解 → 排期 → 天梯 → 打卡」的全流程。
           额度用完不会拦死你：第二天还会再送一次，也可以在会员中心买次数包。
         </p>
