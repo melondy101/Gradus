@@ -47,12 +47,13 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   icons: {
+    // ?v= 是图标缓存版本号：换标识时必须一起改，否则浏览器会一直用旧图标
     icon: [
-      { url: "/icon.svg?v=brand-step", type: "image/svg+xml" },
-      { url: "/favicon.svg?v=brand-step", type: "image/svg+xml" },
+      { url: "/icon.svg?v=brand-v2", type: "image/svg+xml" },
+      { url: "/favicon.svg?v=brand-v2", type: "image/svg+xml" },
     ],
-    shortcut: "/icon.svg?v=brand-step",
-    apple: "/icon.svg?v=brand-step",
+    shortcut: "/icon.svg?v=brand-v2",
+    apple: "/icon.svg?v=brand-v2",
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {

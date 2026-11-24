@@ -12,13 +12,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#F5F2EA",
     icons: [
       {
-        src: "/icon.svg",
+        // ?v= 与 layout.tsx 的图标版本号保持一致：换标识时一起改，否则 PWA 图标仍是旧的
+        src: "/icon.svg?v=brand-v2",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "any",
       },
       {
-        src: "/icon.svg",
+        src: "/icon.svg?v=brand-v2",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "maskable",

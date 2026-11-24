@@ -95,6 +95,30 @@
 
 ## ⚡ 快速开始
 
+<details>
+<summary><b>🤖 复制给 Agent —— 让它替你把这个项目跑起来</b></summary>
+
+把下面整段粘给你的 Agent（Cursor / Claude Code / Codex / openclaw 等）即可，它会照着仓库文档把环境装好并验证跑通：
+
+```text
+你在仓库 <仓库路径> 里。请按 AGENTS.md 的约定把拾级（Gradus）在本机跑起来：
+
+1. 先读 README.md 的「快速开始」与 DEPLOY.md，确认工具链（Bun 1.3+，不要用 npm / yarn / pnpm）。
+2. 检查 .env 是否存在：不存在就 cp .env.example .env；已存在则不要覆盖，只补缺失的键。
+3. 缺 DATABASE_URL / AUTH_SECRET / AI 服务密钥时，一次性告诉我还缺哪几项，我来提供；
+   不要自己编造连接串或密钥，也不要把密钥写进任何会被提交的文件。
+4. 跑 bun run db:migrate 初始化数据库表结构，然后 bun dev 启动开发服务器（http://localhost:3000）。
+5. 启动后用浏览器打开 http://localhost:3000/app：确认页面正常渲染、控制台无报错；
+   再创建一个测试学习目标，确认 AI 规划流水线（意图解析 → 资源检索 → 计划生成 → 核查修订）
+   能跑完并落下带认知层级的子任务与排期。
+6. 全程遵守 AGENTS.md：设计令牌与 UI 原语从既有文件导入、不新增裸色值、
+   AI 调用只放在 src/app/api/ 的路由里、改动后跑 bun run lint 与 bun run test。
+```
+
+> 需要人工判断的只有两处：数据库连接串和模型密钥。其余（安装、迁移、启动、验证）都可以交给 Agent。
+
+</details>
+
 ### 1. 环境准备
 - [Bun](https://bun.sh/) 1.3+（强烈推荐）或 Node.js 18+
 - [PostgreSQL](https://www.postgresql.org/) 数据库（可免费使用 [Neon](https://neon.tech/) 或 [Supabase](https://supabase.com/)）
