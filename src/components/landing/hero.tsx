@@ -31,7 +31,7 @@ export function LandingHero() {
               aria-hidden
               className="size-[7px] shrink-0 animate-pulse rounded-full bg-accent [animation-duration:1.8s]"
             />
-            v{PRODUCT_VERSION} · 本版：层级标签与工时口径统一，配额与价格透明化
+            v{PRODUCT_VERSION} · 本版：时间色谱设计系统落地，购买到账自动核对
           </Badge>
 
           <p className="mt-[26px] flex items-center gap-[9px] text-body tracking-[.02em] text-text-2">
