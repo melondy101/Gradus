@@ -4,6 +4,8 @@
 
 **版本：** v1.0.0
 **日期：** 2026-08-05
+**产品版本：** 2.1.0（产品版本与 PRD 文档版本是两条独立的轴；黑白黄配色收束于 2.0.1，自时间色谱换色与用户反馈起为 2.1.x 系列，docs 里的 0.2.0 指反馈纲领，见 `docs/plans/2026-11-24-user-feedback-0.2.0.md`）
+**许可证：** MIT（见仓库根目录 [LICENSE](../LICENSE)）
 **App ID：** `ir03ZvSfyvtHG2OH`
 **线上地址：** https://talk-task.vercel.app/
 **沙盒预览：** https://3000-ilwcstwrli10suhr88349.e2b.app
@@ -356,7 +358,7 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 ```
 ### 5.2 前端结构（路由与分层）
 
-完整目录树以 [AGENTS.md §3](../AGENTS.md) 为准，这里只标产品视角的边界，避免两处真相源互相腐烂。
+目录与代码入口见[开发参考](./development/agent-reference.md#project-layout)；这里只标产品视角的边界，避免两处真相源互相腐烂。
 
 | 路由 | 页面 | 主要目录 |
 |---|---|---|
@@ -398,7 +400,7 @@ RSC 根布局在 `getCurrentUser()` 阶段直接读 cookie 解出 user，首屏�
 
 ### 6.1 API 全览
 
-> 只列主干。完整清单（邮箱验证码、Watcha OAuth、会员兑换码、日历订阅、App 热更新、`/api/cron/*`）以 [AGENTS.md §7](../AGENTS.md) 为准，最终以 `src/app/api/**/route.ts` 为准。
+> 只列主干。当前路由分组见[开发参考](./development/agent-reference.md#api-surface)；完整清单以 `src/app/api/**/route.ts` 为准。
 
 | 方法 | 路径 | 描述 | 认证 | 文件 |
 |---|---|---|---|---|
