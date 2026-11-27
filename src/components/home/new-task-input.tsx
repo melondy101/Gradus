@@ -23,6 +23,7 @@ import { TagEditor } from "@/components/task/tag-badges";
 import { NewTaskQuotaHint } from "./new-task-quota-hint";
 import { NewTaskUrlHint } from "./new-task-url-hint";
 import { detectUrlHint, extractUrlClient, EXAMPLE_GOALS } from "./new-task-url";
+import { useCreditBalance } from "./use-credit-balance";
 
 interface Props {
   onClose: () => void;
@@ -39,6 +40,9 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
   const detectedUrl = extractUrlClient(goal);
   const urlHint = detectedUrl ? detectUrlHint(detectedUrl) : null;
   const filled = !!goal.trim();
+  // 额度已校验且为 0 时拦住提交：否则任务会建出来、分析却 403，留下一堆没有计划的僵尸任务
+  const balance = useCreditBalance();
+  const quotaExhausted = balance === 0;
 
   const handleSubmit = () => {
     if (!filled) return;
@@ -76,7 +80,12 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
             <Button variant="secondary" size="sm" onClick={onClose}>
               {t("newTask.cancel")}
             </Button>
-            <Button size="sm" disabled={!filled} onClick={handleSubmit}>
+            <Button
+              size="sm"
+              disabled={!filled || quotaExhausted}
+              onClick={handleSubmit}
+              title={quotaExhausted ? "AI 规划次数已用完，可购买资源包或等待每日重置" : undefined}
+            >
               <Sparkles size={13} />
               <span>
                 {urlHint
@@ -128,7 +137,7 @@ export function NewTaskInput({ onClose, onSubmit }: Props) {
       {urlHint && <NewTaskUrlHint hint={urlHint} />}
 
       {/* 额度提示：提交前告诉用户还能生成几次，用完怎么办（FB-03） */}
-      <NewTaskQuotaHint />
+      <NewTaskQuotaHint balance={balance} />
 
       {/* 折叠式标签选择器：手机上默认紧凑，不占主输入视线 */}
       <div className="border-t border-bd-card pt-2">
