@@ -219,6 +219,7 @@ output/playwright/
 # AI 工具本地状态（会话目录/worktree 副本/本地密钥，严禁入库）
 .claude/
 .agents/
+.superpowers/
 .cursor/
 .zcode/
 .env*
