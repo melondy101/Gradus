@@ -135,4 +135,5 @@
 
 - 产品壳四视图路由：`/app?view=today|plans|steps|timeline`（page.tsx 只做壳，取数在组件）。
 - 浮层 z 阶梯：Modal layer 100→400；toast/浮标在其上。
+- 新手引导浮层（聚光灯遮罩 / 聚焦环 / 气泡卡，`src/components/home/tour-*`）落在 500→502，压过 Modal 阶梯——引导进行中任何弹层不得穿模；视觉语言与 Modal 一致（45% 墨遮罩 + radius-popover 白卡 + `--shadow-lg`），聚焦环用暖纸底强调朱红。
 - 探针页：`/task/parity-probe`（`?ritual=<phase>` / `?overlay=<name>`）用固定样例渲染屏二/屏三版面，是**无数据库环境下的实测入口**。
