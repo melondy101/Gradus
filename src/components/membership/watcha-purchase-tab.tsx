@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { beginWatchaPurchase } from "@/lib/api/commerce";
+import { markPendingWatchaPurchase } from "@/lib/commerce/pending-purchase";
 import { COMMERCE_PRODUCTS, type ProductSku } from "@/lib/commerce/catalog";
 import { WatchaPayDialog, prefersMobileApp } from "./watcha-pay-dialog";
 
@@ -36,6 +37,8 @@ export function WatchaPurchaseTab({ balance, balanceVerified, paymentReady,
     setBusySku(sku);
     try {
       const entry = await beginWatchaPurchase(sku);
+      // 记下待核对意图：手机端深链付完不会回到拾级，回到任意页面都要能自动核到账
+      markPendingWatchaPurchase(sku);
       const product = COMMERCE_PRODUCTS[sku];
       const price = `¥${(product.amountCents / 100).toFixed(2)}`;
       const name = product.name;
@@ -83,7 +86,9 @@ export function WatchaPurchaseTab({ balance, balanceVerified, paymentReady,
           </Card>
         );})}
     </div>
-    <p className="text-body-sm text-text-2">付款后返回拾级刷新余额；只有爱猹收确认权益后才能使用。桌面端扫码，手机端唤起支付宝。</p>
+    <p className="text-body-sm text-text-2">
+      付款后权益到账通常有几分钟延迟；回到拾级会自动核对，会员中心也可随时查看可用次数。只有爱猹收确认权益后才能使用。桌面端扫码，手机端唤起支付宝。
+    </p>
 
     {payEntry && (
       <WatchaPayDialog

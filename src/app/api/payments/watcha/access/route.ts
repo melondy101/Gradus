@@ -30,6 +30,13 @@ async function accessForUser(request: NextRequest, purchase: boolean) {
     const returnUrl = purchase ? `${origin}/payment/return?sku=${product.sku}` : undefined;
     const result = await checkWatchaAccess(config, entitlementId, auth.userId, returnUrl);
     if (result.entitlement.type !== "quota") throw new WatchaPayError("商品权益类型与拾级配置不一致");
+    if (purchase) {
+      // 爱猹收购买不在本地落单，这行是「用户是否拿到过购买入口」的唯一本地证据
+      console.info("[watcha-pay] purchase entry issued", {
+        userId: auth.userId, sku: product.sku, access: result.access,
+        hasPurchaseUrl: Boolean(result.purchase?.url),
+      });
+    }
     return NextResponse.json({
       ok: true, sku: product.sku, access: result.access,
       remaining: result.entitlement.remaining ?? null,

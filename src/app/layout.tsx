@@ -4,6 +4,7 @@ import { Noto_Sans_SC, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { GlobalAuthModal } from "@/components/auth/global-auth-modal";
 import { GlobalMembershipModal } from "@/components/membership/global-membership-modal";
+import { PendingWatchaPurchaseWatcher } from "@/components/membership/pending-watcha-purchase-watcher";
 import { GlobalUpdateModal } from "@/components/update/global-update-modal";
 import { cn } from "@/utils/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -117,6 +118,7 @@ export default async function RootLayout({
               {children}
               <GlobalAuthModal />
               <GlobalMembershipModal />
+              <PendingWatchaPurchaseWatcher />
               <GlobalUpdateModal />
               <Toaster />
               <Analytics />
