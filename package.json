@@ -1,6 +1,6 @@
 {
   "name": "gradus",
-  "version": "0.2.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",

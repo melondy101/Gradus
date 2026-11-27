@@ -13,7 +13,7 @@
  */
 
 /** 产品版本（唯一真源与 package.json 的 version 保持一致） */
-export const PRODUCT_VERSION = "0.2.0";
+export const PRODUCT_VERSION = "2.1.0";
 
 /** 客户端（Android / 全平台）更新通道版本 —— 只在发客户端包时 +1 */
 export const CURRENT_APP_VERSION = "1.0.0";
